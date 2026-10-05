@@ -34,6 +34,16 @@ export interface ChatMarkAsReadResult {
   count: number
 }
 
+export interface BatchChatContentRequest {
+  content: string
+  timestamp: string
+}
+
+export interface ParticipantChatBatchResponse {
+  groupingChatId: string
+  messages: ChatMessage[]
+}
+
 export const getChatSimulations = (participantId: string) =>
   apiClient<ChatSimulationItem[]>(
     `/web/chat/master_group_simulations?participantId=${encodeURIComponent(participantId)}`,
@@ -49,13 +59,16 @@ export const getChatMessages = (participantId: string, simulationId: string, act
 export const sendParticipantChat = (
   participantId: string,
   actorId: string,
-  content: string,
+  contents: BatchChatContentRequest[],
   simulationId: string,
 ) =>
-  apiClient<ChatMessage>(`/web/chat?participantId=${encodeURIComponent(participantId)}`, {
-    method: 'POST',
-    body: JSON.stringify({ actorId, content, simulationId }),
-  })
+  apiClient<ParticipantChatBatchResponse>(
+    `/web/chat?participantId=${encodeURIComponent(participantId)}`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ actorId, contents, simulationId }),
+    },
+  )
 export const markChatMessageRead = (participantId: string, simulationId: string, actorId: string) =>
   apiClient<ChatMarkAsReadResult>(
     `/web/chat/mark-as-read?participantId=${encodeURIComponent(participantId)}&simulationId=${encodeURIComponent(simulationId)}&actorId=${encodeURIComponent(actorId)}`,

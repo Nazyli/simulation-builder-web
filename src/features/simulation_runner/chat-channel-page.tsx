@@ -10,11 +10,27 @@ import {
 } from '../../shared/api/chat'
 import { eventsUrl } from '../../shared/api/client'
 import { ChatWorkspace } from './chat/chat-workspace'
+import { ChatBatchBuffer, sendChatTimerMs } from './chat/chat-batch-buffer'
+import type { ChatBubbleInput } from './chat/chat-batch-buffer'
 import type { ChatActor, ChatMessage, ChatSimulation } from './chat/types'
+import { mergeChatMessages } from './chat/utils'
 import { useSimulationRun } from './simulation-run-context-core'
 
 export function ChatChannelPage() {
   const { participantId, isChatPending, sendChat, markChatRead } = useSimulationRun()
+  const [localMessages, setLocalMessages] = useState<ChatMessage[]>([])
+  const sendChatRef = useRef(sendChat)
+  sendChatRef.current = sendChat
+  const pendingTargetRef = useRef<{ simulationId: string; target: string } | null>(null)
+  const pendingMessageIdsByTimestampRef = useRef(new Map<string, string>())
+  const isMountedRef = useRef(true)
+  const flushBatchRef = useRef<(contents: ChatBubbleInput[]) => void>(() => undefined)
+  const lastBubbleTimestampRef = useRef(0)
+  const batchBufferRef = useRef<ChatBatchBuffer | null>(null)
+  if (!batchBufferRef.current) {
+    batchBufferRef.current = new ChatBatchBuffer(sendChatTimerMs, (contents) => flushBatchRef.current(contents))
+  }
+  const flushQueuedBubbles = () => batchBufferRef.current?.flush()
 
   const toChatMessage = (message: ApiChatMessage): ChatMessage => ({
     messageId: message.participantChatId,
@@ -31,6 +47,39 @@ export function ChatChannelPage() {
     simulationId: message.simulationId ?? undefined,
     isUnread: message.isRead === false,
   })
+
+  flushBatchRef.current = (contents) => {
+    const pendingTarget = pendingTargetRef.current
+    if (!pendingTarget) return
+    const pendingIds = contents
+      .map((content) => pendingMessageIdsByTimestampRef.current.get(content.timestamp))
+      .filter((messageId): messageId is string => Boolean(messageId))
+    const pendingIdSet = new Set(pendingIds)
+    if (isMountedRef.current && pendingIdSet.size) {
+      setLocalMessages((messages) =>
+        messages.map((message) =>
+          pendingIdSet.has(message.messageId ?? '') ? { ...message, deliveryStatus: 'sending' } : message,
+        ),
+      )
+    }
+    void sendChatRef
+      .current({ ...pendingTarget, contents })
+      .then((response) => {
+        contents.forEach((content) => pendingMessageIdsByTimestampRef.current.delete(content.timestamp))
+        if (!isMountedRef.current) return
+        const persistedMessages = response.messages.map(toChatMessage)
+        setLocalMessages((messages) => [
+          ...messages.filter((message) => !pendingIdSet.has(message.messageId ?? '')),
+          ...persistedMessages,
+        ])
+      })
+      .catch(() => {
+        contents.forEach((content) => pendingMessageIdsByTimestampRef.current.delete(content.timestamp))
+        if (!isMountedRef.current) return
+        setLocalMessages((messages) => messages.filter((message) => !pendingIdSet.has(message.messageId ?? '')))
+      })
+    pendingTargetRef.current = null
+  }
 
   const toChatSimulation = (item: ChatSimulationItem): ChatSimulation => ({
     simulationId: item.simulationId,
@@ -94,6 +143,7 @@ export function ChatChannelPage() {
   }, [fetchedActors, optimisticActors])
 
   const handleStartNewChat = (actor: ChatActor) => {
+    flushQueuedBubbles()
     setOptimisticActors((prev) => {
       if (prev.some((a) => a.actorId === actor.actorId)) return prev
       if (fetchedActors.some((a) => a.actorId === actor.actorId)) return prev
@@ -167,7 +217,40 @@ export function ChatChannelPage() {
     ),
   })
 
-  const visibleMessages: ChatMessage[] = (chatQuery.data ?? []).map(toChatMessage)
+  const serverMessages: ChatMessage[] = (chatQuery.data ?? []).map(toChatMessage)
+  const visibleLocalMessages = localMessages.filter(
+    (message) => message.simulationId === effectiveSelected && message.to === selectedActor,
+  )
+  const visibleMessages = mergeChatMessages(serverMessages, visibleLocalMessages)
+
+  useEffect(() => {
+    const persistedIds = new Set((chatQuery.data ?? []).map((message) => message.participantChatId))
+    if (!persistedIds.size) return
+    setLocalMessages((messages) => messages.filter((message) => !persistedIds.has(message.messageId ?? '')))
+  }, [chatQuery.data])
+
+  useEffect(() => {
+    isMountedRef.current = true
+    const handleVisibility = () => {
+      if (document.visibilityState === 'hidden') flushQueuedBubbles()
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility)
+      isMountedRef.current = false
+      batchBufferRef.current?.dispose()
+    }
+  }, [])
+
+  useEffect(() => {
+    const queuedTarget = pendingTargetRef.current
+    if (
+      queuedTarget &&
+      (queuedTarget.simulationId !== effectiveSelected || queuedTarget.target !== selectedActor)
+    ) {
+      flushQueuedBubbles()
+    }
+  }, [effectiveSelected, selectedActor])
 
   const selectedRun = simulations.find((s) => s.simulationId === effectiveSelected)
   const canReply = Boolean(
@@ -179,11 +262,40 @@ export function ChatChannelPage() {
     event.preventDefault()
     const data = new FormData(event.currentTarget)
     if (!effectiveSelected || !selectedActor) return
-    sendChat({
-      simulationId: effectiveSelected,
-      target: selectedActor,
-      content: String(data.get('content') ?? ''),
-    })
+    const content = String(data.get('content') ?? '')
+    if (!content.trim()) return
+    const target = { simulationId: effectiveSelected, target: selectedActor }
+    const pendingTarget = pendingTargetRef.current
+    if (
+      pendingTarget &&
+      (pendingTarget.simulationId !== target.simulationId || pendingTarget.target !== target.target)
+    ) {
+      flushQueuedBubbles()
+    }
+    pendingTargetRef.current = target
+    const timestamp = Math.max(Date.now(), lastBubbleTimestampRef.current + 1)
+    lastBubbleTimestampRef.current = timestamp
+    const timestampIso = new Date(timestamp).toISOString()
+    const optimisticMessageId = `queued-${timestamp}-${Math.random().toString(36).slice(2, 8)}`
+    pendingMessageIdsByTimestampRef.current.set(timestampIso, optimisticMessageId)
+    setLocalMessages((messages) => [
+      ...messages,
+      {
+        messageId: optimisticMessageId,
+        from: participantId,
+        to: selectedActor,
+        actor: participantId,
+        senderType: 'participant',
+        channel: 'chat',
+        chatId: null,
+        actionType: 'message',
+        content,
+        timestamp: timestampIso,
+        simulationId: effectiveSelected,
+        deliveryStatus: 'queued',
+      },
+    ])
+    batchBufferRef.current?.enqueue({ content, timestamp: timestampIso })
     event.currentTarget.reset()
   }
 
@@ -196,14 +308,19 @@ export function ChatChannelPage() {
         simulations={simulations}
         selectedSimulation={effectiveSelected}
         onSelectSimulation={(simulationId) => {
+          flushQueuedBubbles()
           setSelectedSimulation(simulationId)
           setSelectedActor(null)
         }}
         selectedActor={selectedActor}
-        onSelectActor={setSelectedActor}
+        onSelectActor={(actorId) => {
+          flushQueuedBubbles()
+          setSelectedActor(actorId)
+        }}
         onStartNewChat={handleStartNewChat}
         disabled={disabled}
         onSubmit={submit}
+        onTyping={() => batchBufferRef.current?.noteTyping()}
         onConversationOpen={(actorId) => {
           if (!effectiveSelected) return
           const actor = actors.find((item) => item.actorId === actorId)

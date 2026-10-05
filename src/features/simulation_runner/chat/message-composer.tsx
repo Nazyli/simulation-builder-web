@@ -1,13 +1,14 @@
 import { Send } from 'lucide-react'
-import type { FormEvent } from 'react'
+import type { FormEvent, KeyboardEvent } from 'react'
 
 interface MessageComposerProps {
   target: string
   disabled: boolean
   onSubmit: (event: FormEvent<HTMLFormElement>) => void
+  onTyping: () => void
 }
 
-export function MessageComposer({ target, disabled, onSubmit }: MessageComposerProps) {
+export function MessageComposer({ target, disabled, onSubmit, onTyping }: MessageComposerProps) {
   const canSend = Boolean(target) && !disabled
   return (
     <form
@@ -20,6 +21,13 @@ export function MessageComposer({ target, disabled, onSubmit }: MessageComposerP
           name="content"
           required
           disabled={!canSend}
+          onChange={onTyping}
+          onKeyDown={(event: KeyboardEvent<HTMLTextAreaElement>) => {
+            if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
+              event.preventDefault()
+              event.currentTarget.form?.requestSubmit()
+            }
+          }}
           placeholder={canSend ? `Message ${target}…` : 'Select a conversation to reply.'}
           className="!m-0 min-h-[44px] min-w-0 flex-1 resize-y rounded-md !border-slate-200 !bg-slate-50 !px-3 !py-2 text-sm text-slate-900 !shadow-none outline-none focus:!border-[#9929EA] focus:!ring-2 focus:!ring-purple-200 disabled:!bg-slate-100"
         />

@@ -21,6 +21,14 @@ npm install
 npm run dev
 ```
 
+`VITE_SEND_CHAT_TIMER` controls how long finalized participant chat bubbles wait
+for more typing before the runner sends them together. The value is seconds and
+defaults to `8`. Switching actor or simulation, leaving the chat page, or hiding
+the page flushes finalized bubbles immediately. Enter finalizes a bubble;
+Shift+Enter inserts a newline inside the current bubble. Finalized bubbles show
+in the conversation immediately as queued, then switch to the persisted message
+after the batch request succeeds.
+
 The graph editor stores node configuration as JSON-compatible data. An action
 with **Dummy AI** enabled uses fixture JSON such as
 `{"responses":["Hello"]}` or `{"classifications":[{"label":"pass","score":0.9}]}`.

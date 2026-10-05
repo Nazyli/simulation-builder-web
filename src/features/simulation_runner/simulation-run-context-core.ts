@@ -4,6 +4,8 @@ import type {
   ChatMessage,
   ChatActorItem,
   ChatSimulationItem,
+  BatchChatContentRequest,
+  ParticipantChatBatchResponse,
 } from '../../shared/api/chat'
 import type { EmailMarkAsReadResult, ParticipantEmailAttachmentInput } from '../../shared/api/email'
 import type { Channel } from './simulation-channels'
@@ -13,7 +15,11 @@ export interface SimulationRunContextValue {
   unreadCounts: Record<Channel, number>
   runnerParticipantId: string
   isChatPending: boolean
-  sendChat: (input: { simulationId: string; target: string; content: string }) => void
+  sendChat: (input: {
+    simulationId: string
+    target: string
+    contents: BatchChatContentRequest[]
+  }) => Promise<ParticipantChatBatchResponse>
   markChatRead: (simulationId: string, actorId: string) => Promise<ChatMarkAsReadResult>
   isEmailPending: boolean
   sendEmail: (input: {

@@ -4,8 +4,10 @@ import { toast } from 'sonner'
 import {
   markChatMessageRead,
   sendParticipantChat,
+  type BatchChatContentRequest,
   type ChatActorItem,
   type ChatMessage,
+  type ParticipantChatBatchResponse,
   type ChatSimulationItem,
 } from '../../shared/api/chat'
 import { eventsUrl } from '../../shared/api/client'
@@ -110,12 +112,12 @@ export function SimulationRunProvider({
     mutationFn: ({
       simulationId,
       target,
-      content,
+      contents,
     }: {
       simulationId: string
       target: string
-      content: string
-    }) => sendParticipantChat(participantId.trim(), target, content, simulationId),
+      contents: BatchChatContentRequest[]
+    }) => sendParticipantChat(participantId.trim(), target, contents, simulationId),
     onSuccess: () => {
       client.invalidateQueries({ queryKey: ['chat-messages'] })
       client.invalidateQueries({ queryKey: ['chat-simulations'] })
@@ -261,15 +263,19 @@ export function SimulationRunProvider({
     ]),
   ) as Record<Channel, number>
 
-  const sendChat = (input: { simulationId: string; target: string; content: string }) => {
+  const sendChat = (input: {
+    simulationId: string
+    target: string
+    contents: BatchChatContentRequest[]
+  }): Promise<ParticipantChatBatchResponse> => {
     if (!participantId.trim()) {
       toast.error('Choose an active simulation session.')
-      return
+      return Promise.reject(new Error('Active simulation session is required.'))
     }
-    chatAction.mutate({
+    return chatAction.mutateAsync({
       simulationId: input.simulationId,
       target: input.target,
-      content: input.content,
+      contents: input.contents,
     })
   }
 

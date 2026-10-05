@@ -13,6 +13,7 @@ export interface ChatMessage {
   simulationLabel?: string
   simulationId?: string
   isUnread?: boolean
+  deliveryStatus?: 'queued' | 'sending'
 }
 
 export interface ChatConversation {

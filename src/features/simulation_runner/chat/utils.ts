@@ -14,6 +14,29 @@ export function isOwnMessage(message: ChatMessage, participantId: string): boole
   return message.from ? message.from === participantId : message.actor === participantId
 }
 
+export function mergeChatMessages(
+  serverMessages: ChatMessage[],
+  localMessages: ChatMessage[],
+): ChatMessage[] {
+  const signatureFor = (message: ChatMessage) => {
+    const sentAt = new Date(message.timestamp).getTime()
+    return [message.senderType, message.to, message.content, sentAt].join('\u0000')
+  }
+  const serverSignatures = new Set(serverMessages.map(signatureFor))
+  const messages = [...serverMessages]
+  const pendingMessages = localMessages
+    .filter((message) => !serverSignatures.has(signatureFor(message)))
+    .sort((a, b) => messageTimeMicros(a) - messageTimeMicros(b))
+
+  for (const pendingMessage of pendingMessages) {
+    const pendingTime = messageTimeMicros(pendingMessage)
+    const insertAt = messages.findIndex((message) => messageTimeMicros(message) > pendingTime)
+    messages.splice(insertAt < 0 ? messages.length : insertAt, 0, pendingMessage)
+  }
+
+  return messages
+}
+
 export interface MessageLinkSegment {
   text: string
   url: string | null
@@ -81,4 +104,13 @@ export function buildConversations(
 function messageTime(message: ChatMessage): number {
   const time = new Date(message.timestamp).getTime()
   return Number.isNaN(time) ? 0 : time
+}
+
+function messageTimeMicros(message: ChatMessage): number {
+  const time = messageTime(message)
+  if (!time) return 0
+
+  const fractionalSeconds = message.timestamp.match(/\.(\d+)/)?.[1] ?? ''
+  const remainingMicros = Number(fractionalSeconds.slice(3, 6).padEnd(3, '0') || 0)
+  return time * 1000 + remainingMicros
 }

@@ -19,6 +19,7 @@ export interface ChatWorkspaceProps {
   onStartNewChat?: (actor: ChatActor) => void
   disabled: boolean
   onSubmit: (event: FormEvent<HTMLFormElement>) => void
+  onTyping: () => void
   onConversationOpen?: (actorId: string) => void
 }
 
@@ -34,6 +35,7 @@ export function ChatWorkspace({
   onStartNewChat,
   disabled,
   onSubmit,
+  onTyping,
   onConversationOpen,
 }: ChatWorkspaceProps) {
   const actorNames = Object.fromEntries(actors.map((actor) => [actor.actorId, actor.actorName]))
@@ -80,9 +82,11 @@ export function ChatWorkspace({
                 participantId={participantId}
               />
               <MessageComposer
+                key={`${selectedSimulation ?? ''}:${activeConversation.actor}`}
                 target={activeConversation.actor}
                 disabled={disabled}
                 onSubmit={onSubmit}
+                onTyping={onTyping}
               />
             </>
           ) : (
