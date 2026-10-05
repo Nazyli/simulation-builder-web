@@ -26,7 +26,7 @@ export function ChatChannelPage() {
     chatId: null,
     actionType: 'message',
     content: message.content,
-    timestamp: message.createdDate,
+    timestamp: message.sentAt,
     sessionId: message.sessionId,
     simulationId: message.simulationId ?? undefined,
     isUnread: message.isRead === false,

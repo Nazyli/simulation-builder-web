@@ -2,6 +2,7 @@ import { apiClient } from './client'
 
 export interface ChatMessage {
   participantChatId: string
+  groupingChatId: string
   sessionId: string
   chatPartnerId: string
   senderId: string
@@ -11,6 +12,7 @@ export interface ChatMessage {
   isRead: boolean
   readAt: string | null
   createdDate: string
+  sentAt: string
 }
 
 export interface ChatSimulationItem {
