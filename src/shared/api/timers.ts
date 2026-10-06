@@ -1,4 +1,5 @@
 import { apiClient } from './client'
+import { paginationParams, type Page, type PageRequest } from './pagination'
 
 export type TransParticipantTimer = {
   participantTimerId: string
@@ -10,10 +11,12 @@ export type TransParticipantTimer = {
   nodeName: string | null
   nodeConfiguration: Record<string, unknown> | null
   participantId: string | null
+  participantFullName: string | null
   groupSimulationName: string | null
   simulationName: string | null
   masterSimulation?: string | null
   status: string
+  canReschedule: boolean
   dueAt: string
   attemptCount: number
   maxAttempts: number
@@ -23,7 +26,11 @@ export type TransParticipantTimer = {
   createdDate: string
 }
 
-export const getTimers = () => apiClient<TransParticipantTimer[]>('/admin/timers')
+export const getTimers = (request: PageRequest & { nodeExecutionId?: string } = {}) => {
+  const params = paginationParams(request)
+  if (request.nodeExecutionId) params.set('nodeExecutionId', request.nodeExecutionId)
+  return apiClient<Page<TransParticipantTimer>>(`/admin/timers?${params}`)
+}
 export const cancelTimer = (participantTimerId: string) =>
   apiClient<TransParticipantTimer>(`/admin/timers/${participantTimerId}/cancel`, { method: 'POST' })
 export const rescheduleTimer = (participantTimerId: string, dueAt: string) =>

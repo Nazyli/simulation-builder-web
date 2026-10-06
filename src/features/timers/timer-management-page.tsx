@@ -1,12 +1,11 @@
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '../../components/ui/dialog'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Play, RefreshCw } from 'lucide-react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import { PageFrame } from '../../components/layout/page-frame'
 import { PageHeader } from '../../components/layout/page-header'
 import { PageToolbar } from '../../components/layout/page-toolbar'
-import { SummaryStrip } from '../../components/layout/summary-strip'
 import { SurfaceSection } from '../../components/layout/surface-section'
 import {
   cancelTimer,
@@ -16,11 +15,10 @@ import {
   type TransParticipantTimer,
 } from '../../shared/api/timers'
 import { ErrorState, LoadingState } from '../../shared/components/async-state'
-import { DataTable, type DataTableColumn } from '../../shared/components/data-table'
+import { DataTable, type DataTableColumn, type TableSort } from '../../shared/components/data-table'
 import { StatusBadge } from '../../shared/components/status-badge'
 import { inputClass } from '../../shared/form-classes'
-
-const TIMER_STATUSES = ['scheduled', 'running', 'retry', 'completed', 'failed']
+import { TimerGuideDialog } from './timer-guide-dialog'
 
 const JAKARTA = 'Asia/Jakarta'
 function parseServerTime(value: string) {
@@ -51,9 +49,6 @@ function formatClock(value: number) {
     minute: '2-digit',
     second: '2-digit',
   })
-}
-function canManage(timer: TransParticipantTimer) {
-  return timer.status === 'scheduled' || timer.status === 'retry' || timer.status === 'cancelled'
 }
 function isPending(timer: TransParticipantTimer) {
   return timer.status === 'scheduled' || timer.status === 'retry'
@@ -156,7 +151,43 @@ export function TimerManagementPage() {
   const [cancelTarget, setCancelTarget] = useState<TransParticipantTimer | null>(null)
   const [runNowTarget, setRunNowTarget] = useState<TransParticipantTimer | null>(null)
   const [detailTarget, setDetailTarget] = useState<TransParticipantTimer | null>(null)
-  const timers = useQuery({ queryKey: ['timers'], queryFn: getTimers, refetchInterval: 5_000 })
+  const [page, setPage] = useState(0)
+  const [size, setSize] = useState(10)
+  const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [tableSort, setTableSort] = useState<TableSort>({ id: 'created', desc: true })
+  const sortFields: Record<string, string> = {
+    status: 'status',
+    countdown: 'dueAt',
+    due: 'dueAt',
+    created: 'createdDate',
+    cancel: 'cancelledAt',
+    retries: 'attemptCount',
+    delay: 'retryDelaySeconds',
+    node: 'nodeName',
+    participant: 'participantId',
+    name: 'participantFullName',
+    simulationName: 'masterSimulation',
+  }
+  const sort = tableSort ? [`${sortFields[tableSort.id]},${tableSort.desc ? 'desc' : 'asc'}`] : []
+  const timers = useQuery({
+    queryKey: ['timers', 'page', page, size, debouncedSearch, sort],
+    queryFn: () => getTimers({ page, size, search: debouncedSearch, sort }),
+    placeholderData: keepPreviousData,
+    refetchInterval: 5_000,
+  })
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedSearch(search)
+      setPage(0)
+    }, 300)
+    return () => window.clearTimeout(timer)
+  }, [search])
+  useEffect(() => {
+    if (timers.data && !timers.isPlaceholderData && page >= timers.data.totalPages && page > 0) {
+      setPage(Math.max(0, timers.data.totalPages - 1))
+    }
+  }, [timers.data, timers.isPlaceholderData, page])
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 1_000)
     return () => window.clearInterval(timer)
@@ -190,41 +221,28 @@ export function TimerManagementPage() {
     onError: () => toast.error('Unable to run timer now.'),
   })
   const rows = useMemo(
-    () =>
-      [...(timers.data ?? [])]
-        .map((timer) => ({ ...timer, id: timer.participantTimerId }))
-        .sort((a, b) =>
-          String(b.createdDate).localeCompare(String(a.createdDate), undefined, {
-            numeric: true,
-          }),
-        ),
+    () => (timers.data?.content ?? []).map((timer) => ({ ...timer, id: timer.participantTimerId })),
     [timers.data],
   )
-  const counts = useMemo(
-    () => [
-      ...TIMER_STATUSES.map((status) => ({
-        status,
-        count: rows.filter((timer) => timer.status === status).length,
-      })),
-      { status: 'total', count: rows.length },
-    ],
-    [rows],
-  )
-  const summaryItems = counts.map(({ status, count }) => ({
-    label: status === 'total' ? 'All timers' : status,
-    value: count,
-    tone:
-      status === 'completed'
-        ? ('success' as const)
-        : status === 'failed'
-          ? ('danger' as const)
-          : status === 'retry'
-            ? ('warning' as const)
-            : status === 'scheduled' || status === 'running'
-              ? ('accent' as const)
-              : ('neutral' as const),
-  }))
   const columns: DataTableColumn<(typeof rows)[number]>[] = [
+    {
+      id: 'participant',
+      header: 'ID',
+      cell: (timer) => (
+        <span className="font-mono text-xs text-slate-600">
+          {timer.participantId ?? 'Unavailable'}
+        </span>
+      ),
+      filterValue: (timer) => timer.participantId ?? '',
+    },
+    {
+      id: 'name',
+      header: 'Name',
+      cell: (timer) => (
+        <span className="text-xs text-slate-700">{timer.participantFullName ?? 'Unavailable'}</span>
+      ),
+      filterValue: (timer) => timer.participantFullName ?? '',
+    },
     {
       id: 'status',
       header: 'Status',
@@ -332,26 +350,6 @@ export function TimerManagementPage() {
       filterValue: (timer) => `${timer.nodeName ?? ''} ${timer.nodeType ?? ''}`,
     },
     {
-      id: 'participant',
-      header: 'Participant ID',
-      cell: (timer) => (
-        <span className="font-mono text-xs text-slate-600">
-          {timer.participantId ?? 'Unavailable'}
-        </span>
-      ),
-      filterValue: (timer) => timer.participantId ?? '',
-    },
-    {
-      id: 'simulation',
-      header: 'Simulation',
-      cell: (timer) => (
-        <span className="block max-w-[180px] truncate text-xs text-slate-700">
-          {timer.groupSimulationName ?? 'Unavailable'}
-        </span>
-      ),
-      filterValue: (timer) => timer.groupSimulationName ?? '',
-    },
-    {
       id: 'simulationName',
       header: 'Simulation',
       cell: (timer) => (
@@ -372,7 +370,7 @@ export function TimerManagementPage() {
           >
             Details
           </button>
-          {canManage(timer) && (
+          {isPending(timer) && (
             <>
               {isPending(timer) && (
                 <button
@@ -384,18 +382,19 @@ export function TimerManagementPage() {
                 </button>
               )}
               <button
-                disabled={timer.status === 'cancelled'}
                 onClick={() => setCancelTarget(timer)}
                 className="rounded-md border border-red-200 bg-white px-2 py-1 text-[11px] font-semibold text-red-600 shadow-none transition hover:bg-red-50 disabled:opacity-50"
               >
                 Cancel
               </button>
-              <button
-                onClick={() => setRescheduleTarget(timer)}
-                className="bg-primary text-primary-foreground hover:bg-primary/80 rounded-md px-2 py-1 text-xs font-semibold shadow-none transition"
-              >
-                Reschedule
-              </button>
+              {timer.canReschedule && (
+                <button
+                  onClick={() => setRescheduleTarget(timer)}
+                  className="bg-primary text-primary-foreground hover:bg-primary/80 rounded-md px-2 py-1 text-xs font-semibold shadow-none transition"
+                >
+                  Reschedule
+                </button>
+              )}
             </>
           )}
         </div>
@@ -418,8 +417,6 @@ export function TimerManagementPage() {
         }
       />
 
-      <SummaryStrip items={summaryItems} />
-
       <SurfaceSection className="border-b-0 pb-0">
         {timers.isPending ? (
           <LoadingState />
@@ -428,19 +425,41 @@ export function TimerManagementPage() {
         ) : (
           <DataTable
             rows={rows}
-            columns={columns}
+            columns={columns.map((column) => ({ ...column, sortField: sortFields[column.id] }))}
+            server={{
+              page,
+              size,
+              search,
+              sort: tableSort,
+              totalPages: timers.data?.totalPages ?? 0,
+              totalElements: timers.data?.totalElements ?? 0,
+              isFetching: timers.isFetching,
+              onPageChange: setPage,
+              onSizeChange: (value) => {
+                setSize(value)
+                setPage(0)
+              },
+              onSearchChange: setSearch,
+              onSortChange: (value) => {
+                setTableSort(value)
+                setPage(0)
+              },
+            }}
             selectable={false}
             showColumnToggle={false}
             toolbarActions={
-              <button
-                type="button"
-                onClick={() => void timers.refetch()}
-                disabled={timers.isFetching}
-                className="inline-flex h-8 items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-600 transition hover:border-violet-200 hover:bg-slate-50 hover:text-violet-700 focus-visible:ring-2 focus-visible:ring-violet-500/40 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <RefreshCw size={13} className={timers.isFetching ? 'animate-spin' : undefined} />
-                {timers.isFetching ? 'Refreshing…' : 'Refresh'}
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={() => void refresh()}
+                  disabled={timers.isFetching}
+                  className="inline-flex h-8 items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-600 transition hover:border-violet-200 hover:bg-slate-50 hover:text-violet-700 focus-visible:ring-2 focus-visible:ring-violet-500/40 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <RefreshCw size={13} className={timers.isFetching ? 'animate-spin' : undefined} />
+                  {timers.isFetching ? 'Refreshing…' : 'Refresh'}
+                </button>
+                <TimerGuideDialog />
+              </>
             }
           />
         )}

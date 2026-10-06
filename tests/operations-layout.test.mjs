@@ -50,15 +50,10 @@ test('simulation list uses compact text-first async states', () => {
   assert.match(content, /No simulations yet/)
 })
 
-test('history and timers use compact summary strips instead of status cards', () => {
-  for (const file of [
-    'features/history/participant-history-page.tsx',
-    'features/timers/timer-management-page.tsx',
-  ]) {
-    const content = source(file)
-    assert.match(content, /SummaryStrip/)
-    assert.doesNotMatch(content, /function StatCard/)
-  }
+test('history uses a compact summary strip instead of status cards', () => {
+  const content = source('features/history/participant-history-page.tsx')
+  assert.match(content, /SummaryStrip/)
+  assert.doesNotMatch(content, /function StatCard/)
 })
 
 test('data table scopes horizontal overflow to the table region', () => {
@@ -71,16 +66,19 @@ test('data table scopes horizontal overflow to the table region', () => {
 
 test('data table only exposes sort controls for columns with sort values', () => {
   const content = source('shared/components/data-table.tsx')
-  assert.match(content, /column\.sortValue\s*\?\s*\(/)
+  assert.match(content, /canSort\(column\)\s*\?\s*\(/)
   assert.match(content, /<span[^>]*>\s*\{column\.header\}\s*<\/span>/)
-  assert.match(content, /aria-sort=\{\s*column\.sortValue\s*\?/)
+  assert.match(content, /aria-sort=\{\s*canSort\(column\)\s*\?/)
 })
 
 test('model usage table shows every model without pagination controls', () => {
   const dataTable = source('shared/components/data-table.tsx')
   const usageTables = source('features/ai_token_usage/usage-tables.tsx')
   assert.match(dataTable, /pagination\?: boolean/)
-  assert.match(dataTable, /const slice = pagination\s*\?\s*filtered\.slice\([\s\S]*?: filtered/)
+  assert.match(
+    dataTable,
+    /const slice =\s*pagination && !server\s*\?\s*filtered\.slice\([\s\S]*?: filtered/,
+  )
   assert.match(
     usageTables,
     /export function ModelUsageTable[\s\S]*?<DataTable[^>]*pagination=\{false\}/,
