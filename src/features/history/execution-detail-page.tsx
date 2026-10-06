@@ -37,7 +37,7 @@ export function ExecutionDetailPage() {
 
   const history = useQuery({
     queryKey: ['participant-history', 'detail', id],
-    queryFn: getExecutionHistory,
+    queryFn: () => getExecutionHistory({ executionId: id!, size: 1 }),
     enabled: Boolean(id),
   })
 
@@ -101,7 +101,7 @@ export function ExecutionDetailPage() {
     )
   }
 
-  const data = history.data?.find((item) => item.executionId === id)
+  const data = history.data?.content.find((item) => item.executionId === id)
   if (!data) {
     return (
       <ExecutionDetailState>

@@ -50,9 +50,10 @@ test('simulation list uses compact text-first async states', () => {
   assert.match(content, /No simulations yet/)
 })
 
-test('history uses a compact summary strip instead of status cards', () => {
+test('history uses server pagination without page-local status summaries', () => {
   const content = source('features/history/participant-history-page.tsx')
-  assert.match(content, /SummaryStrip/)
+  assert.match(content, /server=\{\{/)
+  assert.doesNotMatch(content, /SummaryStrip/)
   assert.doesNotMatch(content, /function StatCard/)
 })
 

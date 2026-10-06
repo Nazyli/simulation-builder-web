@@ -233,7 +233,6 @@ export function TimerManagementPage() {
           {timer.participantId ?? 'Unavailable'}
         </span>
       ),
-      filterValue: (timer) => timer.participantId ?? '',
     },
     {
       id: 'name',
@@ -241,13 +240,11 @@ export function TimerManagementPage() {
       cell: (timer) => (
         <span className="text-xs text-slate-700">{timer.participantFullName ?? 'Unavailable'}</span>
       ),
-      filterValue: (timer) => timer.participantFullName ?? '',
     },
     {
       id: 'status',
       header: 'Status',
       cell: (timer) => <StatusBadge status={timer.status} />,
-      sortValue: (timer) => timer.status,
     },
     {
       id: 'countdown',
@@ -258,7 +255,6 @@ export function TimerManagementPage() {
         ) : (
           <span className="text-slate-300">—</span>
         ),
-      sortValue: (timer) => timer.dueAt,
     },
     {
       id: 'due',
@@ -268,7 +264,6 @@ export function TimerManagementPage() {
           {formatTime(timer.dueAt)}
         </time>
       ),
-      sortValue: (timer) => timer.dueAt,
     },
     {
       id: 'created',
@@ -278,7 +273,6 @@ export function TimerManagementPage() {
           {formatTime(timer.createdDate)}
         </time>
       ),
-      sortValue: (timer) => timer.createdDate,
     },
     {
       id: 'timeout',
@@ -288,7 +282,6 @@ export function TimerManagementPage() {
           {durationSeconds(timer.createdDate, timer.dueAt)}s
         </span>
       ),
-      sortValue: (timer) => timer.dueAt,
     },
     {
       id: 'cancel',
@@ -306,7 +299,6 @@ export function TimerManagementPage() {
         ) : (
           <span className="text-slate-300">—</span>
         ),
-      sortValue: (timer) => timer.cancelledAt ?? '',
     },
     {
       id: 'retries',
@@ -316,7 +308,6 @@ export function TimerManagementPage() {
           {timer.attemptCount} / {timer.maxAttempts}
         </span>
       ),
-      sortValue: (timer) => timer.attemptCount,
     },
     {
       id: 'delay',
@@ -326,7 +317,6 @@ export function TimerManagementPage() {
           {timer.retryDelaySeconds}s
         </span>
       ),
-      sortValue: (timer) => timer.retryDelaySeconds,
     },
     {
       id: 'node',
@@ -347,7 +337,6 @@ export function TimerManagementPage() {
           </span>
         </div>
       ),
-      filterValue: (timer) => `${timer.nodeName ?? ''} ${timer.nodeType ?? ''}`,
     },
     {
       id: 'simulationName',
@@ -357,7 +346,6 @@ export function TimerManagementPage() {
           {timer.simulationName ?? timer.masterSimulation ?? 'Unavailable'}
         </span>
       ),
-      sortValue: (timer) => timer.simulationName ?? timer.masterSimulation ?? '',
     },
     {
       id: 'actions',
@@ -366,31 +354,29 @@ export function TimerManagementPage() {
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => setDetailTarget(timer)}
-            className="rounded-md border border-slate-200 bg-white px-2 py-1 text-[11px] font-semibold text-slate-600 shadow-none transition hover:bg-slate-50"
+            className="rounded-md border border-blue-200 bg-blue-50 px-2 py-1 text-[11px] font-semibold text-blue-700 shadow-none transition hover:border-blue-300 hover:bg-blue-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
           >
             Details
           </button>
           {isPending(timer) && (
             <>
-              {isPending(timer) && (
-                <button
-                  onClick={() => setRunNowTarget(timer)}
-                  className="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-white px-2 py-1 text-[11px] font-semibold text-emerald-700 shadow-none transition hover:bg-emerald-50"
-                >
-                  <Play size={11} fill="currentColor" />
-                  Run now
-                </button>
-              )}
+              <button
+                onClick={() => setRunNowTarget(timer)}
+                className="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 text-[11px] font-semibold text-emerald-700 shadow-none transition hover:border-emerald-300 hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+              >
+                <Play size={11} fill="currentColor" />
+                Run now
+              </button>
               <button
                 onClick={() => setCancelTarget(timer)}
-                className="rounded-md border border-red-200 bg-white px-2 py-1 text-[11px] font-semibold text-red-600 shadow-none transition hover:bg-red-50 disabled:opacity-50"
+                className="rounded-md border border-red-200 bg-red-50 px-2 py-1 text-[11px] font-semibold text-red-700 shadow-none transition hover:border-red-300 hover:bg-red-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
               >
                 Cancel
               </button>
               {timer.canReschedule && (
                 <button
                   onClick={() => setRescheduleTarget(timer)}
-                  className="bg-primary text-primary-foreground hover:bg-primary/80 rounded-md px-2 py-1 text-xs font-semibold shadow-none transition"
+                  className="rounded-md border border-violet-200 bg-violet-50 px-2 py-1 text-[11px] font-semibold text-violet-700 shadow-none transition hover:border-violet-300 hover:bg-violet-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600"
                 >
                   Reschedule
                 </button>
