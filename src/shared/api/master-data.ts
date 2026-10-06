@@ -1,4 +1,5 @@
 import { apiClient } from './client'
+import { paginationParams, type Page, type PageRequest } from './pagination'
 
 export interface AuditFields {
   createdBy: string | null
@@ -37,7 +38,9 @@ export interface MasterDocumentContent {
 }
 
 export const getStudioMasterData = (endpoint: string) =>
-  apiClient<Record<string, unknown>[]>(endpoint)
+  endpoint === '/admin/master-data/actors'
+    ? getAllMasterActors()
+    : apiClient<Record<string, unknown>[]>(endpoint)
 
 export interface MasterChat extends AuditFields {
   chatId: string
@@ -214,7 +217,21 @@ export interface MasterActor {
   [key: string]: unknown
 }
 
-export const getMasterActors = () => apiClient<MasterActor[]>('/admin/master-data/actors')
+export const getMasterActors = (request: PageRequest = {}) =>
+  apiClient<Page<MasterActor>>(`/admin/master-data/actors?${paginationParams(request)}`)
+
+// Existing selectors need the complete catalog; load every page rather than
+// silently limiting actor choices to the first page of the migrated endpoint.
+export const getAllMasterActors = async (): Promise<MasterActor[]> => {
+  const actors: MasterActor[] = []
+  let page = 0
+  while (true) {
+    const result = await getMasterActors({ page, size: 100, sort: ['actorName,asc'] })
+    actors.push(...result.content)
+    if (result.last) return actors
+    page += 1
+  }
+}
 
 export interface MasterActorFormPayload {
   actorId: string

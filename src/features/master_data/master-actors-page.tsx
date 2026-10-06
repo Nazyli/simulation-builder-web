@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query'
-import { Pencil, Plus } from 'lucide-react'
-import { useState } from 'react'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { Pencil, Plus, RefreshCw } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { Button } from '../../components/ui/button'
 import { PageFrame } from '../../components/layout/page-frame'
@@ -13,14 +13,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '../../components/ui/dialog'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '../../components/ui/table'
+import { DataTable, type DataTableColumn, type TableSort } from '../../shared/components/data-table'
+import { LoadingState } from '../../shared/components/async-state'
 import { ApiError } from '../../shared/api/client'
 import { getMasterActors, type MasterActor } from '../../shared/api/master-data'
 import { RICH_TEXT_CLASS, SafeHtml } from '../../shared/safe-html'
@@ -28,6 +22,13 @@ import { hasActorPersonality, renderActorPersonality } from './actor-crud-logic'
 import { ActorCrudDialog } from './actor-crud-dialog'
 
 const ACTOR_QUERY_KEY = ['master', 'actors']
+const SORT_FIELDS: Record<string, string> = {
+  actor: 'actorId',
+  name: 'actorName',
+  email: 'actorEmail',
+  position: 'actorPosition',
+  participant: 'isParticipant',
+}
 
 function errorMessage(error: unknown): string {
   if (error instanceof ApiError) {
@@ -49,10 +50,35 @@ export function MasterActorsPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [selectedActor, setSelectedActor] = useState<MasterActor | null>(null)
   const [personalityActor, setPersonalityActor] = useState<MasterActor | null>(null)
+  const [page, setPage] = useState(0)
+  const [size, setSize] = useState(10)
+  const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [tableSort, setTableSort] = useState<TableSort>({ id: 'name', desc: false })
+  const sort = tableSort ? [`${SORT_FIELDS[tableSort.id]},${tableSort.desc ? 'desc' : 'asc'}`] : []
   const actorsQuery = useQuery({
-    queryKey: ACTOR_QUERY_KEY,
-    queryFn: getMasterActors,
+    queryKey: [...ACTOR_QUERY_KEY, 'page', page, size, debouncedSearch, sort],
+    queryFn: () => getMasterActors({ page, size, search: debouncedSearch, sort }),
+    placeholderData: keepPreviousData,
   })
+  useEffect(() => {
+    if (search === debouncedSearch) return
+    const timeout = window.setTimeout(() => {
+      setDebouncedSearch(search)
+      setPage(0)
+    }, 300)
+    return () => window.clearTimeout(timeout)
+  }, [search, debouncedSearch])
+  useEffect(() => {
+    if (
+      actorsQuery.data &&
+      !actorsQuery.isPlaceholderData &&
+      page > 0 &&
+      page >= actorsQuery.data.totalPages
+    ) {
+      setPage(Math.max(0, actorsQuery.data.totalPages - 1))
+    }
+  }, [actorsQuery.data, actorsQuery.isPlaceholderData, page])
 
   function openCreate() {
     setSelectedActor(null)
@@ -64,7 +90,92 @@ export function MasterActorsPage() {
     setDialogOpen(true)
   }
 
-  const actors = actorsQuery.data ?? []
+  const actors = useMemo(
+    () => (actorsQuery.data?.content ?? []).map((actor) => ({ ...actor, id: actor.actorId })),
+    [actorsQuery.data],
+  )
+  const columns: DataTableColumn<(typeof actors)[number]>[] = [
+    {
+      id: 'actor',
+      header: 'ID',
+      cell: (actor) => (
+        <span
+          className="block max-w-44 truncate font-mono text-xs text-slate-700"
+          title={actor.actorId}
+        >
+          {actor.actorId}
+        </span>
+      ),
+    },
+    {
+      id: 'name',
+      header: 'Name',
+      cell: (actor) => (
+        <span
+          className="block max-w-48 truncate font-medium text-slate-800"
+          title={actor.actorName}
+        >
+          {actor.actorName}
+        </span>
+      ),
+    },
+    {
+      id: 'email',
+      header: 'Email',
+      cell: (actor) => (
+        <span className="block max-w-56 truncate" title={actor.actorEmail ?? undefined}>
+          {scalar(actor.actorEmail)}
+        </span>
+      ),
+    },
+    { id: 'position', header: 'Position', cell: (actor) => scalar(actor.actorPosition) },
+    {
+      id: 'participant',
+      header: 'Participant',
+      cell: (actor) => (
+        <span
+          className={
+            actor.isParticipant
+              ? 'rounded-sm bg-emerald-50 px-1.5 py-0.5 text-xs font-semibold text-emerald-700'
+              : 'rounded-sm bg-slate-100 px-1.5 py-0.5 text-xs font-semibold text-slate-600'
+          }
+        >
+          {actor.isParticipant ? 'Yes' : 'No'}
+        </span>
+      ),
+    },
+    {
+      id: 'personality',
+      header: 'Personality',
+      cell: (actor) =>
+        hasActorPersonality(actor.personaDesc) ? (
+          <button
+            type="button"
+            onClick={() => setPersonalityActor(actor)}
+            aria-label={`View personality for ${actor.actorName}`}
+            className="rounded-md border border-blue-200 bg-blue-50 px-2 py-1 text-[11px] font-semibold text-blue-700 transition hover:border-blue-300 hover:bg-blue-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+          >
+            View personality
+          </button>
+        ) : (
+          <span className="text-slate-400">—</span>
+        ),
+    },
+    {
+      id: 'actions',
+      header: 'Actions',
+      cell: (actor) => (
+        <button
+          type="button"
+          aria-label={`Edit ${actor.actorName}`}
+          onClick={() => openEdit(actor)}
+          className="inline-flex items-center gap-1 rounded-md border border-violet-200 bg-violet-50 px-2 py-1 text-[11px] font-semibold text-violet-700 transition hover:border-violet-300 hover:bg-violet-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600"
+        >
+          <Pencil size={12} aria-hidden="true" /> Edit
+        </button>
+      ),
+    },
+  ]
 
   return (
     <PageFrame mode="operations" className="master-actors-page">
@@ -77,94 +188,54 @@ export function MasterActorsPage() {
         }
       />
 
-      <SurfaceSection className="border-b-0 pb-0">
-        {actorsQuery.isPending && (
-          <div className="px-6 py-12 text-center text-sm text-slate-500">Loading actors...</div>
-        )}
-        {actorsQuery.isError && (
-          <div className="px-6 py-12 text-center text-sm text-red-600">
-            {errorMessage(actorsQuery.error)}
-          </div>
-        )}
-        {!actorsQuery.isPending && !actorsQuery.isError && actors.length === 0 && (
-          <div className="px-5 py-10 text-left">
-            <h2 className="text-base font-semibold text-slate-800">No actors yet</h2>
-            <p className="mt-1 max-w-sm text-sm text-slate-500">
-              Add an actor profile to use in a workflow.
+      <SurfaceSection>
+        {actorsQuery.isPending ? (
+          <LoadingState />
+        ) : actorsQuery.isError ? (
+          <div className="grid justify-items-start gap-3">
+            <p role="alert" className="text-sm text-red-700">
+              {errorMessage(actorsQuery.error)}
             </p>
-            <Button type="button" className="mt-4" onClick={openCreate}>
-              <Plus /> Add actor
+            <Button variant="outline" onClick={() => void actorsQuery.refetch()}>
+              Try again
             </Button>
           </div>
-        )}
-        {!actorsQuery.isPending && !actorsQuery.isError && actors.length > 0 && (
-          <div className="min-w-0 overflow-x-auto">
-            <Table>
-              <TableHeader className="bg-slate-50/80">
-                <TableRow>
-                  <TableHead>Actor ID</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Position</TableHead>
-                  <TableHead>Participant</TableHead>
-                  <TableHead className="min-w-[280px]">Personality</TableHead>
-                  <TableHead className="w-24 text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {actors.map((actor) => (
-                  <TableRow key={actor.actorId}>
-                    <TableCell className="font-mono text-xs text-slate-500">
-                      {actor.actorId}
-                    </TableCell>
-                    <TableCell className="font-semibold text-slate-800">
-                      {actor.actorName}
-                    </TableCell>
-                    <TableCell>{scalar(actor.actorEmail)}</TableCell>
-                    <TableCell>{scalar(actor.actorPosition)}</TableCell>
-                    <TableCell>
-                      <span
-                        className={
-                          actor.isParticipant
-                            ? 'rounded-sm bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700'
-                            : 'rounded-sm bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-500'
-                        }
-                      >
-                        {actor.isParticipant ? 'Yes' : 'No'}
-                      </span>
-                    </TableCell>
-                    <TableCell className="whitespace-normal">
-                      {hasActorPersonality(actor.personaDesc) ? (
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="sm"
-                          className="text-xs"
-                          onClick={() => setPersonalityActor(actor)}
-                          aria-label={`View personality for ${actor.actorName}`}
-                        >
-                          View personality
-                        </Button>
-                      ) : (
-                        <span className="text-slate-400">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        aria-label={`Edit ${actor.actorName}`}
-                        onClick={() => openEdit(actor)}
-                      >
-                        <Pencil /> Edit
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+        ) : (
+          <DataTable
+            rows={actors}
+            columns={columns.map((column) => ({ ...column, sortField: SORT_FIELDS[column.id] }))}
+            selectable={false}
+            showColumnToggle={false}
+            server={{
+              page,
+              size,
+              search,
+              sort: tableSort,
+              totalPages: actorsQuery.data?.totalPages ?? 0,
+              totalElements: actorsQuery.data?.totalElements ?? 0,
+              isFetching: actorsQuery.isFetching,
+              onPageChange: setPage,
+              onSizeChange: (value) => {
+                setSize(value)
+                setPage(0)
+              },
+              onSearchChange: setSearch,
+              onSortChange: (value) => {
+                setTableSort(value)
+                setPage(0)
+              },
+            }}
+            toolbarActions={
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={actorsQuery.isFetching}
+                onClick={() => void actorsQuery.refetch()}
+              >
+                <RefreshCw size={14} aria-hidden="true" /> Refresh
+              </Button>
+            }
+          />
         )}
       </SurfaceSection>
 

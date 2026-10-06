@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { inputClass } from '../../../shared/form-classes'
-import { getMasterActors } from '../../../shared/api/master-data'
+import { getAllMasterActors } from '../../../shared/api/master-data'
 import type { ChatActor } from './types'
 
 interface ConversationSidebarProps {
@@ -43,8 +43,8 @@ export function ConversationSidebar({
   const actorIdsInSidebar = useMemo(() => new Set(actors.map((a) => a.actorId)), [actors])
 
   const masterQuery = useQuery({
-    queryKey: ['master-actors'],
-    queryFn: getMasterActors,
+    queryKey: ['master', 'actors', 'all'],
+    queryFn: getAllMasterActors,
     enabled: open,
   })
 
