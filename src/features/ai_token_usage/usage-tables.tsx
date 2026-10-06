@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { ArrowUpRight, UserRound } from 'lucide-react'
 import { Button } from '../../components/ui/button'
 import { DataTable, type DataTableColumn } from '../../shared/components/data-table'
 import { formatCurrencyAmounts, formatTokenCount } from './usage-logic'
@@ -27,6 +28,7 @@ export function ParticipantUsageTable({
   page,
   totalPages,
   totalItems,
+  totalTokens,
   onPageChange,
 }: {
   rows: ParticipantUsage[]
@@ -34,6 +36,7 @@ export function ParticipantUsageTable({
   page: number
   totalPages: number
   totalItems: number
+  totalTokens: number
   onPageChange: (page: number) => void
 }) {
   const columns: DataTableColumn<ParticipantUsage & { id: string }>[] = [
@@ -43,10 +46,13 @@ export function ParticipantUsageTable({
       cell: (row) => (
         <Link
           to={`/ai-token-usage/${encodeURIComponent(row.participantId)}${search}`}
-          className="block max-w-48 truncate font-mono text-xs font-medium text-violet-700 underline decoration-violet-200 underline-offset-2 hover:text-violet-900"
+          className="usage-participant-link"
           title={row.participantId}
         >
-          {row.participantId}
+          <span className="usage-participant-symbol" aria-hidden="true">
+            <UserRound className="size-4" />
+          </span>
+          <span className="truncate font-mono">{row.participantId}</span>
         </Link>
       ),
       sortValue: (row) => row.participantId,
@@ -80,9 +86,25 @@ export function ParticipantUsageTable({
       id: 'total',
       header: 'Total tokens',
       cell: (row) => (
-        <strong className="font-semibold text-slate-900 tabular-nums">
-          {formatTokenCount(row.totalTokens, true)}
-        </strong>
+        <div className="usage-token-cell">
+          <strong
+            className="font-semibold text-slate-900 tabular-nums"
+            title={formatTokenCount(row.totalTokens)}
+          >
+            {formatTokenCount(row.totalTokens, true)}
+          </strong>
+          <span className="usage-token-share">
+            {totalTokens ? ((row.totalTokens / totalTokens) * 100).toFixed(1) : '0.0'}% of filtered
+            usage
+          </span>
+          <span className="usage-token-meter" aria-hidden="true">
+            <span
+              style={{
+                width: `${totalTokens ? Math.min(100, (row.totalTokens / totalTokens) * 100) : 0}%`,
+              }}
+            />
+          </span>
+        </div>
       ),
       sortValue: (row) => row.totalTokens,
       headerClassName: 'text-right',
@@ -96,16 +118,32 @@ export function ParticipantUsageTable({
       headerClassName: 'text-right',
       cellClassName: 'text-right tabular-nums',
     },
+    {
+      id: 'details',
+      header: 'Details',
+      headerClassName: 'text-right',
+      cellClassName: 'text-right',
+      cell: (row) => (
+        <Link
+          className="usage-inspect-link"
+          to={`/ai-token-usage/${encodeURIComponent(row.participantId)}${search}`}
+          aria-label={`View usage for participant ${row.participantId}`}
+        >
+          View usage <ArrowUpRight aria-hidden="true" className="size-3.5" />
+        </Link>
+      ),
+    },
   ]
 
   return (
-    <div className="min-w-0 overflow-x-auto">
+    <div className="usage-participant-table min-w-0">
       <DataTable
         rows={rows.map((row) => ({ ...row, id: row.participantId }))}
         columns={columns}
         selectable={false}
         showColumnToggle={false}
         pagination={false}
+        toolbarActions={<span className="usage-table-hint">Filter participants on this page</span>}
       />
       <ServerPagination
         page={page}

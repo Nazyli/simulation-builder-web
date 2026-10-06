@@ -1,10 +1,14 @@
 import { useState } from 'react'
+import { SlidersHorizontal } from 'lucide-react'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import {
   Select,
   SelectContent,
   SelectItem,
+  SelectGroup,
+  SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from '../../components/ui/select'
@@ -33,9 +37,18 @@ export function UsageFiltersBar({
   const [expanded, setExpanded] = useState(false)
   const hasFilters = Object.values(filters).some(Boolean)
   return (
-    <section className="min-w-0 border-y border-slate-200 py-3">
+    <section
+      className="usage-filters min-w-0 border-y border-slate-200 py-3"
+      aria-label="Filter usage"
+    >
       <div className="mb-2 flex items-center justify-between gap-2">
-        <h2 className="text-xs font-semibold text-slate-700">Filters</h2>
+        <h2 className="flex items-center gap-2 text-xs font-semibold text-slate-700">
+          <SlidersHorizontal aria-hidden="true" className="size-3.5" />
+          Filter usage{' '}
+          <span className="usage-filter-scope">
+            {hasFilters ? `${Object.values(filters).filter(Boolean).length} active` : 'All records'}
+          </span>
+        </h2>
         <div className="flex items-center gap-1">
           {hasFilters && (
             <Button type="button" variant="ghost" size="xs" onClick={onClear}>
@@ -55,7 +68,7 @@ export function UsageFiltersBar({
         </div>
       </div>
       <div
-        className={`${expanded ? 'grid' : 'hidden'} grid-cols-2 gap-2 sm:grid sm:grid-cols-3 xl:grid-cols-6`}
+        className={`${expanded ? 'grid' : 'hidden'} usage-filters__fields grid-cols-2 gap-2 sm:grid sm:grid-cols-3 xl:grid-cols-7`}
       >
         <label className="grid min-w-0 gap-1 text-[11px] font-medium text-slate-600">
           Date from
@@ -102,16 +115,29 @@ export function UsageFiltersBar({
                 onChange({ ...filters, [key]: value === 'all' ? undefined : value })
               }
             >
-              <SelectTrigger aria-label={label} className="h-8 w-full min-w-0 text-xs">
+              <SelectTrigger
+                aria-label={label}
+                className="usage-select-trigger w-full min-w-0"
+                data-active={Boolean(filters[key])}
+              >
                 <SelectValue placeholder={`All ${label.toLowerCase()}s`} />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All {label.toLowerCase()}s</SelectItem>
-                {options[key].map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
+              <SelectContent
+                className="usage-select-menu"
+                position="popper"
+                align="start"
+                sideOffset={4}
+              >
+                <SelectGroup>
+                  <SelectLabel>{label}</SelectLabel>
+                  <SelectItem value="all">All {label.toLowerCase()}s</SelectItem>
+                  {options[key].length > 0 && <SelectSeparator />}
+                  {options[key].map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
               </SelectContent>
             </Select>
           </label>

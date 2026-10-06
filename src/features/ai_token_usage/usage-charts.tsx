@@ -26,12 +26,12 @@ import { formatCurrencyAmounts, formatTokenCount } from './usage-logic'
 import type { DimensionUsage, TokenCompositionItem, UsageTimeBucket } from './usage-types'
 
 const seriesColors = {
-  input: '#64748B',
+  input: '#8291AC',
   output: '#0F766E',
-  total: '#2563EB',
+  total: '#5265B4',
   cached: '#94A3B8',
   reasoning: '#B45309',
-  model: '#475569',
+  model: '#5265B4',
 }
 
 function formatTokens(value: number | string | undefined): string {
@@ -40,10 +40,54 @@ function formatTokens(value: number | string | undefined): string {
 
 function ChartFrame({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="min-w-0 border-b border-slate-200 pb-4 last:border-b-0" aria-label={title}>
+    <section
+      className="usage-chart min-w-0 border-b border-slate-200 pb-4 last:border-b-0"
+      aria-label={title}
+    >
       <h3 className="mb-2 text-sm font-semibold text-slate-800">{title}</h3>
       {children}
     </section>
+  )
+}
+
+function SinglePeriodUsage({
+  bucket,
+  interval,
+}: {
+  bucket: UsageTimeBucket
+  interval: 'daily' | 'weekly' | 'monthly'
+}) {
+  const values = [
+    { label: 'Input tokens', tokens: bucket.inputTokens, color: seriesColors.input },
+    { label: 'Output tokens', tokens: bucket.outputTokens, color: seriesColors.output },
+    { label: 'Recorded total', tokens: bucket.totalTokens, color: seriesColors.total },
+  ]
+  const maximum = Math.max(1, ...values.map((value) => value.tokens))
+  return (
+    <div className="usage-single-period">
+      <p className="usage-single-period__date">
+        <time dateTime={bucket.key}>
+          {interval === 'weekly' ? `Week of ${bucket.label}` : bucket.label}
+        </time>
+        <span>Tokens recorded in this period</span>
+      </p>
+      <dl className="usage-single-period__bars">
+        {values.map((value) => (
+          <div className="usage-single-period__row" key={value.label}>
+            <dt>{value.label}</dt>
+            <dd>{formatTokens(value.tokens)}</dd>
+            <span className="usage-single-period__track" aria-hidden="true">
+              <span
+                style={{
+                  width: `${(value.tokens / maximum) * 100}%`,
+                  backgroundColor: value.color,
+                }}
+              />
+            </span>
+          </div>
+        ))}
+      </dl>
+    </div>
   )
 }
 
@@ -57,21 +101,31 @@ export function UsageTrendChart({
   onIntervalChange?: (interval: 'daily' | 'weekly' | 'monthly') => void
 }) {
   return (
-    <ChartFrame title="Token usage over time">
+    <ChartFrame title={data.length === 1 ? 'Token usage by period' : 'Token usage over time'}>
       <>
         <div className="mb-2 flex items-center justify-between gap-3">
           <p className="m-0 text-xs text-slate-500">
-            Input, output, and recorded total tokens · WIB
+            {data.length === 1
+              ? 'Input, output, and recorded total · WIB'
+              : 'Input, output, and recorded total tokens · WIB'}
           </p>
           {onIntervalChange && (
             <Select
               value={interval}
               onValueChange={(value) => onIntervalChange(value as typeof interval)}
             >
-              <SelectTrigger aria-label="Time interval" className="h-7 w-28 text-xs">
+              <SelectTrigger
+                aria-label="Time interval"
+                className="usage-select-trigger w-28 shrink-0"
+              >
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent
+                className="usage-select-menu"
+                position="popper"
+                align="end"
+                sideOffset={4}
+              >
                 <SelectItem value="daily">Daily</SelectItem>
                 <SelectItem value="weekly">Weekly</SelectItem>
                 <SelectItem value="monthly">Monthly</SelectItem>
@@ -79,7 +133,9 @@ export function UsageTrendChart({
             </Select>
           )}
         </div>
-        {data.length ? (
+        {data.length === 1 ? (
+          <SinglePeriodUsage bucket={data[0]} interval={interval} />
+        ) : data.length ? (
           <div
             className="h-64 min-w-0"
             role="img"
@@ -115,6 +171,7 @@ export function UsageTrendChart({
                   strokeWidth={2}
                   dot={false}
                   activeDot={{ r: 4 }}
+                  isAnimationActive={false}
                 />
                 <Line
                   type="monotone"
@@ -124,6 +181,8 @@ export function UsageTrendChart({
                   strokeWidth={2}
                   dot={false}
                   activeDot={{ r: 4 }}
+                  strokeDasharray="5 3"
+                  isAnimationActive={false}
                 />
                 <Line
                   type="monotone"
@@ -133,6 +192,7 @@ export function UsageTrendChart({
                   strokeWidth={2.5}
                   dot={false}
                   activeDot={{ r: 4 }}
+                  isAnimationActive={false}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -156,7 +216,7 @@ export function UsageComparisonChart({
     <ChartFrame title={`Usage by ${dimension}`}>
       {data.length ? (
         <div
-          className="min-w-0"
+          className="usage-comparison min-w-0"
           role="img"
           aria-label={`Horizontal bar chart comparing total tokens by ${dimension}`}
           style={{ height: Math.max(192, data.length * 34) }}
@@ -217,6 +277,7 @@ export function UsageComparisonChart({
                 fill={seriesColors.model}
                 barSize={17}
                 radius={[0, 3, 3, 0]}
+                isAnimationActive={false}
               />
             </BarChart>
           </ResponsiveContainer>
@@ -263,7 +324,13 @@ export function UsageCompositionChart({ data }: { data: TokenCompositionItem[] }
                   axisLine={false}
                 />
                 <Tooltip formatter={(value) => [formatTokens(value as number), 'Tokens']} />
-                <Bar dataKey="tokens" name="Tokens" barSize={18} radius={[0, 3, 3, 0]}>
+                <Bar
+                  dataKey="tokens"
+                  name="Tokens"
+                  barSize={18}
+                  radius={[0, 3, 3, 0]}
+                  isAnimationActive={false}
+                >
                   {data.map((item) => (
                     <Cell
                       key={item.id}
