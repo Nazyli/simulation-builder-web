@@ -38,7 +38,7 @@ export function AppShell({ children }: PropsWithChildren) {
       <AppSidebar items={navigation} />
 
       <SidebarInset className="min-w-0 overflow-x-hidden bg-slate-100">
-        <header className="sticky top-0 z-10 flex min-h-10 w-full min-w-0 items-center gap-1.5 overflow-hidden border-b border-slate-200 bg-[#fbfcfe] px-5 max-[900px]:px-[18px] max-[620px]:min-h-10 max-[620px]:px-3">
+        <header className="sticky top-0 z-10 flex h-[var(--app-header-height)] w-full min-w-0 shrink-0 items-center gap-1.5 overflow-hidden border-b border-slate-200 bg-[#fbfcfe] px-[var(--page-inset)]">
           <SidebarTrigger className="shrink-0 text-slate-500" />
           <Breadcrumb />
         </header>

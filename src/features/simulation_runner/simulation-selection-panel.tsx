@@ -55,7 +55,7 @@ export function SimulationSelectionPanel({
   const resultCount = groupedSimulations.reduce((total, [, group]) => total + group.length, 0)
 
   return (
-    <section className={cn('min-w-0 rounded-md border border-slate-200 bg-white p-3', className)}>
+    <section className={cn('min-w-0 rounded-lg border border-slate-200 bg-white p-3', className)}>
       <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <label className="text-xs font-semibold text-slate-800" htmlFor="runner-simulation">
@@ -66,7 +66,7 @@ export function SimulationSelectionPanel({
           <span
             aria-live="polite"
             aria-atomic="true"
-            className="rounded bg-violet-50 px-1.5 py-0.5 text-xs font-semibold text-violet-800"
+            className="rounded-sm bg-violet-50 px-1.5 py-0.5 text-xs font-semibold text-violet-800"
           >
             {selectedIds.length} selected
           </span>

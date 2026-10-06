@@ -42,9 +42,9 @@ typography:
     lineHeight: 1.35
     letterSpacing: '0.01em'
 rounded:
-  sm: '6px'
-  md: '8px'
-  lg: '10px'
+  sm: '2px'
+  md: '4px'
+  lg: '6px'
 spacing:
   xs: '4px'
   sm: '8px'
@@ -75,7 +75,7 @@ components:
   card:
     backgroundColor: '{colors.surface}'
     textColor: '{colors.text-primary}'
-    rounded: '{rounded.md}'
+    rounded: '{rounded.lg}'
     padding: '16px'
 ---
 
@@ -143,7 +143,11 @@ The palette combines a cool near-white canvas, white working surfaces, slate tex
 
 ## Layout
 
-Use a 4px spacing rhythm. Standard page padding is 24px on desktop, 18px on tablet, and 12px on mobile. The application shell and page frames must allow content to use the available width; max-width containers are only appropriate when they improve reading measure or are explicitly required by the surface.
+Use a 4px spacing rhythm. `PageFrame` owns all page geometry: 20px padding on desktop, 18px at widths up to 900px, and 12px at widths up to 620px, with a 16px gap between page sections. The `--page-inset` and `--page-gap` tokens in `src/index.css` also align the shell header and nested workspace content. Modes and typography density do not change page spacing. Avoid page-level padding, gap, background, and width overrides.
+
+Pages use the available content width. A readable form or article may constrain its own content width, while its page frame retains the same gutters as other pages. `SurfaceSection variant="panel"` provides the shared 16px panel inset through `--panel-inset`.
+
+Full-bleed canvases use `PageFrame edgeToEdge` with zero outer padding and gap. `PageContent` and `PageHeader`/`PageToolbar` with `inset` provide standard gutters for non-canvas content inside those pages. `viewport="fill"` bounds a workspace to the visible height; the default `viewport="minimum"` fills at least that height without clipping long content. Both use the actual 40px application header height. Grid column ratios, channel splits, and form/control spacing may vary according to content; they do not override page geometry.
 
 Workbench pages prioritize the editor, canvas, channel workspace, and selection panels. Operations pages are table-first and use compact heading and summary rows. Documentation keeps a readable article measure while Settings uses clearly separated configuration sections.
 
@@ -165,7 +169,7 @@ The default system is flat and structural. Borders, surface contrast, and spacin
 
 ## Shapes
 
-Use restrained rounded corners: 6px for compact controls, 8px for standard controls and cards, and 10px for larger structural surfaces. Borders are 1px and use the structural border token. Avoid making every element pill-shaped or using oversized rounded containers.
+Use one restrained corner scale: 2px (`rounded-sm`) for badges, checkboxes, and menu items; 4px (`rounded-md`) for buttons, inputs, selects, and textareas; and 6px (`rounded-lg`) for cards, panels, graph nodes, and dialogs. The `--corner-compact`, `--corner-control`, and `--corner-surface` tokens in `src/index.css` own this scale. Avatars, status dots, connection handles, slider thumbs, and progress tracks retain their functional circular geometry. Borders are 1px and use the structural border token. Avoid making every element pill-shaped or using oversized rounded containers.
 
 Cards and panels should have one clear boundary. Do not nest cards inside cards when spacing and a divider can establish the same relationship. Status chips and badges may use compact rounded corners when they communicate a real state.
 
@@ -173,7 +177,7 @@ Cards and panels should have one clear boundary. Do not nest cards inside cards 
 
 ### Buttons
 
-- **Shape:** Compact 6–8px corners with a minimum usable touch target.
+- **Shape:** Consistent 4px corners with a minimum usable touch target.
 - **Primary:** SimFlow Violet background, white text, semibold label, and compact horizontal padding.
 - **Hover / Focus:** Slightly darker violet on hover; visible violet focus ring with no glow effect.
 - **Secondary / Ghost:** Neutral text and surface treatment; hover changes contrast or background subtly.
@@ -181,13 +185,13 @@ Cards and panels should have one clear boundary. Do not nest cards inside cards 
 
 ### Inputs / Fields
 
-- **Style:** White surface, 1px structural border, 8px corners, readable body text, and compact vertical padding.
+- **Style:** White surface, 1px structural border, 4px corners, readable body text, and compact vertical padding.
 - **Focus:** Strong border or violet focus ring; focus must remain visible without relying on hover.
 - **Error / Disabled:** Use explicit text and contrast changes; do not communicate errors by color alone.
 
 ### Cards / Containers
 
-- **Corner Style:** 8px by default.
+- **Corner Style:** 6px by default.
 - **Background:** White surface on the cool canvas.
 - **Shadow Strategy:** Flat at rest; subtle hover lift only when the card is interactive.
 - **Border:** Structural border at rest, slightly stronger or accent-tinted on interaction.
@@ -196,7 +200,7 @@ Cards and panels should have one clear boundary. Do not nest cards inside cards 
 
 ### Status Badges
 
-Use a badge only when it conveys a meaningful state such as locked, warning, active, or ready. Keep the palette restrained: amber for usage/lock warnings, slate for neutral readiness, and violet for selected/active state.
+Use compact 2px corners rather than pill shapes. Use a badge only when it conveys a meaningful state such as locked, warning, active, or ready. Keep the palette restrained: amber for usage/lock warnings, slate for neutral readiness, and violet for selected/active state.
 
 ### Navigation
 

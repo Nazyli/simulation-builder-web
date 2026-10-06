@@ -23,7 +23,7 @@ export function buildEmailPreviewDocument(content: string, fontUrl?: string): st
       .email-preview-shell {
         background: #ffffff;
         border: 1px solid #e2e8f0;
-        border-radius: 12px;
+        border-radius: 6px;
         margin: 0 auto;
         max-width: 680px;
         min-height: 180px;

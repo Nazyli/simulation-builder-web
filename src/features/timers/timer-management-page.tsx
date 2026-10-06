@@ -266,7 +266,7 @@ export function TimerManagementPage() {
       id: 'timeout',
       header: 'Timeout',
       cell: (timer) => (
-        <span className="inline-flex rounded-md bg-slate-100 px-1.5 py-0.5 text-xs font-semibold text-slate-600 tabular-nums">
+        <span className="inline-flex rounded-sm bg-slate-100 px-1.5 py-0.5 text-xs font-semibold text-slate-600 tabular-nums">
           {durationSeconds(timer.createdDate, timer.dueAt)}s
         </span>
       ),
@@ -304,7 +304,7 @@ export function TimerManagementPage() {
       id: 'delay',
       header: 'Retry delay',
       cell: (timer) => (
-        <span className="inline-flex rounded-md bg-slate-100 px-1.5 py-0.5 text-xs font-semibold text-slate-600 tabular-nums">
+        <span className="inline-flex rounded-sm bg-slate-100 px-1.5 py-0.5 text-xs font-semibold text-slate-600 tabular-nums">
           {timer.retryDelaySeconds}s
         </span>
       ),
@@ -368,7 +368,7 @@ export function TimerManagementPage() {
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => setDetailTarget(timer)}
-            className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-[11px] font-semibold text-slate-600 shadow-none transition hover:bg-slate-50"
+            className="rounded-md border border-slate-200 bg-white px-2 py-1 text-[11px] font-semibold text-slate-600 shadow-none transition hover:bg-slate-50"
           >
             Details
           </button>
@@ -377,7 +377,7 @@ export function TimerManagementPage() {
               {isPending(timer) && (
                 <button
                   onClick={() => setRunNowTarget(timer)}
-                  className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-white px-2 py-1 text-[11px] font-semibold text-emerald-700 shadow-none transition hover:bg-emerald-50"
+                  className="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-white px-2 py-1 text-[11px] font-semibold text-emerald-700 shadow-none transition hover:bg-emerald-50"
                 >
                   <Play size={11} fill="currentColor" />
                   Run now
@@ -386,13 +386,13 @@ export function TimerManagementPage() {
               <button
                 disabled={timer.status === 'cancelled'}
                 onClick={() => setCancelTarget(timer)}
-                className="rounded-lg border border-red-200 bg-white px-2 py-1 text-[11px] font-semibold text-red-600 shadow-none transition hover:bg-red-50 disabled:opacity-50"
+                className="rounded-md border border-red-200 bg-white px-2 py-1 text-[11px] font-semibold text-red-600 shadow-none transition hover:bg-red-50 disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={() => setRescheduleTarget(timer)}
-                className="bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-2 py-1 text-xs font-semibold shadow-none transition"
+                className="bg-primary text-primary-foreground hover:bg-primary/80 rounded-md px-2 py-1 text-xs font-semibold shadow-none transition"
               >
                 Reschedule
               </button>
@@ -436,7 +436,7 @@ export function TimerManagementPage() {
                 type="button"
                 onClick={() => void timers.refetch()}
                 disabled={timers.isFetching}
-                className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-600 transition hover:border-violet-200 hover:bg-slate-50 hover:text-violet-700 focus-visible:ring-2 focus-visible:ring-violet-500/40 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex h-8 items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-600 transition hover:border-violet-200 hover:bg-slate-50 hover:text-violet-700 focus-visible:ring-2 focus-visible:ring-violet-500/40 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <RefreshCw size={13} className={timers.isFetching ? 'animate-spin' : undefined} />
                 {timers.isFetching ? 'Refreshing…' : 'Refresh'}
@@ -496,7 +496,7 @@ function DialogButton({
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`rounded-lg border px-3.5 py-2 text-xs font-semibold shadow-none transition disabled:opacity-50 ${styles}`}
+      className={`rounded-md border px-3.5 py-2 text-xs font-semibold shadow-none transition disabled:opacity-50 ${styles}`}
     >
       {children}
     </button>

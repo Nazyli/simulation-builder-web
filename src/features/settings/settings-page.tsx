@@ -37,13 +37,14 @@ export function SettingsPage() {
   }
 
   return (
-    <PageFrame mode="reference" className="settings-page mx-auto w-full max-w-3xl">
+    <PageFrame mode="reference" className="settings-page">
       <PageHeader title="Settings" />
 
       <SurfaceSection
         title="Reset demo data"
         description="Re-run migrations and seed all demo simulations."
-        className="rounded-sm border border-slate-200 bg-white p-6 max-[620px]:rounded-lg max-[620px]:p-4"
+        variant="panel"
+        className="w-full max-w-3xl"
       >
         <div className="mb-5 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-relaxed text-amber-800">
           <AlertTriangle size={14} className="mt-0.5 shrink-0" />
@@ -71,7 +72,7 @@ export function SettingsPage() {
                 <summary className="cursor-pointer text-xs font-medium text-slate-500 hover:text-slate-700">
                   {step}
                 </summary>
-                <pre className="mt-1 max-h-40 overflow-auto rounded-md bg-slate-50 p-2 text-[11px] leading-relaxed text-slate-600">
+                <pre className="mt-1 max-h-40 overflow-auto rounded-lg bg-slate-50 p-2 text-[11px] leading-relaxed text-slate-600">
                   {result[step]}
                 </pre>
               </details>

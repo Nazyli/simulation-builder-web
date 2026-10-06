@@ -1736,11 +1736,7 @@ export function SimulationStudioPage() {
 
   if (versionDetail.isPending) {
     return (
-      <PageFrame
-        mode="workbench"
-        edgeToEdge
-        className="grid h-[calc(100vh-64px)] place-items-center"
-      >
+      <PageFrame mode="workbench" edgeToEdge viewport="fill" className="grid place-items-center">
         <LoadingState variant="canvas" />
       </PageFrame>
     )
@@ -1748,11 +1744,7 @@ export function SimulationStudioPage() {
 
   if (versionDetail.isError) {
     return (
-      <PageFrame
-        mode="workbench"
-        edgeToEdge
-        className="grid h-[calc(100vh-64px)] place-items-center"
-      >
+      <PageFrame mode="workbench" edgeToEdge viewport="fill" className="grid place-items-center">
         <div className="max-w-sm rounded-lg border border-slate-200 bg-white p-6 text-center">
           <AlertTriangle className="mx-auto mb-3 h-8 w-8 text-amber-500" />
           <h2 className="text-sm font-bold text-slate-900">Simulation not found</h2>
@@ -1772,7 +1764,8 @@ export function SimulationStudioPage() {
     <PageFrame
       mode="workbench"
       edgeToEdge
-      className="studio-app-container flex h-[calc(100vh-64px)] min-h-0 min-w-0 flex-col space-y-0 overflow-hidden text-slate-800"
+      viewport="fill"
+      className="studio-app-container text-slate-800"
     >
       {pendingPalettePlacement && (
         <PaletteNodePlacementPreview
@@ -1813,7 +1806,7 @@ export function SimulationStudioPage() {
                 {selectedSimulation.simulationName}
               </span>
             ) : (
-              <span className="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-semibold text-slate-500">
+              <span className="inline-flex items-center rounded-sm border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-semibold text-slate-500">
                 No Simulation
               </span>
             )}
@@ -1821,7 +1814,7 @@ export function SimulationStudioPage() {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span
-                    className="inline-flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700"
+                    className="inline-flex items-center gap-1 rounded-sm border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700"
                     title={`Used ${executionCount} time${executionCount === 1 ? '' : 's'}`}
                   >
                     <Lock className="h-3 w-3" /> Locked • Used {executionCount} times
@@ -1977,7 +1970,7 @@ export function SimulationStudioPage() {
             <h2 className="flex items-center gap-1.5 text-[10px] font-bold tracking-wider text-slate-500 uppercase">
               <Layers className="h-3.5 w-3.5 text-purple-600" /> Node Palette
             </h2>
-            <span className="rounded bg-slate-100 px-1 py-0.5 text-[9px] font-medium text-slate-500">
+            <span className="rounded-sm bg-slate-100 px-1 py-0.5 text-[9px] font-medium text-slate-500">
               Click or drag
             </span>
           </div>
@@ -2089,7 +2082,7 @@ export function SimulationStudioPage() {
           {/* Graph Validation Floating Drawer */}
           {validationRequested && (
             <div
-              className={`animate-slide-up absolute right-3 bottom-3 left-3 z-20 rounded-md border p-3 md:right-auto md:max-w-md ${validationErrors.length > 0 ? 'border-red-200 bg-red-50 text-red-900' : 'border-emerald-200 bg-emerald-50 text-emerald-900'}`}
+              className={`animate-slide-up absolute right-3 bottom-3 left-3 z-20 rounded-lg border p-3 md:right-auto md:max-w-md ${validationErrors.length > 0 ? 'border-red-200 bg-red-50 text-red-900' : 'border-emerald-200 bg-emerald-50 text-emerald-900'}`}
             >
               <div className="mb-2 flex items-center justify-between">
                 <h3
@@ -2410,7 +2403,7 @@ export function SimulationStudioPage() {
           <div className="right-sidebar-tabs flex gap-1 border-b border-[#DBE3EC] bg-slate-50 p-1">
             <button
               type="button"
-              className={`tab-btn flex min-h-8 flex-none items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-semibold whitespace-nowrap transition-colors ${
+              className={`tab-btn flex min-h-8 flex-none items-center justify-center gap-1 rounded-md px-2 py-1.5 text-[11px] font-semibold whitespace-nowrap transition-colors ${
                 activeRightTab === 'inspector'
                   ? 'border border-slate-200 bg-white text-purple-700 shadow-xs'
                   : 'text-slate-500 hover:text-slate-800'
@@ -2422,7 +2415,7 @@ export function SimulationStudioPage() {
 
             <button
               type="button"
-              className={`tab-btn flex min-h-8 flex-none items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-semibold whitespace-nowrap transition-colors ${
+              className={`tab-btn flex min-h-8 flex-none items-center justify-center gap-1 rounded-md px-2 py-1.5 text-[11px] font-semibold whitespace-nowrap transition-colors ${
                 activeRightTab === 'versions'
                   ? 'border border-slate-200 bg-white text-purple-700 shadow-xs'
                   : 'text-slate-500 hover:text-slate-800'
@@ -2434,7 +2427,7 @@ export function SimulationStudioPage() {
 
             <button
               type="button"
-              className={`tab-btn flex min-h-8 flex-none items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-semibold whitespace-nowrap transition-colors ${
+              className={`tab-btn flex min-h-8 flex-none items-center justify-center gap-1 rounded-md px-2 py-1.5 text-[11px] font-semibold whitespace-nowrap transition-colors ${
                 activeRightTab === 'executions'
                   ? 'border border-slate-200 bg-white text-purple-700 shadow-xs'
                   : 'text-slate-500 hover:text-slate-800'
@@ -2523,7 +2516,7 @@ export function SimulationStudioPage() {
                               <span className="min-w-0 truncate">{version.simulationName}</span>
                               {version.isLocked && (
                                 <span
-                                  className="inline-flex shrink-0 items-center gap-0.5 rounded border border-amber-200 bg-amber-50 px-1 py-px text-[9px] leading-4 font-semibold text-amber-700"
+                                  className="inline-flex shrink-0 items-center gap-0.5 rounded-sm border border-amber-200 bg-amber-50 px-1 py-px text-[9px] leading-4 font-semibold text-amber-700"
                                   title={`Used ${version.executionCount ?? 0} times`}
                                 >
                                   <Lock className="h-2.5 w-2.5" /> Locked

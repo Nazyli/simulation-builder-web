@@ -52,7 +52,7 @@ test('Simulation registry cards keep responsive hierarchy and mobile action targ
 
   assert.match(simulationList, /grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-4/)
   assert.doesNotMatch(simulationList, /min-h-\[238px\]/)
-  assert.match(simulationList, /group flex min-w-0 flex-col rounded-sm/)
+  assert.match(simulationList, /group flex min-w-0 flex-col rounded-lg/)
   assert.match(simulationList, /hover:-translate-y-0\.5/)
   assert.equal(
     (simulationList.match(/max-\[640px\]:min-h-11 max-\[640px\]:min-w-11/g) ?? []).length,
@@ -71,7 +71,7 @@ test('Studio registry uses one concise hero heading instead of a duplicate page 
   assert.match(simulationList, /<h1 className=/)
   assert.match(simulationList, /New simulation/)
   assert.doesNotMatch(simulationList, /Start a new build/)
-  assert.match(simulationList, /max-w-\[1500px\] space-y-3/)
+  assert.doesNotMatch(simulationList, /max-w-\[1500px\]/)
   assert.match(simulationList, /border-y border-slate-200 py-2\.5 text-sm/)
   assert.match(simulationList, /min-w-0 flex-1 text-left/)
   assert.doesNotMatch(simulationList, />Simulation group<\/p>/)

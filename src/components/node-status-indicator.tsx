@@ -18,7 +18,7 @@ export function NodeStatusIndicator({ children, status, className }: NodeStatusI
   return (
     <div
       className={cn(
-        'node-status-indicator relative overflow-hidden rounded-md p-[2.5px]',
+        'node-status-indicator relative overflow-hidden rounded-lg p-[2.5px]',
         className,
       )}
     >
@@ -26,9 +26,7 @@ export function NodeStatusIndicator({ children, status, className }: NodeStatusI
         aria-hidden="true"
         className="node-status-indicator__spinner pointer-events-none absolute top-1/2 left-1/2 aspect-square w-[140%]"
       />
-      <div className="bg-card relative overflow-hidden rounded-[calc(var(--radius)-2px)]">
-        {children}
-      </div>
+      <div className="bg-card relative overflow-hidden rounded-lg">{children}</div>
     </div>
   )
 }

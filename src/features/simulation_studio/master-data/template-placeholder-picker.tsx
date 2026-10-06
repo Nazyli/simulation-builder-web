@@ -159,7 +159,7 @@ function TemplateHighlight({
     <div
       ref={ref}
       aria-hidden="true"
-      className="text-foreground pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-lg border border-transparent px-2.5 py-2 text-base break-words whitespace-pre-wrap md:text-sm"
+      className="text-foreground pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-md border border-transparent px-2.5 py-2 text-base break-words whitespace-pre-wrap md:text-sm"
     >
       {tokens.map((token, index) => (
         <span key={`${token.text}-${index}`} className={tokenClass(token)}>

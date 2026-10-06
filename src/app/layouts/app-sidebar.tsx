@@ -56,7 +56,7 @@ export function AppSidebar({ items }: AppSidebarProps) {
     const hasChildren = Boolean(children?.length)
     const expanded = expandedGroups[path] ?? isActive
     const itemClassName =
-      'h-8 rounded-md px-2 text-xs text-sidebar-foreground/75 transition-colors duration-150 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[active=true]:bg-[#F5E7FF] data-[active=true]:font-semibold data-[active=true]:text-[#5B148F]'
+      'h-8 rounded-sm px-2 text-xs text-sidebar-foreground/75 transition-colors duration-150 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[active=true]:bg-[#F5E7FF] data-[active=true]:font-semibold data-[active=true]:text-[#5B148F]'
 
     if (hasChildren) {
       return (
@@ -85,7 +85,7 @@ export function AppSidebar({ items }: AppSidebarProps) {
                     <SidebarMenuSubButton
                       asChild
                       isActive={childActive}
-                      className="text-sidebar-foreground/65 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground h-8 rounded-md text-xs transition-colors duration-150 data-[active=true]:bg-[#F5E7FF] data-[active=true]:font-semibold data-[active=true]:text-[#5B148F]"
+                      className="text-sidebar-foreground/65 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground h-8 rounded-sm text-xs transition-colors duration-150 data-[active=true]:bg-[#F5E7FF] data-[active=true]:font-semibold data-[active=true]:text-[#5B148F]"
                     >
                       <NavLink to={childPath}>
                         {ChildIcon && <ChildIcon size={15} strokeWidth={1.8} />}

@@ -512,7 +512,7 @@ export function ParticipantFlowCanvas({
           <select
             value={edgePathType}
             onChange={(e) => setEdgePathType(e.target.value as EdgePathType)}
-            className="ml-auto h-6 cursor-pointer rounded-lg border border-slate-200 bg-white px-1.5 text-[11px] font-semibold text-slate-600 transition-colors outline-none hover:bg-slate-50"
+            className="ml-auto h-6 cursor-pointer rounded-md border border-slate-200 bg-white px-1.5 text-[11px] font-semibold text-slate-600 transition-colors outline-none hover:bg-slate-50"
             title="Edge path style"
           >
             <option value="default">Bezier</option>
@@ -522,7 +522,7 @@ export function ParticipantFlowCanvas({
           </select>
           <button
             type="button"
-            className="inline-flex h-6 items-center justify-center rounded-lg border border-slate-200 bg-white px-2 text-slate-600 transition-colors hover:bg-slate-50"
+            className="inline-flex h-6 items-center justify-center rounded-md border border-slate-200 bg-white px-2 text-slate-600 transition-colors hover:bg-slate-50"
             onClick={() => flowInstance?.fitView({ padding: 0.2, duration: 240 })}
             title="Fit view"
             aria-label="Fit view"
@@ -531,7 +531,7 @@ export function ParticipantFlowCanvas({
           </button>
           <button
             type="button"
-            className={`inline-flex h-6 items-center justify-center rounded-lg border px-2 transition-colors ${showMiniMap ? 'border-purple-200 bg-purple-50 text-purple-700' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}
+            className={`inline-flex h-6 items-center justify-center rounded-md border px-2 transition-colors ${showMiniMap ? 'border-purple-200 bg-purple-50 text-purple-700' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}
             onClick={() => setShowMiniMap((v) => !v)}
             title="Toggle minimap"
             aria-label="Toggle minimap"

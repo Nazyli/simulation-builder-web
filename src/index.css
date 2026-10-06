@@ -49,7 +49,11 @@
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
+  /* Shared corner scale: compact elements, controls, and surfaces. */
+  --corner-compact: 2px;
+  --corner-control: 4px;
+  --corner-surface: 6px;
+  --radius: var(--corner-surface);
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: #9929ea;
@@ -72,34 +76,6 @@
 
 body {
   margin: 0;
-}
-
-.app-content:has(
-  .studio-app-container,
-  .timer-management-page,
-  .ai-token-usage-page,
-  .history-page,
-  .history-detail-page,
-  .simulation-runner-page,
-  .simulation-list-page,
-  .master-actors-page,
-  .settings-page,
-  .documentation-page
-) {
-  padding: 0 !important;
-  margin: 0 !important;
-  max-width: none !important;
-}
-
-.documentation-page {
-  min-height: calc(100vh - 7rem);
-  padding: 1.5rem;
-}
-
-@media (max-width: 620px) {
-  .documentation-page {
-    padding: 0.75rem;
-  }
 }
 
 .documentation-article {
@@ -157,7 +133,7 @@ body {
   font-weight: 700;
 }
 .documentation-article code {
-  border-radius: 0.3rem;
+  border-radius: var(--radius-sm);
   background: #f1f3f7;
   padding: 0.12rem 0.35rem;
   color: #4c3d9a;
@@ -167,7 +143,7 @@ body {
   margin: 0.9rem 0 1rem;
   overflow-x: auto;
   border: 1px solid #dbe3ec;
-  border-radius: 0.7rem;
+  border-radius: var(--radius-lg);
   background: #172033;
   padding: 0.75rem 1rem;
   color: #e2e8f0;
@@ -178,7 +154,7 @@ body {
   margin: 1rem 0 1.2rem;
   overflow-x: auto;
   border: 1px solid #dbe3ec;
-  border-radius: 0.7rem;
+  border-radius: var(--radius-lg);
   background: #ffffff;
   padding: 1rem;
 }
@@ -211,7 +187,7 @@ body {
 .documentation-article blockquote {
   margin: 0.9rem 0;
   border: 1px solid #e5e7eb;
-  border-radius: 0.625rem;
+  border-radius: var(--radius-lg);
   background: #faf9ff;
   padding: 0.75rem 1rem;
   color: #596579;
@@ -319,7 +295,7 @@ button:not(:disabled) {
 .node-status-indicator {
   /* keep violet glow consistent — React Flow outer filter already handles it,
      but ensure inner clipping respects BaseNode radius */
-  border-radius: calc(var(--radius) + 1px);
+  border-radius: calc(var(--radius-lg) + 2.5px);
 }
 .history-legend-line {
   display: inline-block;
@@ -380,9 +356,14 @@ button:not(:disabled) {
   --space-5: 1.25rem;
   --space-6: 1.5rem;
   --space-8: 2rem;
-  --radius-sm: 0.375rem;
-  --radius-md: 0.625rem;
-  --radius-lg: 0.875rem;
+  --page-inset: 20px;
+  --page-gap: 16px;
+  --panel-inset: 16px;
+  --app-header-height: 40px;
+  --page-viewport-height: calc(100dvh - var(--app-header-height));
+  --radius-sm: var(--corner-compact);
+  --radius-md: var(--corner-control);
+  --radius-lg: var(--corner-surface);
   --shadow-sm: 0 1px 2px rgb(15 23 42 / 0.04);
   --shadow-md: 0 12px 28px rgb(15 23 42 / 0.08);
   --font-sans: 'Plus Jakarta Sans Variable', sans-serif;
@@ -393,6 +374,16 @@ button:not(:disabled) {
   --text-base: 1rem;
   --text-lg: 1.125rem;
   --text-xl: 1.5rem;
+}
+@media (max-width: 900px) {
+  :root {
+    --page-inset: 18px;
+  }
+}
+@media (max-width: 620px) {
+  :root {
+    --page-inset: 12px;
+  }
 }
 body {
   color: var(--color-text);
@@ -447,10 +438,6 @@ button:disabled {
   .app-density-compact .app-page-header,
   .app-density-compact .app-surface-section__header {
     gap: 10px;
-  }
-
-  .app-density-compact .app-surface-section {
-    padding-bottom: 16px;
   }
 
   .app-density-compact .app-surface-section__header {
@@ -563,6 +550,7 @@ button:disabled {
 }
 
 @theme inline {
+  --radius-xs: var(--corner-compact);
   --font-heading: var(--font-sans);
   --font-sans: 'Plus Jakarta Sans Variable', sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
@@ -596,13 +584,13 @@ button:disabled {
   --color-card: var(--card);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-sm: var(--corner-compact);
+  --radius-md: var(--corner-control);
+  --radius-lg: var(--corner-surface);
+  --radius-xl: var(--corner-surface);
+  --radius-2xl: var(--corner-surface);
+  --radius-3xl: var(--corner-surface);
+  --radius-4xl: var(--corner-surface);
 }
 
 .dark {
@@ -703,7 +691,7 @@ button:disabled {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 4fr);
   align-items: start;
-  gap: 0.75rem;
+  gap: var(--page-gap);
 }
 
 @media (max-width: 760px) {

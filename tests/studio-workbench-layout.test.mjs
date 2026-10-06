@@ -17,7 +17,7 @@ test('Studio uses the shared edge-to-edge workbench frame', () => {
   )
   assert.match(
     content,
-    /<PageFrame\s+mode="workbench"\s+edgeToEdge\s+className="studio-app-container[^\n]*space-y-0/,
+    /<PageFrame\s+mode="workbench"\s+edgeToEdge\s+viewport="fill"\s+className="studio-app-container/,
   )
   assert.match(content, /studio-main-workspace[^\n]*min-h-0[^\n]*min-w-0/)
   assert.match(content, /studio-canvas-area[^\n]*min-h-0[^\n]*min-w-0/)
@@ -34,7 +34,10 @@ test('Studio workbench avoids decorative glass framing while retaining graph con
   assert.match(page, /title="Validate Graph Structure"/)
   assert.match(page, /title="Arrange nodes automatically"/)
   assert.match(page, /onClick=\{\(\) => setAutoLayoutConfirmOpen\(true\)\}/)
-  assert.match(page, /<DialogTitle[^>]*>[\s\S]*?Arrange nodes automatically\?[\s\S]*?<\/DialogTitle>/)
+  assert.match(
+    page,
+    /<DialogTitle[^>]*>[\s\S]*?Arrange nodes automatically\?[\s\S]*?<\/DialogTitle>/,
+  )
 })
 
 test('workflow edge labels use tighter padding and translucent backgrounds', () => {
@@ -161,7 +164,7 @@ test('Studio and History Flow share compact canvas controls and zoom panel sizin
   assert.match(page, /flex h-6 items-center gap-1 rounded-md border border-slate-300/)
   assert.match(
     history,
-    /inline-flex h-6 items-center justify-center rounded-lg border border-slate-200/,
+    /inline-flex h-6 items-center justify-center rounded-md border border-slate-200/,
   )
   assert.equal((`${page}\n${history}`.match(/className="w-14 sm:w-18 lg:w-24"/g) ?? []).length, 2)
   assert.equal(
@@ -227,7 +230,7 @@ test('Studio sidebar tabs shrink to their labels while keeping a compact hit are
   const page = source('features/simulation_studio/simulation-studio-page.tsx')
 
   assert.equal((page.match(/tab-btn flex min-h-8 flex-none/g) ?? []).length, 3)
-  assert.equal((page.match(/gap-1 rounded-lg px-2 py-1\.5 text-\[11px\]/g) ?? []).length, 3)
+  assert.equal((page.match(/gap-1 rounded-md px-2 py-1\.5 text-\[11px\]/g) ?? []).length, 3)
 })
 
 test('Studio header reserves the brand color for Run and softens supporting actions', () => {

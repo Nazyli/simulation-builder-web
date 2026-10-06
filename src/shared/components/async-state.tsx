@@ -37,7 +37,7 @@ export function LoadingState({
               ? 'h-[90px] w-1/2 rounded-lg'
               : variant === 'runner'
                 ? 'h-[120px] rounded-lg'
-                : `h-3.5 rounded-full ${widths[index] ?? 'w-full'}`
+                : `h-3.5 rounded-sm ${widths[index] ?? 'w-full'}`
           }
         />
       ))}

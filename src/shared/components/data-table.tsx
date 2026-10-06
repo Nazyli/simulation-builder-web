@@ -83,7 +83,7 @@ export function DataTable<T extends { id: string }>({
     onSelectionChange?.(rows.filter((row) => next.has(row.id)))
   }
   return (
-    <section className="app-data-table min-w-0 overflow-hidden rounded-md border border-slate-200 bg-white">
+    <section className="app-data-table min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white">
       <div className="app-data-table__toolbar flex min-w-0 flex-wrap items-center gap-2 border-b border-slate-100 bg-white px-3.5 py-3">
         <Input
           aria-label="Filter rows"
@@ -105,7 +105,7 @@ export function DataTable<T extends { id: string }>({
               {columns.map((column) => (
                 <label
                   key={column.id}
-                  className="flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1 text-xs text-slate-600 hover:bg-slate-50"
+                  className="flex cursor-pointer items-center gap-1.5 rounded-sm px-2 py-1 text-xs text-slate-600 hover:bg-slate-50"
                 >
                   <Checkbox
                     checked={visible.has(column.id)}

@@ -84,7 +84,7 @@ export function TranscriptionViewer({
       <div className="rounded-lg border border-slate-200 bg-white/95 px-4 py-3 shadow-sm">
         <p className="text-sm leading-relaxed text-slate-800">
           <span
-            className={`mr-2 inline-block rounded-md px-1.5 py-0.5 text-[11px] font-semibold tracking-wide uppercase ${
+            className={`mr-2 inline-block rounded-sm px-1.5 py-0.5 text-[11px] font-semibold tracking-wide uppercase ${
               isParticipant ? 'bg-slate-100 text-slate-700' : 'bg-indigo-50 text-indigo-700'
             }`}
           >

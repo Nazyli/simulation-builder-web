@@ -54,12 +54,12 @@ export function MessageBubble({
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold text-slate-600">{senderName}</span>
               {isOwn && (
-                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
+                <span className="rounded-sm bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
                   You
                 </span>
               )}
               {message.simulationLabel && (
-                <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-medium text-indigo-600">
+                <span className="rounded-sm bg-indigo-50 px-2 py-0.5 text-[10px] font-medium text-indigo-600">
                   {message.simulationLabel}
                 </span>
               )}

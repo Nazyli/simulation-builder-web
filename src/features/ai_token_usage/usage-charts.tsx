@@ -160,7 +160,11 @@ export function UsageTrendChart({
                 <Tooltip
                   formatter={(value, name) => [formatTokens(value as number), name]}
                   labelStyle={{ color: '#172033', fontWeight: 600 }}
-                  contentStyle={{ borderColor: '#DBE3EC', borderRadius: 6, fontSize: 12 }}
+                  contentStyle={{
+                    borderColor: '#DBE3EC',
+                    borderRadius: 'var(--radius-lg)',
+                    fontSize: 12,
+                  }}
                 />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
                 <Line

@@ -9,6 +9,7 @@ export function PageHeader({
   metadata,
   actions,
   className,
+  inset = false,
 }: {
   title: ReactNode
   description?: ReactNode
@@ -16,11 +17,13 @@ export function PageHeader({
   metadata?: ReactNode
   actions?: ReactNode
   className?: string
+  inset?: boolean
 }) {
   return (
     <header
       className={cn(
         'app-page-header flex min-w-0 flex-wrap items-center justify-between gap-3',
+        inset && 'px-[var(--page-inset)] py-[var(--page-gap)]',
         className,
       )}
     >

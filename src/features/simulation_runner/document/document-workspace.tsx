@@ -115,7 +115,7 @@ export function DocumentWorkspace({
                         </span>
                         <span className="mt-0.5 flex items-center gap-1.5">
                           <span
-                            className={`inline-flex items-center rounded border px-1.5 py-px text-[10px] leading-4 font-medium ${statusMeta.className}`}
+                            className={`inline-flex items-center rounded-sm border px-1.5 py-px text-[10px] leading-4 font-medium ${statusMeta.className}`}
                           >
                             {statusMeta.label}
                           </span>
@@ -189,13 +189,13 @@ function DocumentDetail({
           <p className="truncate text-base font-semibold text-slate-600">{doc.title}</p>
           <div className="mt-1 flex items-center gap-2 text-xs text-slate-500">
             <span
-              className={`inline-flex items-center rounded border px-1.5 py-px leading-4 font-medium ${statusMeta.className}`}
+              className={`inline-flex items-center rounded-sm border px-1.5 py-px leading-4 font-medium ${statusMeta.className}`}
             >
               {statusMeta.label}
             </span>
             <span className="text-slate-300">·</span>
             <span
-              className="inline-flex items-center gap-1 rounded px-1.5 py-px font-medium"
+              className="inline-flex items-center gap-1 rounded-sm px-1.5 py-px font-medium"
               style={{ backgroundColor: typeMeta.bg, color: typeMeta.color }}
             >
               {typeMeta.label}
@@ -218,7 +218,7 @@ function DocumentDetail({
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
         <div className="mx-auto max-w-3xl space-y-4">
           {/* Summary card */}
-          <div className="rounded-md border border-slate-200 bg-white p-4">
+          <div className="rounded-lg border border-slate-200 bg-white p-4">
             <h3 className="mb-2 text-xs font-bold tracking-wide text-slate-500 uppercase">
               Summary
             </h3>

@@ -142,7 +142,7 @@ export function ConversationSidebar({
               <span className="min-w-0 flex-1">
                 <span className="flex items-baseline justify-between gap-2">
                   <span className="truncate text-sm font-semibold">{actor.actorName}</span>
-                  <span className="text-primary shrink-0 rounded-md bg-violet-100 px-1.5 text-xs font-semibold">
+                  <span className="text-primary shrink-0 rounded-sm bg-violet-100 px-1.5 text-xs font-semibold">
                     {actor.actorId}
                   </span>
                 </span>
@@ -221,7 +221,7 @@ export function ConversationSidebar({
                         <span className="truncate text-sm font-semibold text-slate-700">
                           {item.actorName}
                         </span>
-                        <span className="text-primary shrink-0 rounded-md bg-violet-100 px-1.5 text-xs font-semibold">
+                        <span className="text-primary shrink-0 rounded-sm bg-violet-100 px-1.5 text-xs font-semibold">
                           {item.actorId}
                         </span>
                       </span>

@@ -8,12 +8,14 @@ export function SurfaceSection({
   description,
   actions,
   className,
+  variant = 'plain',
 }: {
   children: ReactNode
   title?: ReactNode
   description?: ReactNode
   actions?: ReactNode
   className?: string
+  variant?: 'plain' | 'panel'
 }) {
   const titleId = useId()
 
@@ -21,7 +23,10 @@ export function SurfaceSection({
     <section
       aria-labelledby={title ? titleId : undefined}
       className={cn(
-        'app-surface-section min-w-0 border-b border-slate-200 pb-5 last:border-b-0',
+        'app-surface-section min-w-0',
+        variant === 'panel'
+          ? 'rounded-lg border border-slate-200 bg-white p-[var(--panel-inset)]'
+          : 'border-b border-slate-200 pb-[var(--page-gap)] last:border-b-0',
         className,
       )}
     >

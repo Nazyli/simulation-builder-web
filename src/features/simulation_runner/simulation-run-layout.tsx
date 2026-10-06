@@ -9,12 +9,9 @@ function SimulationRunShell() {
   const { participantId } = useSimulationRun()
 
   return (
-    <PageFrame
-      mode="workbench"
-      className="simulation-runner-page flex h-[calc(100vh-64px)] w-full min-w-0 flex-col overflow-hidden"
-    >
+    <PageFrame mode="workbench" viewport="fill" className="simulation-runner-page">
       <SimulationInfoPanel participantId={participantId} />
-      <section className="mt-3 flex min-h-0 min-w-0 flex-1 flex-col gap-3 lg:flex-row">
+      <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-[var(--page-gap)] lg:flex-row">
         <SimulationChannelNav />
         <div className="min-h-0 min-w-0 flex-1">
           <Outlet />

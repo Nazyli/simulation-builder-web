@@ -157,7 +157,7 @@ function ParticipantTile({
           {participant.name || participant.identity}
         </span>
         {isLocal ? (
-          <span className="rounded bg-indigo-100 px-1 py-0.5 text-[9px] font-semibold text-indigo-700">
+          <span className="rounded-sm bg-indigo-100 px-1 py-0.5 text-[9px] font-semibold text-indigo-700">
             You
           </span>
         ) : null}

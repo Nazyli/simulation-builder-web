@@ -28,7 +28,7 @@ export function SummaryStrip({
   return (
     <dl
       className={cn(
-        'app-summary-strip grid min-w-0 auto-cols-[minmax(112px,1fr)] grid-flow-col divide-x divide-slate-200 overflow-x-auto rounded-md border border-slate-200 bg-white',
+        'app-summary-strip grid min-w-0 auto-cols-[minmax(112px,1fr)] grid-flow-col divide-x divide-slate-200 overflow-x-auto rounded-lg border border-slate-200 bg-white',
         className,
       )}
     >

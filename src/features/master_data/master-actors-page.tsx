@@ -67,7 +67,7 @@ export function MasterActorsPage() {
   const actors = actorsQuery.data ?? []
 
   return (
-    <PageFrame mode="operations" className="master-actors-page mx-auto max-w-[1500px]">
+    <PageFrame mode="operations" className="master-actors-page">
       <PageHeader
         title="Actors"
         actions={
@@ -126,8 +126,8 @@ export function MasterActorsPage() {
                       <span
                         className={
                           actor.isParticipant
-                            ? 'rounded-md bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700'
-                            : 'rounded-md bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-500'
+                            ? 'rounded-sm bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700'
+                            : 'rounded-sm bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-500'
                         }
                       >
                         {actor.isParticipant ? 'Yes' : 'No'}

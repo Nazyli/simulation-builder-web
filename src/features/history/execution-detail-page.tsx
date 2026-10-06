@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, Check, Copy, Layers, ListTree, RefreshCw, Route } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { PageFrame } from '../../components/layout/page-frame'
+import { PageContent, PageFrame } from '../../components/layout/page-frame'
 import { PageHeader } from '../../components/layout/page-header'
 import { PageToolbar } from '../../components/layout/page-toolbar'
 import { Button } from '../../components/ui/button'
@@ -118,18 +118,15 @@ export function ExecutionDetailPage() {
   }
 
   return (
-    <PageFrame
-      mode="operations"
-      edgeToEdge
-      className="history-detail-page flex h-[calc(100dvh-58px)] min-h-0 w-full flex-col overflow-hidden"
-    >
+    <PageFrame mode="operations" edgeToEdge viewport="fill" className="history-detail-page">
       <Tabs
         defaultValue={defaultTab}
         onValueChange={(value) => setActiveTab(value)}
         className="flex min-h-0 flex-1 flex-col"
       >
         <PageHeader
-          className="shrink-0 border-b border-slate-200 bg-white px-6 py-4 max-[900px]:px-[18px] max-[620px]:px-3 max-[620px]:py-3"
+          inset
+          className="shrink-0 border-b border-slate-200 bg-white"
           title={
             <span className="flex min-w-0 items-center gap-2">
               <span className="bg-primary grid size-8 shrink-0 place-items-center rounded-lg text-white">
@@ -235,7 +232,7 @@ export function ExecutionDetailPage() {
             </PageToolbar>
           }
         />
-        <PageToolbar className="shrink-0 justify-between border-b border-slate-200 bg-white px-6 pb-4 max-[900px]:px-[18px] max-[620px]:px-3 max-[620px]:pb-3">
+        <PageToolbar inset className="shrink-0 justify-between border-b border-slate-200 bg-white">
           <TabsList className="h-9 bg-slate-100 p-1">
             <TabsTrigger value="flow" className="px-3 text-xs font-semibold">
               <Route size={14} />
@@ -260,10 +257,12 @@ export function ExecutionDetailPage() {
         </TabsContent>
 
         <TabsContent value="detail" className="min-h-0 flex-1 overflow-auto bg-white">
-          <NodeExecutionTable
-            nodeExecutions={nodeExecutions.data ?? []}
-            loading={nodeExecutions.isPending}
-          />
+          <PageContent>
+            <NodeExecutionTable
+              nodeExecutions={nodeExecutions.data ?? []}
+              loading={nodeExecutions.isPending}
+            />
+          </PageContent>
         </TabsContent>
       </Tabs>
     </PageFrame>
@@ -275,10 +274,12 @@ function ExecutionDetailState({ children }: { children: ReactNode }) {
     <PageFrame
       mode="operations"
       edgeToEdge
-      className="history-detail-page min-h-[calc(100dvh-58px)] w-full overflow-hidden"
+      viewport="minimum"
+      className="history-detail-page overflow-hidden"
     >
       <PageHeader
-        className="border-b border-slate-200 bg-white px-6 py-4 max-[900px]:px-[18px] max-[620px]:px-3 max-[620px]:py-3"
+        inset
+        className="border-b border-slate-200 bg-white"
         title={
           <span className="flex min-w-0 items-center gap-2">
             <span className="bg-primary grid size-8 shrink-0 place-items-center rounded-lg text-white">
@@ -288,7 +289,7 @@ function ExecutionDetailState({ children }: { children: ReactNode }) {
           </span>
         }
       />
-      <div className="min-w-0 p-6 max-[900px]:px-[18px] max-[620px]:p-3">{children}</div>
+      <PageContent>{children}</PageContent>
     </PageFrame>
   )
 }
@@ -335,7 +336,7 @@ function NodeExecutionTable({
               <TableCell>
                 {item.selectedPort ? (
                   <div className="flex flex-col items-start gap-1">
-                    <span className="inline-flex rounded-md bg-violet-50 px-1.5 py-0.5 font-mono text-[11px] font-bold text-violet-700">
+                    <span className="inline-flex rounded-sm bg-violet-50 px-1.5 py-0.5 font-mono text-[11px] font-bold text-violet-700">
                       {item.selectedPort}
                     </span>
                     {item.selectedEdgeId && (

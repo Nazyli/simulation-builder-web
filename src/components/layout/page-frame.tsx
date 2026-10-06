@@ -5,17 +5,7 @@ import { cn } from '@/lib/utils'
 export type PageFrameMode = 'workbench' | 'operations' | 'reference'
 export type PageFrameDensity = 'compact' | 'comfortable'
 
-const modeClasses: Record<PageFrameMode, string> = {
-  workbench: 'space-y-3',
-  operations: 'space-y-6',
-  reference: 'space-y-8',
-}
-
-const compactModeClasses: Record<PageFrameMode, string> = {
-  workbench: '',
-  operations: 'min-[901px]:space-y-5',
-  reference: 'min-[901px]:space-y-7',
-}
+export type PageFrameViewport = 'content' | 'fill' | 'minimum'
 
 export function PageFrame({
   children,
@@ -23,22 +13,40 @@ export function PageFrame({
   mode = 'operations',
   density = 'compact',
   edgeToEdge = false,
+  viewport = 'minimum',
 }: {
   children: ReactNode
   className?: string
   mode?: PageFrameMode
   density?: PageFrameDensity
   edgeToEdge?: boolean
+  viewport?: PageFrameViewport
 }) {
   return (
     <div
+      data-page-mode={mode}
+      data-page-viewport={viewport}
+      data-edge-to-edge={edgeToEdge || undefined}
       className={cn(
-        'w-full max-w-none min-w-0 bg-[#F6F8FB] p-6 max-[900px]:px-[18px] max-[900px]:py-[22px] max-[620px]:p-3',
-        modeClasses[mode],
+        'app-page-frame flex w-full max-w-none min-w-0 flex-col bg-[var(--color-canvas)]',
+        edgeToEdge ? 'gap-0 p-0' : 'gap-[var(--page-gap)] p-[var(--page-inset)]',
         density === 'compact' && 'app-density-compact',
-        density === 'compact' && compactModeClasses[mode],
-        density === 'compact' && !edgeToEdge && 'min-[901px]:p-5',
-        edgeToEdge && 'p-0 max-[900px]:px-0 max-[900px]:py-0 max-[620px]:p-0',
+        viewport === 'fill' && 'h-[var(--page-viewport-height)] min-h-0 overflow-hidden',
+        viewport === 'minimum' && 'min-h-[var(--page-viewport-height)]',
+        className,
+      )}
+    >
+      {children}
+    </div>
+  )
+}
+
+/** Padded content inside a full-bleed canvas or tabbed workspace. */
+export function PageContent({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <div
+      className={cn(
+        'app-page-content flex min-w-0 flex-col gap-[var(--page-gap)] p-[var(--page-inset)]',
         className,
       )}
     >

@@ -32,7 +32,7 @@ export function DocumentPreviewDialog({
               <DialogTitle className="truncate text-slate-800">{doc.title}</DialogTitle>
               <div className="mt-1 flex items-center gap-2 text-xs text-slate-500">
                 <span
-                  className={`inline-flex items-center rounded border px-1.5 py-px leading-4 font-medium ${statusMeta.className}`}
+                  className={`inline-flex items-center rounded-sm border px-1.5 py-px leading-4 font-medium ${statusMeta.className}`}
                 >
                   {statusMeta.label}
                 </span>

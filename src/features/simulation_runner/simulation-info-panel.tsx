@@ -110,7 +110,7 @@ export function SimulationInfoPanel({ participantId }: { participantId: string }
       </header>
 
       {activeExecution?.status === 'waiting' && (
-        <section className="mt-3 flex min-w-0 items-center gap-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2.5">
+        <section className="mt-3 flex min-w-0 items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5">
           <span className="grid size-8 shrink-0 place-items-center rounded-md bg-amber-100 text-amber-600">
             <Clock3 size={18} />
           </span>
@@ -127,7 +127,7 @@ export function SimulationInfoPanel({ participantId }: { participantId: string }
       )}
 
       {(activeExecution?.status === 'completed' || activeExecution?.status === 'failed') && (
-        <section className="mt-3 flex min-w-0 flex-wrap items-center gap-3 rounded-md border border-sky-200 bg-sky-50 px-3 py-2.5">
+        <section className="mt-3 flex min-w-0 flex-wrap items-center gap-3 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2.5">
           <span className="grid size-8 shrink-0 place-items-center rounded-md bg-sky-100 text-sky-600">
             <RefreshCw size={18} />
           </span>

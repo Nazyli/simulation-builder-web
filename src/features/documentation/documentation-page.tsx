@@ -82,7 +82,7 @@ function DocumentationNav({
             onChange={(event) => onQueryChange(event.target.value)}
             placeholder="Search docs..."
             aria-label="Search documentation"
-            className="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 pr-8 pl-9 text-xs text-slate-700 transition-colors outline-none placeholder:text-slate-400 focus:border-violet-300 focus:bg-white focus:ring-3 focus:ring-violet-100"
+            className="h-9 w-full rounded-md border border-slate-200 bg-slate-50 pr-8 pl-9 text-xs text-slate-700 transition-colors outline-none placeholder:text-slate-400 focus:border-violet-300 focus:bg-white focus:ring-3 focus:ring-violet-100"
           />
           {query && (
             <button
@@ -102,7 +102,7 @@ function DocumentationNav({
           <section key={section.id} className="mb-6 last:mb-0">
             <h2 className="mb-2 flex items-center justify-between px-3 text-xs font-bold tracking-[0.16em] text-slate-400 uppercase">
               <span>{section.label}</span>
-              <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-xs tracking-normal text-slate-400">
+              <span className="rounded-sm bg-slate-100 px-1.5 py-0.5 text-xs tracking-normal text-slate-400">
                 {section.entries.length}
               </span>
             </h2>
@@ -365,7 +365,7 @@ export function DocumentationPage() {
         />
       </details>
 
-      <div className="grid w-full min-w-0 items-start gap-8 lg:grid-cols-[240px_minmax(0,960px)]">
+      <div className="grid w-full min-w-0 items-start gap-[var(--page-gap)] lg:grid-cols-[240px_minmax(0,1fr)]">
         <aside className="sticky top-20 hidden max-h-[calc(100vh-7rem)] overflow-y-auto lg:block">
           <DocumentationNav
             query={documentationQuery}
@@ -381,7 +381,7 @@ export function DocumentationPage() {
           )}
           {state.status === 'error' && <ErrorState message={state.message} />}
           {state.status === 'ready' && (
-            <SurfaceSection className="rounded-sm border border-slate-200 bg-white p-6 max-[620px]:rounded-lg max-[620px]:p-4">
+            <SurfaceSection variant="panel">
               <DocumentationArticle html={renderMarkdown(state.markdown)} />
             </SurfaceSection>
           )}

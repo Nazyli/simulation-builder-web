@@ -34,7 +34,7 @@ export function WorkflowPackageDialog({
         </DialogDescription>
 
         {workflowPackage ? (
-          <div className="space-y-3 rounded-md border border-slate-200 bg-slate-50/80 p-3 text-sm">
+          <div className="space-y-3 rounded-lg border border-slate-200 bg-slate-50/80 p-3 text-sm">
             <div>
               <p className="text-xs font-medium text-slate-500">File</p>
               <p className="truncate font-semibold text-slate-800">{packageFileName}</p>
