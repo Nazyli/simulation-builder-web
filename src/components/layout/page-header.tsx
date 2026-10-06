@@ -33,7 +33,7 @@ export function PageHeader({
             {eyebrow}
           </p>
         )}
-        <h1 className="min-w-0 text-lg leading-tight font-semibold tracking-[-0.02em] break-words text-slate-900 max-[620px]:text-base">
+        <h1 className="min-w-0 text-[20px] leading-tight font-semibold tracking-[-0.02em] break-words text-slate-900 max-[620px]:text-[18px]">
           {title}
         </h1>
         {description && (

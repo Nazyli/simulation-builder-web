@@ -6,6 +6,8 @@ export interface ExecutionHistoryItem {
   sessionId: string
   participantId: string
   participantFullName: string | null
+  participantGender: string | null
+  participantLanguage: string | null
   groupSimulationName: string | null
   simulationId: string
   simulationName: string | null
@@ -13,9 +15,7 @@ export interface ExecutionHistoryItem {
   currentNodeId: string | null
   startedAt: string
   completedAt: string | null
-  unreadCounts: Record<'chat' | 'email' | 'call' | 'document', number>
   createdAt: string
-  lastActivityAt: string
 }
 
 export const getExecutionHistory = (

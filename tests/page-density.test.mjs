@@ -61,18 +61,19 @@ test('Simulation registry cards keep responsive hierarchy and mobile action targ
   )
 })
 
-test('Studio registry uses one concise hero heading instead of a duplicate page header', () => {
+test('Studio registry uses one shared page header', () => {
   const simulationList = readFileSync(
     new URL('../src/features/simulation_studio/simulation-list-page.tsx', import.meta.url),
     'utf8',
   )
 
-  assert.doesNotMatch(simulationList, /<PageHeader/)
-  assert.match(simulationList, /<h1 className=/)
+  assert.match(simulationList, /<PageHeader\s+title="Simulation registry"/)
+  assert.doesNotMatch(simulationList, /<h1/)
   assert.match(simulationList, /New simulation/)
   assert.doesNotMatch(simulationList, /Start a new build/)
   assert.doesNotMatch(simulationList, /max-w-\[1500px\]/)
-  assert.match(simulationList, /border-y border-slate-200 py-2\.5 text-sm/)
+  assert.doesNotMatch(simulationList, /Registry summary/)
+  assert.doesNotMatch(simulationList, />\s*Simulation groups\s*</)
   assert.match(simulationList, /min-w-0 flex-1 text-left/)
   assert.doesNotMatch(simulationList, />Simulation group<\/p>/)
   assert.doesNotMatch(simulationList, /mt-auto flex items-end justify-between/)

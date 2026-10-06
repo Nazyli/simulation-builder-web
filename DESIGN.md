@@ -18,6 +18,18 @@ colors:
   status-amber-border: '#FDE68A'
   status-amber-text: '#B45309'
 typography:
+  page-title:
+    fontFamily: 'Plus Jakarta Sans Variable, Arial, sans-serif'
+    fontSize: '20px'
+    fontWeight: 600
+    lineHeight: 1.25
+    letterSpacing: '-0.02em'
+  page-title-mobile:
+    fontFamily: 'Plus Jakarta Sans Variable, Arial, sans-serif'
+    fontSize: '18px'
+    fontWeight: 600
+    lineHeight: 1.25
+    letterSpacing: '-0.02em'
   display:
     fontFamily: 'Plus Jakarta Sans Variable, Arial, sans-serif'
     fontSize: 'clamp(1.5rem, 3vw, 2rem)'
@@ -133,7 +145,7 @@ The palette combines a cool near-white canvas, white working surfaces, slate tex
 
 ### Hierarchy
 
-- **Display** (600, `clamp(1.5rem, 3vw, 2rem)`, 1.2): Page titles and the strongest entry points.
+- **Page title** (600, `20px`, 1.25; `18px` up to 620px): Plain, left-aligned titles through `PageHeader`, without decorative icons or a surrounding card.
 - **Title** (600, `1.125rem`, 1.35): Section titles and meaningful panel headings.
 - **Body** (400, `0.875rem`, 1.5): Main interface copy and form content.
 - **Label** (600, `0.75rem`, 1.35, slight positive tracking): Compact metadata, controls, and status labels.
@@ -146,6 +158,8 @@ The palette combines a cool near-white canvas, white working surfaces, slate tex
 Use a 4px spacing rhythm. `PageFrame` owns all page geometry: 20px padding on desktop, 18px at widths up to 900px, and 12px at widths up to 620px, with a 16px gap between page sections. The `--page-inset` and `--page-gap` tokens in `src/index.css` also align the shell header and nested workspace content. Modes and typography density do not change page spacing. Avoid page-level padding, gap, background, and width overrides.
 
 Pages use the available content width. A readable form or article may constrain its own content width, while its page frame retains the same gutters as other pages. `SurfaceSection variant="panel"` provides the shared 16px panel inset through `--panel-inset`.
+
+Page headers sit directly on the canvas without a background, border, or shadow. Keep descriptions and metadata only when they help the task; retain functional actions on the right, wrapping below on mobile. The Studio editor keeps its compact workspace toolbar and structural divider, with the group name as 12px semibold inline text rather than a page heading.
 
 Full-bleed canvases use `PageFrame edgeToEdge` with zero outer padding and gap. `PageContent` and `PageHeader`/`PageToolbar` with `inset` provide standard gutters for non-canvas content inside those pages. `viewport="fill"` bounds a workspace to the visible height; the default `viewport="minimum"` fills at least that height without clipping long content. Both use the actual 40px application header height. Grid column ratios, channel splits, and form/control spacing may vary according to content; they do not override page geometry.
 

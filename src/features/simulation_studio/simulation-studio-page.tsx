@@ -1795,21 +1795,12 @@ export function SimulationStudioPage() {
             >
               |
             </span>
-            <h1 className="min-w-0 truncate text-[0.68rem] font-bold tracking-[0.12em] text-slate-500">
+            <span className="min-w-0 truncate text-xs font-semibold text-slate-700">
               {selectedGroupSimulation?.groupSimulationName ?? 'Loading…'}
-            </h1>
+            </span>
           </div>
 
           <div className="hidden min-w-0 items-center gap-2.5 border-l border-slate-200 pl-3 sm:flex">
-            {selectedSimulation ? (
-              <span className="inline-flex max-w-48 items-center truncate rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-semibold text-slate-600">
-                {selectedSimulation.simulationName}
-              </span>
-            ) : (
-              <span className="inline-flex items-center rounded-sm border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-semibold text-slate-500">
-                No Simulation
-              </span>
-            )}
             {isLocked && (
               <Tooltip>
                 <TooltipTrigger asChild>

@@ -16,6 +16,7 @@ import { useMemo, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { PageFrame } from '../../components/layout/page-frame'
+import { PageHeader } from '../../components/layout/page-header'
 import { Button } from '../../components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '../../components/ui/dialog'
 import { Input } from '../../components/ui/input'
@@ -32,7 +33,7 @@ import {
 } from '../../shared/api/simulations'
 import { ErrorState } from '../../shared/components/async-state'
 import type { GroupSimulation, Simulation } from '../../shared/types/simulation'
-import { filterSimulationGroups, getSimulationListSummary } from './simulation-list-logic'
+import { filterSimulationGroups } from './simulation-list-logic'
 
 function apiErrorMessage(error: unknown): string {
   if (error instanceof ApiError) {
@@ -60,7 +61,6 @@ export function SimulationListPage() {
   const [searchQuery, setSearchQuery] = useState('')
 
   const groups = useQuery({ queryKey: ['group-simulations'], queryFn: getGroupSimulations })
-  const summary = useMemo(() => getSimulationListSummary(groups.data ?? []), [groups.data])
   const filteredGroups = useMemo(
     () => filterSimulationGroups(groups.data ?? [], searchQuery),
     [groups.data, searchQuery],
@@ -177,49 +177,18 @@ export function SimulationListPage() {
 
   return (
     <PageFrame mode="operations" className="simulation-list-page">
-      <SurfaceSection variant="panel">
-        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-[-0.035em] text-slate-900">
-              Simulation registry
-            </h1>
-            <p className="mt-1 text-sm text-slate-500">Build and manage workflow simulations.</p>
-          </div>
+      <PageHeader
+        title="Simulation registry"
+        description="Build and manage workflow simulations."
+        actions={
           <Button type="button" onClick={() => setFormGroup('new')} className="h-9 gap-2 px-3.5">
             <Plus className="h-4 w-4" /> New simulation
           </Button>
-        </div>
-      </SurfaceSection>
+        }
+      />
 
-      <dl
-        aria-label="Registry summary"
-        className="flex flex-wrap items-center gap-x-6 gap-y-2 border-y border-slate-200 py-2.5 text-sm"
-      >
-        <div className="flex items-baseline gap-1.5">
-          <dt className="text-slate-500">Groups</dt>
-          <dd className="font-semibold text-slate-900 tabular-nums">{summary.groups}</dd>
-        </div>
-        <div className="flex items-baseline gap-1.5">
-          <dt className="text-slate-500">Versions</dt>
-          <dd className="font-semibold text-slate-900 tabular-nums">{summary.versions}</dd>
-        </div>
-        <div className="flex items-baseline gap-1.5">
-          <dt className="text-slate-500">Ready</dt>
-          <dd className="font-semibold text-slate-900 tabular-nums">{summary.ready}</dd>
-        </div>
-        <div className="flex items-baseline gap-1.5">
-          <dt className="text-slate-500">Locked</dt>
-          <dd className="font-semibold text-slate-900 tabular-nums">{summary.locked}</dd>
-        </div>
-      </dl>
-
-      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
-        <div>
-          <h2 className="text-xl font-semibold tracking-[-0.035em] text-slate-900">
-            Simulation groups
-          </h2>
-        </div>
-        <label className="relative block w-full sm:max-w-[290px]">
+      <div className="flex min-w-0 items-center">
+        <label className="relative block w-full sm:max-w-[360px]">
           <span className="sr-only">Search simulation groups</span>
           <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
@@ -300,9 +269,9 @@ export function SimulationListPage() {
                         className="min-w-0 flex-1 text-left"
                         onClick={() => openGroup(group)}
                       >
-                        <h3 className="truncate text-base font-semibold tracking-[-0.025em] text-slate-900">
+                        <h2 className="truncate text-base font-semibold tracking-[-0.025em] text-slate-900">
                           {group.groupSimulationName}
-                        </h3>
+                        </h2>
                         <p className="mt-2 line-clamp-2 min-h-10 text-sm leading-5 text-slate-500">
                           {group.groupSimulationDesc ||
                             'A workspace for connected workflow versions.'}

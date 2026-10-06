@@ -1,5 +1,5 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Layers, ListTree, RefreshCw, Route, Trash2 } from 'lucide-react'
+import { ListTree, RefreshCw, Route, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -23,6 +23,8 @@ interface HistoryRow {
 const SORT_FIELDS: Record<string, string> = {
   participant: 'participantId',
   name: 'participantFullName',
+  gender: 'participantGender',
+  language: 'participantLanguage',
   status: 'status',
   session: 'sessionId',
   simulation: 'simulationName',
@@ -104,6 +106,16 @@ export function ParticipantHistoryPage() {
           {row.execution.participantFullName ?? '—'}
         </span>
       ),
+    },
+    {
+      id: 'gender',
+      header: 'Gender',
+      cell: (row) => row.execution.participantGender ?? '—',
+    },
+    {
+      id: 'language',
+      header: 'Language',
+      cell: (row) => row.execution.participantLanguage ?? '—',
     },
     {
       id: 'status',
@@ -192,16 +204,7 @@ export function ParticipantHistoryPage() {
 
   return (
     <PageFrame mode="operations" className="history-page">
-      <PageHeader
-        title={
-          <span className="flex min-w-0 items-center gap-2">
-            <span className="grid size-7 shrink-0 place-items-center rounded-md bg-slate-100 text-slate-600">
-              <Layers size={14} aria-hidden="true" />
-            </span>
-            <span>Execution history</span>
-          </span>
-        }
-      />
+      <PageHeader title="Execution history" />
 
       <SurfaceSection>
         {history.isPending ? (

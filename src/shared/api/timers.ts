@@ -4,16 +4,12 @@ import { paginationParams, type Page, type PageRequest } from './pagination'
 export type TransParticipantTimer = {
   participantTimerId: string
   nodeExecutionId: string
-  sessionId: string | null
   executionId: string | null
-  nodeId: string | null
   nodeType: string | null
   nodeName: string | null
   nodeConfiguration: Record<string, unknown> | null
   participantId: string | null
   participantFullName: string | null
-  groupSimulationName: string | null
-  simulationName: string | null
   masterSimulation?: string | null
   status: string
   canReschedule: boolean

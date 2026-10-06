@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Check, Copy, Layers, ListTree, RefreshCw, Route } from 'lucide-react'
+import { ArrowLeft, Check, Copy, ListTree, RefreshCw, Route } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { PageContent, PageFrame } from '../../components/layout/page-frame'
@@ -126,16 +126,15 @@ export function ExecutionDetailPage() {
       >
         <PageHeader
           inset
-          className="shrink-0 border-b border-slate-200 bg-white"
-          title={
-            <span className="flex min-w-0 items-center gap-2">
-              <span className="bg-primary grid size-8 shrink-0 place-items-center rounded-lg text-white">
-                <Layers size={16} />
-              </span>
-              <span className="min-w-0 break-words">{title}</span>
-            </span>
-          }
+          className="shrink-0"
+          title={title}
           description={`Participant ${data.participantId} · Session ${data.sessionId}`}
+          metadata={
+            <>
+              <span>Gender: {data.participantGender ?? '—'}</span>
+              <span>Language: {data.participantLanguage ?? '—'}</span>
+            </>
+          }
           actions={
             <PageToolbar className="sm:justify-end">
               <Button
@@ -277,18 +276,7 @@ function ExecutionDetailState({ children }: { children: ReactNode }) {
       viewport="minimum"
       className="history-detail-page overflow-hidden"
     >
-      <PageHeader
-        inset
-        className="border-b border-slate-200 bg-white"
-        title={
-          <span className="flex min-w-0 items-center gap-2">
-            <span className="bg-primary grid size-8 shrink-0 place-items-center rounded-lg text-white">
-              <Layers size={16} />
-            </span>
-            <span>Participant flow</span>
-          </span>
-        }
-      />
+      <PageHeader inset title="Participant flow" />
       <PageContent>{children}</PageContent>
     </PageFrame>
   )

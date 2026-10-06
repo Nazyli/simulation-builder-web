@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router-dom'
 import { RefreshCw } from 'lucide-react'
 import { Button } from '../../components/ui/button'
 import { PageFrame } from '../../components/layout/page-frame'
+import { PageHeader } from '../../components/layout/page-header'
 import { SurfaceSection } from '../../components/layout/surface-section'
 import { EmptyState, ErrorState, LoadingState } from '../../shared/components/async-state'
 import { getAiUsageOverview } from '../../shared/api/ai-token-usage'
@@ -104,33 +105,35 @@ export function AiTokenUsagePage() {
 
   return (
     <PageFrame mode="operations" className="ai-token-usage-page usage-dashboard">
-      <header className="usage-dashboard__header">
-        <h1>AI token usage</h1>
-        <div className="usage-dashboard__refresh">
-          <span className="usage-update" role="status">
-            {query.isFetching
-              ? 'Updating usage…'
-              : query.isError
-                ? 'Update unavailable'
-                : query.dataUpdatedAt
-                  ? `Updated ${new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit' }).format(query.dataUpdatedAt)} WIB`
-                  : 'Awaiting data'}
-          </span>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              void query.refetch()
-              if (interval !== 'daily') void activityQuery.refetch()
-            }}
-            disabled={query.isFetching}
-          >
-            <RefreshCw aria-hidden="true" className="size-3.5" />
-            {query.isFetching ? 'Refreshing…' : 'Refresh'}
-          </Button>
-        </div>
-      </header>
+      <PageHeader
+        title="AI token usage"
+        actions={
+          <div className="usage-dashboard__refresh">
+            <span className="usage-update" role="status">
+              {query.isFetching
+                ? 'Updating usage…'
+                : query.isError
+                  ? 'Update unavailable'
+                  : query.dataUpdatedAt
+                    ? `Updated ${new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit' }).format(query.dataUpdatedAt)} WIB`
+                    : 'Awaiting data'}
+            </span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                void query.refetch()
+                if (interval !== 'daily') void activityQuery.refetch()
+              }}
+              disabled={query.isFetching}
+            >
+              <RefreshCw aria-hidden="true" className="size-3.5" />
+              {query.isFetching ? 'Refreshing…' : 'Refresh'}
+            </Button>
+          </div>
+        }
+      />
 
       <UsageFiltersBar
         filters={filters}

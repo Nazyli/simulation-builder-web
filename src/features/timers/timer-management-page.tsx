@@ -342,9 +342,7 @@ export function TimerManagementPage() {
       id: 'simulationName',
       header: 'Simulation',
       cell: (timer) => (
-        <span className="text-xs text-slate-600">
-          {timer.simulationName ?? timer.masterSimulation ?? 'Unavailable'}
-        </span>
+        <span className="text-xs text-slate-600">{timer.masterSimulation ?? 'Unavailable'}</span>
       ),
     },
     {

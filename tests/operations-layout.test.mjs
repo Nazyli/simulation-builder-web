@@ -30,9 +30,10 @@ test('PageFrame is a non-landmark wrapper for nested application routes', () => 
   assert.doesNotMatch(content, /<main/)
 })
 
-test('history keeps its compact Layers title icon', () => {
+test('history uses a plain shared page title', () => {
   const content = source('features/history/participant-history-page.tsx')
-  assert.match(content, /<PageHeader[\s\S]*<Layers/)
+  assert.match(content, /<PageHeader title="Execution history"/)
+  assert.doesNotMatch(content, /<Layers/)
 })
 
 test('execution detail keeps early states inside the operations frame', () => {

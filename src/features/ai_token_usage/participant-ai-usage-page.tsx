@@ -4,6 +4,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, RefreshCw } from 'lucide-react'
 import { Button } from '../../components/ui/button'
 import { PageFrame } from '../../components/layout/page-frame'
+import { PageHeader } from '../../components/layout/page-header'
 import { SurfaceSection } from '../../components/layout/surface-section'
 import { EmptyState, ErrorState, LoadingState } from '../../shared/components/async-state'
 import { ApiError } from '../../shared/api/client'
@@ -55,30 +56,32 @@ export function ParticipantAiUsagePage() {
         <Link className="usage-back" to={simulationLink}>
           <ArrowLeft aria-hidden="true" className="size-3.5" /> Back to usage overview
         </Link>
-        <header className="usage-dashboard__header">
-          <h1 className="min-w-0 break-all">Participant {participantId}</h1>
-          <div className="usage-dashboard__refresh">
-            <span className="usage-update" role="status">
-              {query.isFetching
-                ? 'Updating usage…'
-                : query.isError
-                  ? 'Update unavailable'
-                  : query.dataUpdatedAt
-                    ? `Updated ${new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit' }).format(query.dataUpdatedAt)} WIB`
-                    : 'Awaiting data'}
-            </span>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => void query.refetch()}
-              disabled={query.isFetching}
-            >
-              <RefreshCw aria-hidden="true" className="size-3.5" />
-              {query.isFetching ? 'Refreshing…' : 'Refresh'}
-            </Button>
-          </div>
-        </header>
+        <PageHeader
+          title={<span className="break-all">Participant {participantId}</span>}
+          actions={
+            <div className="usage-dashboard__refresh">
+              <span className="usage-update" role="status">
+                {query.isFetching
+                  ? 'Updating usage…'
+                  : query.isError
+                    ? 'Update unavailable'
+                    : query.dataUpdatedAt
+                      ? `Updated ${new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit' }).format(query.dataUpdatedAt)} WIB`
+                      : 'Awaiting data'}
+              </span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => void query.refetch()}
+                disabled={query.isFetching}
+              >
+                <RefreshCw aria-hidden="true" className="size-3.5" />
+                {query.isFetching ? 'Refreshing…' : 'Refresh'}
+              </Button>
+            </div>
+          }
+        />
       </div>
 
       {query.isError && notFound ? (
