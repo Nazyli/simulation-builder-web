@@ -15,6 +15,6 @@ test('builds a timestamped workflow export filename from the simulation name', (
 test('uses the timestamped fallback when a simulation name has no safe characters', () => {
   assert.equal(
     buildWorkflowExportFileName('***', exportDate),
-    'simflow-workflow-20260921-183132.json',
+    'simulation-builder-workflow-20260921-183132.json',
   )
 })

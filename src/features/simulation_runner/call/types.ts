@@ -1,7 +1,7 @@
 import type { CallConnection } from '../../../shared/api/agent-call'
 
-export const CALL_PREJOIN_STORAGE_KEY = 'simflow-call-prejoin'
-export const CALL_CONNECTION_STORAGE_KEY = 'simflow-call-connection'
+export const CALL_PREJOIN_STORAGE_KEY = 'simulation-builder-call-prejoin'
+export const CALL_CONNECTION_STORAGE_KEY = 'simulation-builder-call-connection'
 
 export interface CallPrejoinChoices {
   audioEnabled: boolean

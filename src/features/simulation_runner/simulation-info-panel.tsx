@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { StatusBadge } from '../../shared/components/status-badge'
 import { useParticipantRuns } from './use-participant-runs'
 
-const STORAGE_KEY = 'simflow-runner-info-panel-visible'
+const STORAGE_KEY = 'simulation-builder-runner-info-panel-visible'
 
 function readPanelVisible(): boolean {
   try {

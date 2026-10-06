@@ -988,7 +988,7 @@ export function SimulationStudioPage() {
     if (!file) return
     try {
       const parsed = JSON.parse(await file.text()) as WorkflowPackage
-      if (parsed.format !== 'simflow.workflow' || parsed.format_version !== 1) {
+      if (parsed.format !== 'simulation-builder.workflow' || parsed.format_version !== 1) {
         throw new Error('Unsupported workflow package format or version.')
       }
       if (

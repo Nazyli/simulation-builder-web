@@ -59,7 +59,7 @@ test('join success moves to waiting-for-call until the connection resolves', () 
 
   state = reduceCallInviteState(state, {
     type: 'connection-resolved',
-    connection: { callSessionId: 'call-session-1', roomName: 'simflow_call-session-1' },
+    connection: { callSessionId: 'call-session-1', roomName: 'room_call-session-1' },
   })
   assert.equal(state.phase, 'joined')
   assert.equal(state.connection.callSessionId, 'call-session-1')

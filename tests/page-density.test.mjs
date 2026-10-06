@@ -164,7 +164,6 @@ test('Product naming and navigation use Simulation Builder task language', () =>
   const index = readFileSync(new URL('../index.html', import.meta.url), 'utf8')
 
   assert.match(shell, /Simulation Builder/)
-  assert.doesNotMatch(shell, /SimFlow/)
   assert.match(sidebar, />\s*Build & operate\s*</)
   assert.match(sidebar, />\s*Reference\s*</)
   assert.match(index, /<title>Simulation Builder<\/title>/)

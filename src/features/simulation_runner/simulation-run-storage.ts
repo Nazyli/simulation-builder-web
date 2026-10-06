@@ -1,4 +1,4 @@
-export const ACTOR_STORAGE_KEY = 'simflow-runner-actor-id'
+export const ACTOR_STORAGE_KEY = 'simulation-builder-runner-actor-id'
 export const DEFAULT_ACTOR_ID = 'participant-001-ambj-01-platform'
 
 export function readActorId(): string {

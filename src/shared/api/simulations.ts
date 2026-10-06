@@ -55,7 +55,7 @@ export const duplicateSimulation = (
   })
 
 export interface WorkflowPackage {
-  format: 'simflow.workflow'
+  format: 'simulation-builder.workflow'
   format_version: 1
   source: { simulation_name: string; simulation_desc: string | null }
   simulation: {

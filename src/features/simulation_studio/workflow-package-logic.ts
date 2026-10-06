@@ -18,5 +18,5 @@ export function buildWorkflowExportFileName(
     padTimestampPart(exportedAt.getSeconds()),
   ].join('')
 
-  return `${safeName || 'simflow-workflow'}-${timestamp}-${time}.json`
+  return `${safeName || 'simulation-builder-workflow'}-${timestamp}-${time}.json`
 }

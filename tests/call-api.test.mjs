@@ -20,7 +20,7 @@ test('requests the active call connection for a participant', async () => {
         data: {
           callSessionId: 'call-session-1',
           serverUrl: 'wss://livekit.example',
-          roomName: 'simflow_call-session-1',
+          roomName: 'room_call-session-1',
           participantToken: 'participant-token',
           participantName: 'Participant One',
           participantIdentity: 'participant-1',
@@ -37,7 +37,7 @@ test('requests the active call connection for a participant', async () => {
 
   assert.equal(requests[0].path, '/web/agent-call/connection?participantId=participant-1')
   assert.equal(details.callSessionId, 'call-session-1')
-  assert.equal(details.roomName, 'simflow_call-session-1')
+  assert.equal(details.roomName, 'room_call-session-1')
 })
 
 test('loads call history by session and participant', async () => {
@@ -114,13 +114,13 @@ test('resolves the room connection for the agent-ready flow', async () => {
       json: async () => ({
         status: 'success',
         info: { code: 200, message: 'ok' },
-        data: { roomName: 'simflow_call-session-1', status: 'active' },
+        data: { roomName: 'room_call-session-1', status: 'active' },
       }),
     }
   }
 
-  const result = await getCallRoomConnection('simflow_call-session-1')
+  const result = await getCallRoomConnection('room_call-session-1')
 
-  assert.equal(requests[0].path, '/web/agent-call/room-connection?roomName=simflow_call-session-1')
+  assert.equal(requests[0].path, '/web/agent-call/room-connection?roomName=room_call-session-1')
   assert.equal(result.status, 'active')
 })

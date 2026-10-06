@@ -1,5 +1,5 @@
 ---
-name: SimFlow Frontend
+name: Simulation Builder Frontend
 description: Restrained, production-grade workflow tooling for building and operating simulations.
 colors:
   primary: '#9929EA'
@@ -79,13 +79,13 @@ components:
     padding: '16px'
 ---
 
-# Design System: SimFlow Frontend
+# Design System: Simulation Builder Frontend
 
 ## Overview
 
 **Creative North Star: "Quiet control room"**
 
-SimFlow is an operational workflow tool, so the interface should feel calm, dense, and dependable during repeated daily use. Visual hierarchy comes from typography, proximity, alignment, and restrained contrast rather than decoration. The primary accent is reserved for actions, active states, focus, and selected surfaces.
+Simulation Builder is an operational workflow tool, so the interface should feel calm, dense, and dependable during repeated daily use. Visual hierarchy comes from typography, proximity, alignment, and restrained contrast rather than decoration. The primary accent is reserved for actions, active states, focus, and selected surfaces.
 
 The application has three visual modes: workbench surfaces for Studio and Runner, operations surfaces for History, Timers, and Master Data, and reference/configuration surfaces for Documentation and Settings. Each mode shares the same visual language while adapting density and structure to the task.
 
@@ -102,7 +102,7 @@ The palette combines a cool near-white canvas, white working surfaces, slate tex
 
 ### Primary
 
-- **SimFlow Violet** (`{colors.primary}`): Primary actions, active navigation, focus rings, and selected controls.
+- **Simulation Builder Violet** (`{colors.primary}`): Primary actions, active navigation, focus rings, and selected controls.
 - **Soft Violet** (`{colors.secondary}`): Secondary brand expression and restrained hover or supporting accents.
 - **Brand Accent Fill** (`{colors.brand-accent-fill}`): Small brand-specific surfaces only, never as a general page background or text treatment.
 
@@ -178,7 +178,7 @@ Cards and panels should have one clear boundary. Do not nest cards inside cards 
 ### Buttons
 
 - **Shape:** Consistent 4px corners with a minimum usable touch target.
-- **Primary:** SimFlow Violet background, white text, semibold label, and compact horizontal padding.
+- **Primary:** Simulation Builder Violet background, white text, semibold label, and compact horizontal padding.
 - **Hover / Focus:** Slightly darker violet on hover; visible violet focus ring with no glow effect.
 - **Secondary / Ghost:** Neutral text and surface treatment; hover changes contrast or background subtly.
 - **Destructive:** Red is reserved for irreversible actions and should not dominate the default interface.

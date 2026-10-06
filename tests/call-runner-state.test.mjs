@@ -12,7 +12,7 @@ function activeConnection() {
   return {
     callSessionId: 'call-session-1',
     serverUrl: 'wss://livekit.example',
-    roomName: 'simflow_call-session-1',
+    roomName: 'room_call-session-1',
     participantToken: 'participant-token',
     participantName: 'Participant One',
     participantIdentity: 'participant-1',
