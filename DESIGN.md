@@ -216,6 +216,62 @@ Cards and panels should have one clear boundary. Do not nest cards inside cards 
 
 Use compact 2px corners rather than pill shapes. Use a badge only when it conveys a meaningful state such as locked, warning, active, or ready. Keep the palette restrained: amber for usage/lock warnings, slate for neutral readiness, and violet for selected/active state.
 
+### AI usage analytics
+
+Pair the time trend with the Request activity calendar on the overview, with
+one column on mobile. The calendar shows one month of daily SQL request counts,
+independent of weekly/monthly trend aggregation. Use a light lavender intensity
+scale with dark purple numbers, fill in-range inactive days with zero, and mark
+days outside the selected range. Follow with activity type and node type comparisons
+in two columns (one on mobile). Activity uses stacked horizontal bars for input/
+output composition, node types use vertical columns for recorded totals, models
+use a dot ranking, and simulations use a donut for token proportions. Keep direct
+values and readable labels; palette and typography remain consistent. Stacked
+series share one semantic palette derived from Simulation Builder Violet:
+muted lavender input, mauve output, and soft violet recorded total. Category
+colors use these hues plus quiet periwinkle and dusty lilac. Keep white chart
+surfaces, pale lavender separators, and dark readable labels. Actions, links,
+and the primary total use the existing brand violet; large chart fills use
+lighter colors. Legend and tooltip text stay neutral, separate from data colors.
+CSS semantic tokens
+own chart colors, including native charts and Recharts. Stacked
+segments represent input/output counts, while recorded total is labeled separately
+because it can differ from their sum. Show eight comparison categories initially
+with an expand control. Donuts use at most five segments, grouping smaller
+simulations as Other while retaining the complete breakdown in an expandable list.
+Use 0% for zero-token usage. Preserve null node types as Unspecified. The trend uses
+distinct line patterns, keyboard-accessible values, sparse date labels, and a
+collapsible data table. Explain automatic weekly/monthly aggregation when the
+requested daily range exceeds 90 days.
+
+Participant totals and request history use the shared server DataTable with
+independent loading, retry, search, sorting, and page-size controls. Changing table
+pages must keep the summary and charts stable. Participant detail always shows
+all recorded usage for the path participant, without overview filters, date
+controls, or an interval selector. Its trend granularity is selected by the
+backend over the full history. Request history keeps search/sort/pagination.
+Place participant charts and Request history side by side, with 40% of the available
+column space for charts and 60% for request history. Stack activity and node charts
+in the left column; show the token trend above them only when more than one period
+exists. A single-period total repeats the KPI summary and should not get its own
+panel. Keep model and simulation breakdowns below the workspace. Align the columns
+at the top and stack them below 1100px; wide tables scroll within their panel.
+Keep the Request size scatter above the request history table, sharing the same
+page data and following its search/sort. Label the visible request range and
+total so the page sample's scope is clear. It must not fetch all events or reload
+summary charts when the table page changes.
+
+API responses match the data rendered by each view. Overview summary includes
+participant count; detail summary includes input/output instead. Omit detail
+trend and interval entirely for a single period. Breakdown payloads contain their
+own identifiers and required metrics: activity input/output/count/total, node
+count/total, simulation total, and model count/total. Only the detail model table
+needs model input/output and costs. Keep provider/model/service identity distinct.
+Request history only receives the displayed columns plus usageId for row identity.
+Do not retain unused token categories, event metadata, composition adapters, or
+client-side analytics aggregation; analytics belong to the backend. Keep the
+shared pagination contract intact.
+
 ### Navigation
 
 Navigation uses concise labels, consistent icon sizing, and a quiet active state. The persistent sidebar owns navigation grouping and its responsive drawer/collapse behavior. Content headers should not duplicate sidebar taxonomy; they should show only the local context needed to orient the user.

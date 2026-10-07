@@ -1,6 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, RefreshCw } from 'lucide-react'
 import { Button } from '../../components/ui/button'
 import { PageFrame } from '../../components/layout/page-frame'
@@ -9,14 +8,12 @@ import { SurfaceSection } from '../../components/layout/surface-section'
 import { EmptyState, ErrorState, LoadingState } from '../../shared/components/async-state'
 import { ApiError } from '../../shared/api/client'
 import { getAiParticipantUsage } from '../../shared/api/ai-token-usage'
-import { adaptDimensions, adaptEvent, adaptSummary, adaptTrend } from './usage-api-adapters'
+import { adaptDimensions, adaptSummary, adaptTrend } from './usage-api-adapters'
 import { formatCurrencyAmounts, formatTokenCount } from './usage-logic'
-import { SimulationShareChart, UsageComparisonChart, UsageTrendChart } from './usage-charts'
-import { ModelUsageTable, ServerPagination, UsageEventsTable } from './usage-tables'
+import { UsageTrendChart } from './usage-charts'
+import { ModelUsageTable, UsageEventsTable } from './usage-tables'
 import './usage-dashboard.css'
-import { RequestSizeChart } from './request-size-chart'
-
-const EVENT_PAGE_SIZE = 25
+import { UsageCategoryChart } from './usage-category-chart'
 
 function costSummary(costs: { currency: string; amount: number }[]): string {
   return (
@@ -28,13 +25,13 @@ function costSummary(costs: { currency: string; amount: number }[]): string {
 
 export function ParticipantAiUsagePage() {
   const { participantId = '' } = useParams()
-  const [searchParams] = useSearchParams()
-  const queryString = searchParams.toString()
-  const [eventPage, setEventPage] = useState(1)
+  const queryClient = useQueryClient()
   const query = useQuery({
-    queryKey: ['ai-token-usage', 'participant', participantId, eventPage],
-    queryFn: () => getAiParticipantUsage(participantId, eventPage, EVENT_PAGE_SIZE),
+    queryKey: ['ai-token-usage', 'participant', participantId],
+    queryFn: () => getAiParticipantUsage(participantId),
     enabled: Boolean(participantId),
+    placeholderData: (previous, previousQuery) =>
+      previousQuery?.queryKey[2] === participantId ? keepPreviousData(previous) : undefined,
   })
   const data = query.data
   const summary = data ? adaptSummary(data.summary) : null
@@ -42,9 +39,13 @@ export function ParticipantAiUsagePage() {
     ? adaptDimensions(data.bySimulation, 'simulation', data.summary.totalTokens)
     : []
   const models = data ? adaptDimensions(data.byModel, 'model', data.summary.totalTokens) : []
-  const trend = data ? adaptTrend(data.trend, 'daily') : []
-  const events = data ? data.events.items.map(adaptEvent) : []
-  const simulationLink = queryString ? `/ai-token-usage?${queryString}` : '/ai-token-usage'
+  const trendInterval = data?.trendInterval ?? 'daily'
+  const trend = data?.trend ? adaptTrend(data.trend, trendInterval) : []
+  const activities = data
+    ? adaptDimensions(data.byActivityType, 'activityType', data.summary.totalTokens)
+    : []
+  const nodes = data ? adaptDimensions(data.byNodeType, 'nodeType', data.summary.totalTokens) : []
+  const simulationLink = '/ai-token-usage'
   const notFound = query.error instanceof ApiError && query.error.status === 404
 
   return (
@@ -73,7 +74,7 @@ export function ParticipantAiUsagePage() {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => void query.refetch()}
+                onClick={() => void queryClient.invalidateQueries({ queryKey: ['ai-token-usage'] })}
                 disabled={query.isFetching}
               >
                 <RefreshCw aria-hidden="true" className="size-3.5" />
@@ -87,7 +88,7 @@ export function ParticipantAiUsagePage() {
       {query.isError && notFound ? (
         <EmptyState
           title="No participant usage found"
-          description="The server has no recorded AI usage for this participant."
+          description="No recorded AI usage exists for this participant."
           action={
             <Button asChild type="button" size="xs" variant="outline">
               <Link to={simulationLink}>Back to AI Token Usage</Link>
@@ -169,16 +170,30 @@ export function ParticipantAiUsagePage() {
             </div>
           </dl>
 
-          <div className="usage-dashboard__primary">
-            <UsageTrendChart data={trend} interval="daily" />
-            {simulations.length <= 5 ? (
-              <SimulationShareChart data={simulations} />
-            ) : (
-              <UsageComparisonChart data={simulations} dimension="simulation" />
-            )}
+          <div className="usage-participant-workspace">
+            <div className="usage-participant-workspace__charts">
+              {trend.length > 1 && (
+                <div className="usage-dashboard__trend">
+                  <UsageTrendChart data={trend} interval={trendInterval} />
+                </div>
+              )}
+              <UsageCategoryChart data={activities} dimension="activity type" variant="stacked" />
+              <UsageCategoryChart data={nodes} dimension="node type" variant="columns" />
+            </div>
+            <SurfaceSection
+              title="Request history"
+              description="Individual usage records, with timestamps in WIB. Scroll the table to inspect all fields."
+              className="usage-participants usage-request-history"
+              actions={
+                <span className="usage-count">
+                  {data.summary.requestCount.toLocaleString('en-US')} requests
+                </span>
+              }
+            >
+              <UsageEventsTable key={participantId} participantId={participantId} />
+            </SurfaceSection>
           </div>
-
-          <div className="usage-participant-models">
+          <div className="usage-dashboard__breakdowns">
             <SurfaceSection
               title="Usage by model"
               description="Requests, token counts, provider, and recorded cost by model."
@@ -186,32 +201,8 @@ export function ParticipantAiUsagePage() {
             >
               <ModelUsageTable rows={models} />
             </SurfaceSection>
-            <RequestSizeChart
-              data={events}
-              totalItems={data.events.totalItems}
-              page={data.events.page}
-              pageSize={EVENT_PAGE_SIZE}
-            />
+            <UsageCategoryChart data={simulations} dimension="simulation" variant="share" />
           </div>
-
-          <SurfaceSection
-            title="Request history"
-            description="Individual usage records, with timestamps in WIB. Scroll the table to inspect all fields."
-            className="usage-participants usage-request-history"
-            actions={
-              <span className="usage-count">
-                {data.events.totalItems.toLocaleString('en-US')} records
-              </span>
-            }
-          >
-            <UsageEventsTable rows={events} />
-            <ServerPagination
-              page={data.events.page}
-              totalPages={data.events.totalPages}
-              totalItems={data.events.totalItems}
-              onPageChange={setEventPage}
-            />
-          </SurfaceSection>
         </>
       )}
     </PageFrame>

@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
-import { useEffect, useMemo, useState } from 'react'
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { RefreshCw } from 'lucide-react'
 import { Button } from '../../components/ui/button'
@@ -8,50 +8,23 @@ import { PageHeader } from '../../components/layout/page-header'
 import { SurfaceSection } from '../../components/layout/surface-section'
 import { EmptyState, ErrorState, LoadingState } from '../../shared/components/async-state'
 import { getAiUsageOverview } from '../../shared/api/ai-token-usage'
-import { adaptDimensions, adaptParticipants, adaptSummary, adaptTrend } from './usage-api-adapters'
+import { adaptDimensions, adaptSummary, adaptTrend } from './usage-api-adapters'
 import { formatCurrencyAmounts, formatTokenCount } from './usage-logic'
-import { UsageComparisonChart, UsageTrendChart } from './usage-charts'
+import { UsageTrendChart } from './usage-charts'
 import { UsageFiltersBar } from './usage-filters'
 import { ParticipantUsageTable } from './usage-tables'
 import type { UsageFilters } from './usage-types'
 import type { UsageInterval } from '../../shared/api/ai-token-usage'
 import './usage-dashboard.css'
+import { readUsageFilters, writeUsageFilters } from './usage-filter-params'
+import { UsageCategoryChart } from './usage-category-chart'
 import { RequestActivityChart } from './request-activity-chart'
 
-const PAGE_SIZE = 25
 const EMPTY_FILTER_OPTIONS = {
   simulationIds: [],
   providers: [],
   models: [],
   activityTypes: [],
-}
-
-const filterParams: [keyof UsageFilters, string][] = [
-  ['from', 'from'],
-  ['to', 'to'],
-  ['simulationId', 'simulation'],
-  ['participantId', 'participant'],
-  ['provider', 'provider'],
-  ['model', 'model'],
-  ['activityType', 'activity'],
-]
-
-function readFilters(params: URLSearchParams): UsageFilters {
-  return Object.fromEntries(
-    filterParams.flatMap(([key, param]) => {
-      const value = params.get(param)
-      return value ? [[key, value]] : []
-    }),
-  ) as UsageFilters
-}
-
-function writeFilters(filters: UsageFilters): URLSearchParams {
-  const params = new URLSearchParams()
-  for (const [key, param] of filterParams) {
-    const value = filters[key]
-    if (value) params.set(param, value)
-  }
-  return params
 }
 
 function costSummary(costs: { currency: string; amount: number }[]): string {
@@ -65,26 +38,25 @@ function costSummary(costs: { currency: string; amount: number }[]): string {
 export function AiTokenUsagePage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const searchKey = searchParams.toString()
-  const filters = useMemo(() => readFilters(new URLSearchParams(searchKey)), [searchKey])
+  const filters = useMemo(() => readUsageFilters(new URLSearchParams(searchKey)), [searchKey])
   const [interval, setInterval] = useState<UsageInterval>('daily')
-  const [participantPage, setParticipantPage] = useState(1)
+  const queryClient = useQueryClient()
   const query = useQuery({
-    queryKey: ['ai-token-usage', 'overview', filters, interval, participantPage],
-    queryFn: () => getAiUsageOverview(filters, interval, participantPage, PAGE_SIZE),
+    queryKey: ['ai-token-usage', 'overview', filters, interval],
+    queryFn: () => getAiUsageOverview(filters, interval),
+    placeholderData: keepPreviousData,
   })
   const data = query.data
-  const activityQuery = useQuery({
-    queryKey: ['ai-token-usage', 'request-activity', filters],
-    queryFn: () => getAiUsageOverview(filters, 'daily', 1, 1),
-    enabled: interval !== 'daily',
-  })
   const summary = data ? adaptSummary(data.summary) : null
-  const participants = data ? adaptParticipants(data.participants.items) : []
   const simulations = data
     ? adaptDimensions(data.bySimulation, 'simulation', data.summary.totalTokens)
     : []
   const models = data ? adaptDimensions(data.byModel, 'model', data.summary.totalTokens) : []
-  const trend = data ? adaptTrend(data.trend, interval) : []
+  const trend = data ? adaptTrend(data.trend, data.trendInterval) : []
+  const activities = data
+    ? adaptDimensions(data.byActivityType, 'activityType', data.summary.totalTokens)
+    : []
+  const nodes = data ? adaptDimensions(data.byNodeType, 'nodeType', data.summary.totalTokens) : []
   const options = {
     simulationId: data?.filterOptions.simulationIds ?? EMPTY_FILTER_OPTIONS.simulationIds,
     provider: data?.filterOptions.providers ?? EMPTY_FILTER_OPTIONS.providers,
@@ -92,13 +64,8 @@ export function AiTokenUsagePage() {
     activityType: data?.filterOptions.activityTypes ?? EMPTY_FILTER_OPTIONS.activityTypes,
   }
 
-  useEffect(() => {
-    setParticipantPage(1)
-  }, [searchKey])
-
   function updateFilters(nextFilters: UsageFilters) {
-    setParticipantPage(1)
-    setSearchParams(writeFilters(nextFilters), { replace: true })
+    setSearchParams(writeUsageFilters(nextFilters), { replace: true })
   }
 
   const hasFilters = Object.values(filters).some(Boolean)
@@ -122,10 +89,7 @@ export function AiTokenUsagePage() {
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => {
-                void query.refetch()
-                if (interval !== 'daily') void activityQuery.refetch()
-              }}
+              onClick={() => void queryClient.invalidateQueries({ queryKey: ['ai-token-usage'] })}
               disabled={query.isFetching}
             >
               <RefreshCw aria-hidden="true" className="size-3.5" />
@@ -190,7 +154,7 @@ export function AiTokenUsagePage() {
               },
               {
                 label: 'Participants',
-                value: summary!.totalParticipants.toLocaleString('en-US'),
+                value: data.summary.participantCount.toLocaleString('en-US'),
                 detail: 'With recorded usage',
               },
               {
@@ -216,27 +180,21 @@ export function AiTokenUsagePage() {
           </section>
 
           <div className="usage-dashboard__primary">
-            <UsageTrendChart data={trend} interval={interval} onIntervalChange={setInterval} />
-            {interval === 'daily' ? (
-              <RequestActivityChart data={data.trend} />
-            ) : activityQuery.isError ? (
-              <ErrorState
-                message="Unable to load daily request activity."
-                action={
-                  <Button size="sm" variant="outline" onClick={() => void activityQuery.refetch()}>
-                    Retry
-                  </Button>
-                }
-              />
-            ) : activityQuery.isPending ? (
-              <LoadingState label="Loading daily request activity" />
-            ) : (
-              <RequestActivityChart data={activityQuery.data.trend} />
-            )}
+            <UsageTrendChart
+              data={trend}
+              interval={interval}
+              effectiveInterval={data.trendInterval}
+              onIntervalChange={setInterval}
+            />
+            <RequestActivityChart activity={data.requestActivity} />
           </div>
           <div className="usage-dashboard__breakdowns">
-            <UsageComparisonChart data={models} dimension="model" />
-            <UsageComparisonChart data={simulations} dimension="simulation" />
+            <UsageCategoryChart data={activities} dimension="activity type" variant="stacked" />
+            <UsageCategoryChart data={nodes} dimension="node type" variant="columns" />
+          </div>
+          <div className="usage-dashboard__breakdowns">
+            <UsageCategoryChart data={models} dimension="model" variant="dots" />
+            <UsageCategoryChart data={simulations} dimension="simulation" variant="share" />
           </div>
 
           <SurfaceSection
@@ -245,18 +203,14 @@ export function AiTokenUsagePage() {
             className="usage-participants"
             actions={
               <span className="usage-count">
-                {data.participants.totalItems.toLocaleString('en-US')} participants
+                {data.summary.participantCount.toLocaleString('en-US')} participants
               </span>
             }
           >
             <ParticipantUsageTable
-              rows={participants}
-              search={searchKey ? `?${searchKey}` : ''}
-              page={data.participants.page}
-              totalPages={data.participants.totalPages}
-              totalItems={data.participants.totalItems}
+              key={searchKey}
+              filters={filters}
               totalTokens={data.summary.totalTokens}
-              onPageChange={setParticipantPage}
             />
           </SurfaceSection>
         </>

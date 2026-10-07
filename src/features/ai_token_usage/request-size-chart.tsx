@@ -9,6 +9,7 @@ import {
 } from 'recharts'
 import type { UsageEvent } from './usage-types'
 import { formatTokenCount } from './usage-logic'
+import { seriesColors } from './usage-chart-palette'
 
 export function RequestSizeChart({
   data,
@@ -21,31 +22,32 @@ export function RequestSizeChart({
   page: number
   pageSize: number
 }) {
-  const start = (page - 1) * pageSize + 1
+  const start = page * pageSize + 1
   const end = start + data.length - 1
   return (
-    <section className="usage-chart" aria-label="Request size">
+    <section className="usage-chart usage-request-size" aria-label="Request size">
       <h3 className="mb-2 text-sm font-semibold text-slate-800">Request size</h3>
       <p className="mt-0 text-xs text-slate-500">
-        Each point is one AI request: input tokens vs output tokens.
+        Each point is one AI request: input tokens vs output tokens. Uses the current request
+        history page, including its search and sort.
       </p>
       {data.length ? (
         <>
           <div
             className="h-64 min-w-0"
-            role="img"
+            role="group"
             aria-label={`Input and output token sizes for requests ${start} to ${end} of ${totalItems}. Largest request: ${formatTokenCount(Math.max(...data.map((row) => row.total_tokens)), true)} total tokens.`}
           >
             <ResponsiveContainer width="100%" height="100%">
-              <ScatterChart margin={{ top: 12, right: 20, bottom: 24, left: 8 }}>
-                <CartesianGrid stroke="#e2e8f0" strokeDasharray="3 3" />
+              <ScatterChart accessibilityLayer margin={{ top: 12, right: 20, bottom: 24, left: 8 }}>
+                <CartesianGrid stroke="var(--usage-grid)" strokeDasharray="3 3" />
                 <XAxis
                   type="number"
                   dataKey="input_tokens"
                   name="Input tokens"
                   domain={[0, 'auto']}
                   tickFormatter={(value) => formatTokenCount(Number(value))}
-                  tick={{ fontSize: 10, fill: '#64748b' }}
+                  tick={{ fontSize: 11, fill: 'var(--usage-muted)' }}
                   tickLine={false}
                   axisLine={false}
                   label={{
@@ -53,7 +55,7 @@ export function RequestSizeChart({
                     position: 'bottom',
                     offset: 6,
                     fontSize: 11,
-                    fill: '#64748b',
+                    fill: 'var(--usage-muted)',
                   }}
                 />
                 <YAxis
@@ -62,7 +64,7 @@ export function RequestSizeChart({
                   name="Output tokens"
                   domain={[0, 'auto']}
                   tickFormatter={(value) => formatTokenCount(Number(value))}
-                  tick={{ fontSize: 10, fill: '#64748b' }}
+                  tick={{ fontSize: 11, fill: 'var(--usage-muted)' }}
                   tickLine={false}
                   axisLine={false}
                   width={50}
@@ -71,7 +73,7 @@ export function RequestSizeChart({
                     angle: -90,
                     position: 'insideLeft',
                     fontSize: 11,
-                    fill: '#64748b',
+                    fill: 'var(--usage-muted)',
                   }}
                 />
                 <Tooltip
@@ -91,7 +93,13 @@ export function RequestSizeChart({
                             month: 'short',
                             hour: '2-digit',
                             minute: '2-digit',
-                          }).format(new Date(row.captured_at))}{' '}
+                          }).format(
+                            new Date(
+                              /(?:z$|[+-]\d{2}:?\d{2}$)/i.test(row.captured_at)
+                                ? row.captured_at
+                                : `${row.captured_at}Z`,
+                            ),
+                          )}{' '}
                           WIB
                         </p>
                         <p className="m-0">
@@ -105,7 +113,7 @@ export function RequestSizeChart({
                     )
                   }}
                 />
-                <Scatter data={data} fill="#0f766e" fillOpacity={0.75} isAnimationActive={false} />
+                <Scatter data={data} fill={seriesColors.total} isAnimationActive={false} />
               </ScatterChart>
             </ResponsiveContainer>
           </div>

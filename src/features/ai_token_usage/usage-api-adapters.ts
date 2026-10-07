@@ -1,8 +1,6 @@
 import type {
-  AiParticipantUsage,
   AiUsageAggregate,
   AiUsageEvent,
-  AiUsageOverview,
   AiUsageParticipant,
   AiUsageSummary,
   AiUsageTrendPoint,
@@ -11,7 +9,6 @@ import type {
 import type {
   DimensionUsage,
   ParticipantUsage,
-  TokenCompositionItem,
   UsageEvent,
   UsageSummary,
   UsageTimeBucket,
@@ -22,7 +19,6 @@ export function adaptSummary(summary: AiUsageSummary): UsageSummary {
     totalTokens: summary.totalTokens,
     totalCostByCurrency: summary.costs,
     totalRequests: summary.requestCount,
-    totalParticipants: summary.participantCount,
     averageTokensPerRequest: summary.averageTokensPerRequest,
   }
 }
@@ -60,56 +56,38 @@ export function adaptTrend(rows: AiUsageTrendPoint[], interval: UsageInterval): 
 
 export function adaptDimensions(
   rows: AiUsageAggregate[],
-  dimension: 'simulation' | 'model',
+  dimension: 'simulation' | 'model' | 'activityType' | 'nodeType',
   totalTokens: number,
 ): DimensionUsage[] {
-  return rows.map((row) => ({
-    id:
-      dimension === 'simulation'
-        ? (row.simulationId ?? 'unknown-simulation')
-        : `${row.provider ?? 'unknown-provider'}\u0000${row.model ?? 'unknown-model'}\u0000${row.serviceType ?? 'unknown-service'}`,
-    label:
-      dimension === 'simulation'
-        ? (row.simulationId ?? 'Unknown simulation')
-        : (row.model ?? 'Unknown model'),
-    ...(dimension === 'model' ? { provider: row.provider ?? undefined } : {}),
-    requests: row.requestCount,
-    inputTokens: row.inputTokens,
-    outputTokens: row.outputTokens,
-    totalTokens: row.totalTokens,
-    costByCurrency: row.costs,
-    contributionPercent: totalTokens ? (row.totalTokens / totalTokens) * 100 : 0,
-  }))
-}
-
-export function adaptComposition(
-  response: AiUsageOverview | AiParticipantUsage,
-): TokenCompositionItem[] {
-  const values: TokenCompositionItem[] = [
-    { id: 'input', label: 'Input Tokens', tokens: response.summary.inputTokens },
-    { id: 'output', label: 'Output Tokens', tokens: response.summary.outputTokens },
-    {
-      id: 'cached_input',
-      label: 'Cached Input Tokens',
-      tokens: response.tokenCategories.cachedInputTokens,
-    },
-    {
-      id: 'reasoning_output',
-      label: 'Reasoning Output Tokens',
-      tokens: response.tokenCategories.reasoningOutputTokens,
-    },
-  ]
-  return values.filter((item) => item.tokens > 0)
+  return rows
+    .map((row) => ({
+      id:
+        dimension === 'simulation'
+          ? (row.simulationId ?? 'unknown-simulation')
+          : dimension === 'model'
+            ? `${row.provider ?? 'unknown-provider'}\u0000${row.model ?? 'unknown-model'}\u0000${row.serviceType ?? 'unknown-service'}`
+            : `${dimension}:${row[dimension] ?? 'unspecified'}`,
+      label:
+        dimension === 'simulation'
+          ? (row.simulationId ?? 'Unknown simulation')
+          : dimension === 'model'
+            ? (row.model ?? 'Unknown model')
+            : (row[dimension] ?? 'Unspecified').replaceAll('_', ' '),
+      ...(dimension === 'model' ? { provider: row.provider ?? undefined } : {}),
+      requests: row.requestCount ?? 0,
+      inputTokens: row.inputTokens ?? 0,
+      outputTokens: row.outputTokens ?? 0,
+      totalTokens: row.totalTokens,
+      costByCurrency: row.costs ?? [],
+      contributionPercent: totalTokens ? (row.totalTokens / totalTokens) * 100 : 0,
+    }))
+    .sort((left, right) => right.totalTokens - left.totalTokens || left.id.localeCompare(right.id))
 }
 
 export function adaptEvent(row: AiUsageEvent): UsageEvent {
   return {
     usage_id: row.usageId,
-    execution_id: row.executionId,
     simulation_id: row.simulationId,
-    node_execution_id: row.nodeExecutionId,
-    participant_call_session_id: row.participantCallSessionId,
-    participant_id: row.participantId,
     activity_type: row.activityType,
     node_type: row.nodeType,
     service_type: row.serviceType,
@@ -118,13 +96,8 @@ export function adaptEvent(row: AiUsageEvent): UsageEvent {
     input_tokens: row.inputTokens,
     output_tokens: row.outputTokens,
     total_tokens: row.totalTokens,
-    cached_input_tokens: row.cachedInputTokens,
-    reasoning_output_tokens: row.reasoningOutputTokens,
-    audio_duration_seconds: row.audioDurationSeconds,
-    character_count: row.characterCount,
     total_cost: row.totalCost,
     currency: row.currency,
-    usage_event_id: row.usageEventId,
     captured_at: row.capturedAt,
   }
 }

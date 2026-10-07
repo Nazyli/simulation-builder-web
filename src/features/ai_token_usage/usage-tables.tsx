@@ -1,9 +1,14 @@
 import { Link } from 'react-router-dom'
-import { ArrowUpRight, UserRound } from 'lucide-react'
+import { ArrowUpRight } from 'lucide-react'
 import { Button } from '../../components/ui/button'
 import { DataTable, type DataTableColumn } from '../../shared/components/data-table'
+import { ErrorState } from '../../shared/components/async-state'
+import { getAiParticipantEvents, getAiUsageParticipants } from '../../shared/api/ai-token-usage'
+import { adaptEvent, adaptParticipants } from './usage-api-adapters'
+import { useUsageTable } from './use-usage-table'
+import { RequestSizeChart } from './request-size-chart'
 import { formatCurrencyAmounts, formatTokenCount } from './usage-logic'
-import type { DimensionUsage, ParticipantUsage, UsageEvent } from './usage-types'
+import type { DimensionUsage, ParticipantUsage, UsageEvent, UsageFilters } from './usage-types'
 
 function costCell(values: { currency: string; amount: number }[]): string {
   return formatCurrencyAmounts(values).join(' / ') || '—'
@@ -23,35 +28,36 @@ function numberCell(value: number, compact = false) {
 }
 
 export function ParticipantUsageTable({
-  rows,
-  search,
-  page,
-  totalPages,
-  totalItems,
+  filters,
   totalTokens,
-  onPageChange,
 }: {
-  rows: ParticipantUsage[]
-  search: string
-  page: number
-  totalPages: number
-  totalItems: number
+  filters: UsageFilters
   totalTokens: number
-  onPageChange: (page: number) => void
 }) {
+  const { query, server } = useUsageTable(
+    ['ai-token-usage', 'participants', filters],
+    (request) => getAiUsageParticipants(filters, request),
+    { id: 'totalTokens', desc: true },
+  )
+  const rows = adaptParticipants(query.data?.content ?? [])
+  const fields: Record<string, string> = {
+    participant: 'participantId',
+    requests: 'requestCount',
+    input: 'inputTokens',
+    output: 'outputTokens',
+    total: 'totalTokens',
+    average: 'averageTokensPerRequest',
+  }
   const columns: DataTableColumn<ParticipantUsage & { id: string }>[] = [
     {
       id: 'participant',
       header: 'Participant',
       cell: (row) => (
         <Link
-          to={`/ai-token-usage/${encodeURIComponent(row.participantId)}${search}`}
+          to={`/ai-token-usage/${encodeURIComponent(row.participantId)}`}
           className="usage-participant-link"
           title={row.participantId}
         >
-          <span className="usage-participant-symbol" aria-hidden="true">
-            <UserRound className="size-4" />
-          </span>
           <span className="truncate font-mono">{row.participantId}</span>
         </Link>
       ),
@@ -97,13 +103,6 @@ export function ParticipantUsageTable({
             {totalTokens ? ((row.totalTokens / totalTokens) * 100).toFixed(1) : '0.0'}% of filtered
             usage
           </span>
-          <span className="usage-token-meter" aria-hidden="true">
-            <span
-              style={{
-                width: `${totalTokens ? Math.min(100, (row.totalTokens / totalTokens) * 100) : 0}%`,
-              }}
-            />
-          </span>
         </div>
       ),
       sortValue: (row) => row.totalTokens,
@@ -126,7 +125,7 @@ export function ParticipantUsageTable({
       cell: (row) => (
         <Link
           className="usage-inspect-link"
-          to={`/ai-token-usage/${encodeURIComponent(row.participantId)}${search}`}
+          to={`/ai-token-usage/${encodeURIComponent(row.participantId)}`}
           aria-label={`View usage for participant ${row.participantId}`}
         >
           View usage <ArrowUpRight aria-hidden="true" className="size-3.5" />
@@ -137,19 +136,31 @@ export function ParticipantUsageTable({
 
   return (
     <div className="usage-participant-table min-w-0">
+      {query.isError && (
+        <ErrorState
+          message="Unable to load participants."
+          action={
+            <Button size="xs" variant="outline" onClick={() => void query.refetch()}>
+              Retry
+            </Button>
+          }
+        />
+      )}
       <DataTable
         rows={rows.map((row) => ({ ...row, id: row.participantId }))}
-        columns={columns}
+        columns={columns.map((column) => ({
+          ...column,
+          id: fields[column.id] ?? column.id,
+          sortField: fields[column.id],
+        }))}
         selectable={false}
         showColumnToggle={false}
-        pagination={false}
-        toolbarActions={<span className="usage-table-hint">Filter participants on this page</span>}
-      />
-      <ServerPagination
-        page={page}
-        totalPages={totalPages}
-        totalItems={totalItems}
-        onPageChange={onPageChange}
+        server={server}
+        toolbarActions={
+          <span role="status" className="usage-table-hint">
+            {query.isFetching ? 'Loading participants…' : 'Search participant ID'}
+          </span>
+        }
       />
     </div>
   )
@@ -231,7 +242,26 @@ export function ModelUsageTable({ rows }: { rows: DimensionUsage[] }) {
   )
 }
 
-export function UsageEventsTable({ rows }: { rows: UsageEvent[] }) {
+export function UsageEventsTable({ participantId }: { participantId: string }) {
+  const { query, server } = useUsageTable(
+    ['ai-token-usage', 'events', participantId],
+    (request) => getAiParticipantEvents(participantId, request),
+    { id: 'capturedAt', desc: true },
+  )
+  const rows = (query.data?.content ?? []).map(adaptEvent)
+  const fields: Record<string, string> = {
+    capturedAt: 'capturedAt',
+    simulation: 'simulationId',
+    activity: 'activityType',
+    node: 'nodeType',
+    service: 'serviceType',
+    provider: 'provider',
+    model: 'model',
+    input: 'inputTokens',
+    output: 'outputTokens',
+    total: 'totalTokens',
+    cost: 'totalCost',
+  }
   const columns: DataTableColumn<UsageEvent & { id: string }>[] = [
     {
       id: 'capturedAt',
@@ -328,55 +358,40 @@ export function UsageEventsTable({ rows }: { rows: UsageEvent[] }) {
   ]
   return (
     <div className="min-w-0 overflow-x-auto">
+      {query.isError && (
+        <ErrorState
+          message="Unable to load request history."
+          action={
+            <Button size="xs" variant="outline" onClick={() => void query.refetch()}>
+              Retry
+            </Button>
+          }
+        />
+      )}
+      {query.data && (
+        <RequestSizeChart
+          data={rows}
+          totalItems={query.data.totalElements}
+          page={query.data.number}
+          pageSize={query.data.size}
+        />
+      )}
       <DataTable
         rows={rows.map((row) => ({ ...row, id: row.usage_id }))}
-        columns={columns}
+        columns={columns.map((column) => ({
+          ...column,
+          id: fields[column.id],
+          sortField: fields[column.id],
+        }))}
         selectable={false}
         showColumnToggle={false}
-        pagination={false}
+        server={server}
+        toolbarActions={
+          <span role="status" className="usage-table-hint">
+            {query.isFetching ? 'Loading requests…' : 'Search activity, node, simulation, or model'}
+          </span>
+        }
       />
     </div>
-  )
-}
-
-export function ServerPagination({
-  page,
-  totalPages,
-  totalItems,
-  onPageChange,
-}: {
-  page: number
-  totalPages: number
-  totalItems: number
-  onPageChange: (page: number) => void
-}) {
-  const pageCount = Math.max(1, totalPages)
-  return (
-    <footer className="flex min-w-0 flex-wrap items-center justify-between gap-2 border-x border-b border-slate-200 bg-slate-50/60 px-3.5 py-2.5 text-xs text-slate-500">
-      <span>{totalItems.toLocaleString('en-US')} records</span>
-      <div className="flex items-center gap-2">
-        <Button
-          type="button"
-          size="xs"
-          variant="outline"
-          disabled={page <= 1}
-          onClick={() => onPageChange(page - 1)}
-        >
-          Previous
-        </Button>
-        <span>
-          Page {page} / {pageCount}
-        </span>
-        <Button
-          type="button"
-          size="xs"
-          variant="outline"
-          disabled={page >= pageCount}
-          onClick={() => onPageChange(page + 1)}
-        >
-          Next
-        </Button>
-      </div>
-    </footer>
   )
 }

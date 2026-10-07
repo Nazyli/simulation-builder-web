@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { AiUsageTrendPoint } from '../../shared/api/ai-token-usage'
+import type { AiRequestActivity } from '../../shared/api/ai-token-usage'
 import {
   Select,
   SelectContent,
@@ -8,8 +8,18 @@ import {
   SelectValue,
 } from '../../components/ui/select'
 
-export function RequestActivityChart({ data }: { data: AiUsageTrendPoint[] }) {
-  const months = [...new Set(data.map((point) => point.date.slice(0, 7)))].sort().reverse()
+export function RequestActivityChart({ activity }: { activity: AiRequestActivity }) {
+  const data = activity.days
+  const months: string[] = []
+  if (activity.dateFrom && activity.dateTo) {
+    const current = new Date(`${activity.dateFrom.slice(0, 7)}-01T00:00:00Z`)
+    const end = activity.dateTo.slice(0, 7)
+    while (current.toISOString().slice(0, 7) <= end) {
+      months.push(current.toISOString().slice(0, 7))
+      current.setUTCMonth(current.getUTCMonth() + 1)
+    }
+    months.reverse()
+  }
   const [selection, setSelection] = useState('')
   const month = months.includes(selection) ? selection : months[0]
   const rows = data.filter((point) => point.date.startsWith(month ?? ''))
@@ -65,13 +75,18 @@ export function RequestActivityChart({ data }: { data: AiUsageTrendPoint[] }) {
               const date = `${month}-${String(day).padStart(2, '0')}`
               const count = requests.get(date) ?? 0
               const level = count ? Math.max(1, Math.ceil((count / peak) * 4)) : 0
+              const outside = date < (activity.dateFrom ?? '') || date > (activity.dateTo ?? date)
+              const description = outside
+                ? `${date}: Outside selected range`
+                : `${date}: ${count.toLocaleString('en-US')} recorded requests`
               return (
                 <div
                   className="usage-activity__day"
                   data-level={level}
+                  data-outside={outside}
                   key={date}
-                  title={`${date}: ${count.toLocaleString('en-US')} recorded requests`}
-                  aria-label={`${date}: ${count.toLocaleString('en-US')} recorded requests`}
+                  title={description}
+                  aria-label={description}
                 >
                   <span aria-hidden="true">{day}</span>
                   <strong aria-hidden="true">{count || '—'}</strong>

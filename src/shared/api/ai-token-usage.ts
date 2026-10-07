@@ -1,4 +1,5 @@
 import { apiClient } from './client'
+import { paginationParams, type Page, type PageRequest } from './pagination'
 
 export type UsageInterval = 'daily' | 'weekly' | 'monthly'
 
@@ -10,31 +11,69 @@ export interface CurrencyAmount {
 export interface AiUsageSummary {
   requestCount: number
   totalTokens: number
+  averageTokensPerRequest: number
+  costs: CurrencyAmount[]
+}
+
+export interface AiOverviewSummary extends AiUsageSummary {
+  participantCount: number
+}
+
+export interface AiParticipantSummary extends AiUsageSummary {
   inputTokens: number
   outputTokens: number
-  averageTokensPerRequest: number
-  participantCount: number
-  costs: CurrencyAmount[]
 }
 
 export interface AiUsageTrendPoint {
   date: string
-  requestCount: number
   totalTokens: number
   inputTokens: number
   outputTokens: number
 }
 
-export interface AiUsageAggregate {
-  simulationId: string | null
-  provider: string | null
-  model: string | null
-  serviceType: string | null
-  requestCount: number
+interface AiUsageTotals {
   totalTokens: number
+}
+
+export interface AiUsageAggregate extends AiUsageTotals {
+  activityType?: string | null
+  nodeType?: string | null
+  simulationId?: string
+  provider?: string | null
+  model?: string | null
+  serviceType?: string
+  requestCount?: number
+  inputTokens?: number
+  outputTokens?: number
+  costs?: CurrencyAmount[]
+}
+
+export interface AiActivityUsage extends AiUsageTotals {
+  activityType: string
+  requestCount: number
   inputTokens: number
   outputTokens: number
-  averageTokensPerRequest: number
+}
+
+export interface AiNodeUsage extends AiUsageTotals {
+  nodeType: string | null
+  requestCount: number
+}
+
+export interface AiSimulationUsage extends AiUsageTotals {
+  simulationId: string
+}
+
+export interface AiModelUsage extends AiUsageTotals {
+  provider: string | null
+  model: string | null
+  serviceType: string
+  requestCount: number
+}
+
+export interface AiParticipantModelUsage extends AiModelUsage {
+  inputTokens: number
+  outputTokens: number
   costs: CurrencyAmount[]
 }
 
@@ -49,11 +88,7 @@ export interface AiUsageParticipant {
 
 export interface AiUsageEvent {
   usageId: string
-  executionId: string
   simulationId: string
-  nodeExecutionId: string | null
-  participantCallSessionId: string | null
-  participantId: string
   activityType: string
   nodeType: string | null
   serviceType: string
@@ -62,22 +97,9 @@ export interface AiUsageEvent {
   inputTokens: number
   outputTokens: number
   totalTokens: number
-  cachedInputTokens: number | null
-  reasoningOutputTokens: number | null
-  audioDurationSeconds: number | null
-  characterCount: number | null
   totalCost: number
   currency: string
-  usageEventId: string
   capturedAt: string
-}
-
-export interface AiUsagePage<T> {
-  items: T[]
-  page: number
-  pageSize: number
-  totalItems: number
-  totalPages: number
 }
 
 export interface AiUsageFilterOptions {
@@ -88,29 +110,31 @@ export interface AiUsageFilterOptions {
 }
 
 export interface AiUsageOverview {
-  summary: AiUsageSummary
+  summary: AiOverviewSummary
   trend: AiUsageTrendPoint[]
-  bySimulation: AiUsageAggregate[]
-  byModel: AiUsageAggregate[]
-  tokenCategories: {
-    cachedInputTokens: number
-    reasoningOutputTokens: number
-  }
-  participants: AiUsagePage<AiUsageParticipant>
+  trendInterval: UsageInterval
+  requestActivity: AiRequestActivity
+  byActivityType: AiActivityUsage[]
+  byNodeType: AiNodeUsage[]
+  bySimulation: AiSimulationUsage[]
+  byModel: AiModelUsage[]
   filterOptions: AiUsageFilterOptions
 }
 
+export interface AiRequestActivity {
+  dateFrom: string | null
+  dateTo: string | null
+  days: { date: string; requestCount: number }[]
+}
+
 export interface AiParticipantUsage {
-  participantId: string
-  summary: AiUsageSummary
-  trend: AiUsageTrendPoint[]
-  bySimulation: AiUsageAggregate[]
-  byModel: AiUsageAggregate[]
-  tokenCategories: {
-    cachedInputTokens: number
-    reasoningOutputTokens: number
-  }
-  events: AiUsagePage<AiUsageEvent>
+  summary: AiParticipantSummary
+  trend?: AiUsageTrendPoint[]
+  trendInterval?: UsageInterval
+  byActivityType: AiActivityUsage[]
+  byNodeType: AiNodeUsage[]
+  bySimulation: AiSimulationUsage[]
+  byModel: AiParticipantModelUsage[]
 }
 
 export interface AiUsageFilters {
@@ -131,23 +155,33 @@ function queryString(filters: AiUsageFilters, values: Record<string, string | nu
   return params.toString()
 }
 
-export function getAiUsageOverview(
-  filters: AiUsageFilters,
-  interval: UsageInterval,
-  page: number,
-  pageSize: number,
-) {
-  const query = queryString(filters, { interval, page, pageSize })
+export function getAiUsageOverview(filters: AiUsageFilters, interval: UsageInterval) {
+  const query = queryString(filters, { interval })
   return apiClient<AiUsageOverview>(`/admin/ai-token-usage?${query}`)
 }
 
-export function getAiParticipantUsage(
-  participantId: string,
-  page: number,
-  pageSize: number,
-) {
-  const query = queryString({}, { page, pageSize })
+export function getAiParticipantUsage(participantId: string) {
   return apiClient<AiParticipantUsage>(
-    `/admin/ai-token-usage/participants/${encodeURIComponent(participantId)}?${query}`,
+    `/admin/ai-token-usage/participants/${encodeURIComponent(participantId)}`,
+  )
+}
+
+export function usagePageParams(filters: AiUsageFilters, request: PageRequest): string {
+  const params = paginationParams(request)
+  for (const [key, value] of Object.entries(filters)) {
+    if (value) params.set(key, value)
+  }
+  return params.toString()
+}
+
+export function getAiUsageParticipants(filters: AiUsageFilters, request: PageRequest) {
+  return apiClient<Page<AiUsageParticipant>>(
+    `/admin/ai-token-usage/participants?${usagePageParams(filters, request)}`,
+  )
+}
+
+export function getAiParticipantEvents(participantId: string, request: PageRequest) {
+  return apiClient<Page<AiUsageEvent>>(
+    `/admin/ai-token-usage/participants/${encodeURIComponent(participantId)}/events?${paginationParams(request)}`,
   )
 }
