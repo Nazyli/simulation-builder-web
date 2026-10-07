@@ -150,13 +150,13 @@ export function AttachmentPickerDialog({
                 ).length
                 const allSelected = pages.length > 0 && selectedCount === pages.length
                 return (
-                  <li key={docId} className="rounded-lg border border-[#e8eaed] bg-white">
+                  <li key={docId} className="bg-card rounded-lg border border-[#e8eaed]">
                     <label className="flex cursor-pointer items-center gap-3 px-4 py-3">
                       <Checkbox
                         checked={selectedCount > 0 && !allSelected ? 'indeterminate' : allSelected}
                         onCheckedChange={() => toggleDocument(document)}
                       />
-                      <FileText size={16} className="shrink-0 text-[#9929EA]" />
+                      <FileText size={16} className="text-brand shrink-0" />
                       <span className="min-w-0 flex-1 truncate text-sm font-medium text-[#1a1a2e]">
                         {document.documentName ?? 'Untitled document'}
                       </span>
@@ -168,7 +168,7 @@ export function AttachmentPickerDialog({
                       <ul className="border-t border-[#e8eaed] px-4 py-2">
                         {pages.map((content) => (
                           <li key={content.participantDocContentId}>
-                            <label className="flex cursor-pointer items-center gap-3 rounded-md py-1.5 pr-2 pl-7 hover:bg-[#f6f8fb]">
+                            <label className="flex cursor-pointer items-center gap-3 rounded-md py-1.5 pr-2 pl-7 hover:bg-[var(--color-canvas)]">
                               <Checkbox
                                 checked={Boolean(
                                   selected[docId]?.has(content.participantDocContentId),
@@ -200,7 +200,11 @@ export function AttachmentPickerDialog({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="button" onClick={confirm} className="bg-[#9929EA] hover:bg-[#7d1fc2]">
+            <Button
+              type="button"
+              onClick={confirm}
+              className="bg-primary hover:bg-[var(--color-primary-hover)]"
+            >
               Attach
             </Button>
           </div>

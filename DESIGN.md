@@ -112,6 +112,37 @@ The application has three visual modes: workbench surfaces for Studio and Runner
 
 The palette combines a cool near-white canvas, white working surfaces, slate text, and one violet brand accent.
 
+### Theme customization
+
+The shared header's Theme button opens a scrollable panel with twenty-one preset rows,
+each showing Primary, Secondary, Background, and Surface as four circular swatches.
+Default is always first and retains `#9929EA`, `#DBABFF`, `#F6F8FB`, and `#FFFFFF`.
+Other presets are Ocean, Teal, Indigo, Emerald, Rose, Slate, Amber, Orange, Coral,
+Ruby, Pink, Sky, Mint, Olive, Sand, Coffee, Midnight, Charcoal, Forest Night,
+and Material Palenight.
+Palettes use ui-ux-pro-max catalog colors and variants adapted for this dashboard.
+Material Palenight maps the purple, cyan, background, and second background from
+the [Material Theme palette](https://material-theme.com/docs/reference/color-palette/)
+to `#C792EA`, `#89DDFF`, `#292D3E`, and `#34324A`, respectively.
+The preset list scrolls within a bounded area to keep the custom controls accessible.
+Four labeled color pickers and hex fields apply
+changes live; Reset to default restores all four colors.
+
+The theme module in `src/shared/theme/` validates and stores a versioned palette
+in `simulation-builder.theme.v1` localStorage. Startup applies it before rendering.
+Denied storage does not prevent live changes. Foregrounds, selected states,
+hover/focus treatments, and neutrals adapt from the palette. UI panels use
+`bg-card`; page and workspace backgrounds use `--color-canvas`. Status and action
+colors, backend catalog node/port/edge colors, and embedded content retain their
+domain meanings. Theme preferences are local to the browser.
+
+AI usage charts and calendar intensities derive from the current primary,
+secondary, and surface; graph path highlights derive against the canvas.
+Documentation navigation/links and Studio controls use the same theme tokens.
+Flow, Edit, and Reschedule are neutral slate actions, with blue informational
+actions and red destructive actions retaining their meanings. New visual groups
+default to slate; explicitly stored group colors remain authored content.
+
 ### Primary
 
 - **Simulation Builder Violet** (`{colors.primary}`): Primary actions, active navigation, focus rings, and selected controls.
@@ -220,19 +251,19 @@ Use compact 2px corners rather than pill shapes. Use a badge only when it convey
 
 Pair the time trend with the Request activity calendar on the overview, with
 one column on mobile. The calendar shows one month of daily SQL request counts,
-independent of weekly/monthly trend aggregation. Use a light lavender intensity
-scale with dark purple numbers, fill in-range inactive days with zero, and mark
+independent of weekly/monthly trend aggregation. Use a primary-tinted intensity
+scale with adaptive readable numbers, fill in-range inactive days with zero, and mark
 days outside the selected range. Follow with activity type and node type comparisons
 in two columns (one on mobile). Activity uses stacked horizontal bars for input/
 output composition, node types use vertical columns for recorded totals, models
 use a dot ranking, and simulations use a donut for token proportions. Keep direct
 values and readable labels; palette and typography remain consistent. Stacked
-series share one semantic palette derived from Simulation Builder Violet:
-muted lavender input, mauve output, and soft violet recorded total. Category
-colors use these hues plus quiet periwinkle and dusty lilac. Keep white chart
-surfaces, pale lavender separators, and dark readable labels. Actions, links,
-and the primary total use the existing brand violet; large chart fills use
-lighter colors. Legend and tooltip text stay neutral, separate from data colors.
+series share semantic tokens derived from the selected theme's primary and
+secondary colors, adjusted to at least 3:1 contrast against surface. Category
+colors add neutral slate and amber. Chart surfaces and separators follow surface
+and border tokens. Actions, links, and the primary total follow the selected brand;
+text contrast adapts independently. Legend and tooltip text stay neutral,
+separate from data colors.
 CSS semantic tokens
 own chart colors, including native charts and Recharts. Stacked
 segments represent input/output counts, while recorded total is labeled separately

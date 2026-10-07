@@ -82,7 +82,7 @@ export function SimulationGraphEdge({
   const targetBoundary = edgeData?.collapsedTargetRect
     ? pointOnRectBoundary(edgeData.collapsedTargetRect, { x: sourceX, y: sourceY })
     : undefined
-  const stroke = selected ? '#9929EA' : style.color
+  const stroke = selected ? 'var(--primary)' : style.color
   const labelOffset = -18
 
   const effectiveSourceX = sourceBoundary?.x ?? sourceX
@@ -156,7 +156,7 @@ export function SimulationGraphEdge({
       />
       <EdgeLabelRenderer>
         <div
-          className={`nodrag nopan pointer-events-auto absolute z-10 flex items-center gap-0.5 rounded-md border border-slate-200 bg-white/75 p-0.5 shadow-sm ${selected ? 'border-[#C6D2DF] bg-[#F5E7FF]/80 text-[#5B148F]' : ''} ${isParticipantPath ? 'history-edge-label--participant' : ''} ${isBackgroundEdge ? 'history-edge-label--background' : ''}`}
+          className={`nodrag nopan bg-card/75 pointer-events-auto absolute z-10 flex items-center gap-0.5 rounded-md border border-slate-200 p-0.5 shadow-sm ${selected ? 'bg-accent/80 text-accent-foreground border-[#C6D2DF]' : ''} ${isParticipantPath ? 'history-edge-label--participant' : ''} ${isBackgroundEdge ? 'history-edge-label--background' : ''}`}
           style={{
             transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px) translateY(${labelOffset}px)`,
           }}

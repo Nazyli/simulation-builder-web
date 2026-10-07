@@ -145,7 +145,7 @@ function ZoomSliderPanel() {
 
   return (
     <div
-      className="absolute bottom-3 left-[72px] z-10 flex h-6 items-center gap-1 rounded-md border border-slate-300 bg-white px-1.5 py-0.5 text-slate-700 shadow-sm sm:px-2"
+      className="bg-card absolute bottom-3 left-[72px] z-10 flex h-6 items-center gap-1 rounded-md border border-slate-300 px-1.5 py-0.5 text-slate-700 shadow-sm sm:px-2"
       aria-label="Zoom slider"
     >
       <span className="hidden text-[10px] font-bold tracking-widest text-slate-500 lg:inline">
@@ -191,7 +191,7 @@ function PaletteNodePlacementPreview({
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none fixed z-[100] w-[220px] rounded-md border bg-white/90 px-2 py-1.5 opacity-80 shadow-lg select-none"
+      className="bg-card/90 pointer-events-none fixed z-[100] w-[220px] rounded-md border px-2 py-1.5 opacity-80 shadow-lg select-none"
       style={{
         left: position.x + 14,
         top: position.y + 14,
@@ -1745,7 +1745,7 @@ export function SimulationStudioPage() {
   if (versionDetail.isError) {
     return (
       <PageFrame mode="workbench" edgeToEdge viewport="fill" className="grid place-items-center">
-        <div className="max-w-sm rounded-lg border border-slate-200 bg-white p-6 text-center">
+        <div className="bg-card max-w-sm rounded-lg border border-slate-200 p-6 text-center">
           <AlertTriangle className="mx-auto mb-3 h-8 w-8 text-amber-500" />
           <h2 className="text-sm font-bold text-slate-900">Simulation not found</h2>
           <p className="mt-1 text-xs leading-normal text-slate-500">
@@ -1774,7 +1774,7 @@ export function SimulationStudioPage() {
         />
       )}
       {/* Studio Header Bar */}
-      <header className="studio-top-header z-20 flex min-w-0 flex-wrap items-center justify-between gap-2 border-b border-slate-200 bg-white px-3 py-1 sm:px-4">
+      <header className="studio-top-header bg-card z-20 flex min-w-0 flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-3 py-1 sm:px-4">
         <div className="flex min-w-0 items-center gap-2.5">
           <button
             type="button"
@@ -1786,7 +1786,7 @@ export function SimulationStudioPage() {
           </button>
 
           <div className="flex min-w-0 items-center gap-2">
-            <span className="shrink-0 text-[0.68rem] font-bold tracking-[0.12em] text-violet-700 uppercase">
+            <span className="text-brand shrink-0 text-[0.68rem] font-bold tracking-[0.12em] uppercase">
               Studio
             </span>
             <span
@@ -1851,11 +1851,11 @@ export function SimulationStudioPage() {
                   if (event.target.value) navigate(`/studio/${event.target.value}`)
                 }}
               >
-                <option value="" className="bg-white">
+                <option value="" className="bg-card">
                   Select version...
                 </option>
                 {versions.data?.map((v) => (
-                  <option key={v.simulationId} value={v.simulationId} className="bg-white">
+                  <option key={v.simulationId} value={v.simulationId} className="bg-card">
                     {v.simulationName}
                   </option>
                 ))}
@@ -1864,7 +1864,7 @@ export function SimulationStudioPage() {
                 <PopoverTrigger asChild>
                   <button
                     type="button"
-                    className="flex h-6 items-center gap-1 rounded-md border border-slate-300 bg-white px-2 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50"
+                    className="bg-card flex h-6 items-center gap-1 rounded-md border border-slate-300 px-2 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50"
                   >
                     <Copy className="h-3 w-3" /> Workflow actions{' '}
                     <ChevronDown className="h-3 w-3" />
@@ -1873,7 +1873,7 @@ export function SimulationStudioPage() {
                 <PopoverContent align="end" className="w-48 p-1">
                   <button
                     type="button"
-                    className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-xs text-slate-700 hover:bg-violet-50 hover:text-violet-800"
+                    className="hover:bg-accent hover:text-accent-foreground flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-xs text-slate-700"
                     onClick={() => {
                       setWorkflowActionsOpen(false)
                       openDuplicateDialog()
@@ -1883,7 +1883,7 @@ export function SimulationStudioPage() {
                   </button>
                   <button
                     type="button"
-                    className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-xs text-slate-700 hover:bg-violet-50 hover:text-violet-800 disabled:opacity-50"
+                    className="hover:bg-accent hover:text-accent-foreground flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-xs text-slate-700 disabled:opacity-50"
                     disabled={exportWorkflow.isPending || !selectedSimulation}
                     onClick={() => {
                       setWorkflowActionsOpen(false)
@@ -1894,7 +1894,7 @@ export function SimulationStudioPage() {
                   </button>
                   <button
                     type="button"
-                    className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-xs text-slate-700 hover:bg-violet-50 hover:text-violet-800 disabled:opacity-50"
+                    className="hover:bg-accent hover:text-accent-foreground flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-xs text-slate-700 disabled:opacity-50"
                     disabled={!selectedSimulation || importWorkflow.isPending}
                     onClick={openImportPicker}
                   >
@@ -1923,7 +1923,7 @@ export function SimulationStudioPage() {
             </button>
           )}
           <button
-            className="flex h-6 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
+            className="bg-card flex h-6 items-center gap-1.5 rounded-md border border-slate-300 px-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
             type="button"
             disabled={!selectedSimulation || validating}
             onClick={validateGraph}
@@ -1955,11 +1955,11 @@ export function SimulationStudioPage() {
       <div className="studio-main-workspace relative flex min-h-0 min-w-0 flex-1 overflow-hidden">
         {/* Left Sidebar: Node Palette */}
         <aside
-          className={`studio-left-sidebar z-10 flex min-h-0 flex-col border-r border-[#DBE3EC] bg-white transition-all duration-200 max-[1100px]:absolute max-[1100px]:inset-y-0 max-[1100px]:left-0 max-[1100px]:z-20 max-[1100px]:min-w-0 max-[1100px]:shadow-md ${leftSidebarOpen ? 'w-56 max-w-[240px] min-w-[220px] max-[1100px]:w-[min(15rem,calc(100vw-1.5rem))] max-[1100px]:max-w-[calc(100vw-1.5rem)]' : 'w-0 min-w-0 overflow-hidden opacity-0'}`}
+          className={`studio-left-sidebar bg-card z-10 flex min-h-0 flex-col border-r border-[#DBE3EC] transition-all duration-200 max-[1100px]:absolute max-[1100px]:inset-y-0 max-[1100px]:left-0 max-[1100px]:z-20 max-[1100px]:min-w-0 max-[1100px]:shadow-md ${leftSidebarOpen ? 'w-56 max-w-[240px] min-w-[220px] max-[1100px]:w-[min(15rem,calc(100vw-1.5rem))] max-[1100px]:max-w-[calc(100vw-1.5rem)]' : 'w-0 min-w-0 overflow-hidden opacity-0'}`}
         >
           <div className="flex items-center justify-between border-b border-slate-200 p-2">
             <h2 className="flex items-center gap-1.5 text-[10px] font-bold tracking-wider text-slate-500 uppercase">
-              <Layers className="h-3.5 w-3.5 text-purple-600" /> Node Palette
+              <Layers className="text-brand h-3.5 w-3.5" /> Node Palette
             </h2>
             <span className="rounded-sm bg-slate-100 px-1 py-0.5 text-[9px] font-medium text-slate-500">
               Click or drag
@@ -1979,7 +1979,7 @@ export function SimulationStudioPage() {
                       id={`palette-group-${group.id}`}
                       className="flex items-center gap-1 text-[10px] font-bold tracking-wide text-slate-500 uppercase"
                     >
-                      <ChevronDown className="h-3 w-3 text-purple-500" />
+                      <ChevronDown className="text-brand h-3 w-3" />
                       {group.label}
                     </h3>
                     <span className="text-[9px] font-medium text-slate-400">
@@ -2019,7 +2019,7 @@ export function SimulationStudioPage() {
                               }}
                               className={`palette-card-item w-fit max-w-full cursor-grab rounded-md border px-1.5 py-1 text-center transition-colors active:cursor-grabbing ${
                                 isEditable
-                                  ? 'border-slate-200 opacity-100 hover:border-[#C6D2DF] hover:bg-white'
+                                  ? 'hover:bg-card border-slate-200 opacity-100 hover:border-[#C6D2DF]'
                                   : 'cursor-not-allowed opacity-50'
                               }`}
                             >
@@ -2069,7 +2069,7 @@ export function SimulationStudioPage() {
         </aside>
 
         {/* Center Canvas Area */}
-        <section className="studio-canvas-area relative flex min-h-0 min-w-0 flex-1 flex-col bg-[#F6F8FB]">
+        <section className="studio-canvas-area relative flex min-h-0 min-w-0 flex-1 flex-col bg-[var(--color-canvas)]">
           {/* Graph Validation Floating Drawer */}
           {validationRequested && (
             <div
@@ -2278,7 +2278,7 @@ export function SimulationStudioPage() {
             >
               <div className="pointer-events-none absolute top-3 right-4 left-3 z-10 flex items-start justify-between gap-1 max-[430px]:flex-col">
                 {/* Compact canvas toolbar and node search share one alignment container. */}
-                <div className="floating-canvas-toolbar pointer-events-auto flex max-w-full flex-wrap items-center gap-0.5 rounded-md border border-[#C6D2DF] bg-white p-0.5 shadow-sm">
+                <div className="floating-canvas-toolbar bg-card pointer-events-auto flex max-w-full flex-wrap items-center gap-0.5 rounded-md border border-[#C6D2DF] p-0.5 shadow-sm">
                   <div className="flex items-center gap-0.5 border-r border-slate-200 px-0.5">
                     <button
                       type="button"
@@ -2332,7 +2332,7 @@ export function SimulationStudioPage() {
                     <select
                       value={edgePathType}
                       onChange={(e) => setEdgePathType(e.target.value as EdgePathType)}
-                      className="h-[22px] cursor-pointer rounded-md border border-[#DBE3EC] bg-white px-1 text-[10px] text-slate-600 transition-colors outline-none hover:bg-slate-50 max-[760px]:h-6"
+                      className="bg-card h-[22px] cursor-pointer rounded-md border border-[#DBE3EC] px-1 text-[10px] text-slate-600 transition-colors outline-none hover:bg-slate-50 max-[760px]:h-6"
                       title="Edge path style"
                     >
                       <option value="default">Bezier</option>
@@ -2343,7 +2343,7 @@ export function SimulationStudioPage() {
 
                     <button
                       type="button"
-                      className={`inline-flex h-[22px] w-[22px] items-center justify-center rounded-md p-0.5 transition-colors disabled:cursor-not-allowed disabled:opacity-40 max-[760px]:h-6 max-[760px]:w-6 ${showMiniMap ? 'bg-[#F5E7FF] text-[#5B148F]' : 'text-slate-600 hover:bg-slate-100'}`}
+                      className={`inline-flex h-[22px] w-[22px] items-center justify-center rounded-md p-0.5 transition-colors disabled:cursor-not-allowed disabled:opacity-40 max-[760px]:h-6 max-[760px]:w-6 ${showMiniMap ? 'bg-accent text-accent-foreground' : 'text-slate-600 hover:bg-slate-100'}`}
                       onClick={() => setShowMiniMap((curr) => !curr)}
                       title="Toggle Minimap"
                     >
@@ -2370,11 +2370,11 @@ export function SimulationStudioPage() {
                 />
               </div>
               <Background color="#cbd5e1" gap={20} size={1} />
-              <Controls className="border-slate-200 bg-white fill-current text-slate-700 shadow-md" />
+              <Controls className="bg-card border-slate-200 fill-current text-slate-700 shadow-md" />
               <ZoomSliderPanel />
               <MiniMap
                 pannable
-                className="border-slate-200 bg-white shadow-md"
+                className="bg-card border-slate-200 shadow-md"
                 maskColor="rgba(241, 245, 249, 0.7)"
               />
               <StartNodeViewport
@@ -2388,7 +2388,7 @@ export function SimulationStudioPage() {
 
         {/* Right Sidebar: Tabbed Inspector, Versions, Executions */}
         <aside
-          className={`studio-right-sidebar z-10 flex min-h-0 flex-col border-l border-[#DBE3EC] bg-white transition-all duration-200 max-[1100px]:absolute max-[1100px]:inset-y-0 max-[1100px]:right-0 max-[1100px]:z-20 max-[1100px]:min-w-0 max-[1100px]:shadow-md ${rightSidebarOpen ? 'w-[min(16rem,28vw)] max-w-[280px] min-w-[240px] max-[1100px]:w-[min(16rem,calc(100vw-1.5rem))] max-[1100px]:max-w-[calc(100vw-1.5rem)]' : 'w-0 min-w-0 overflow-hidden opacity-0'}`}
+          className={`studio-right-sidebar bg-card z-10 flex min-h-0 flex-col border-l border-[#DBE3EC] transition-all duration-200 max-[1100px]:absolute max-[1100px]:inset-y-0 max-[1100px]:right-0 max-[1100px]:z-20 max-[1100px]:min-w-0 max-[1100px]:shadow-md ${rightSidebarOpen ? 'w-[min(16rem,28vw)] max-w-[280px] min-w-[240px] max-[1100px]:w-[min(16rem,calc(100vw-1.5rem))] max-[1100px]:max-w-[calc(100vw-1.5rem)]' : 'w-0 min-w-0 overflow-hidden opacity-0'}`}
         >
           {/* Tab Navigation */}
           <div className="right-sidebar-tabs flex gap-1 border-b border-[#DBE3EC] bg-slate-50 p-1">
@@ -2396,7 +2396,7 @@ export function SimulationStudioPage() {
               type="button"
               className={`tab-btn flex min-h-8 flex-none items-center justify-center gap-1 rounded-md px-2 py-1.5 text-[11px] font-semibold whitespace-nowrap transition-colors ${
                 activeRightTab === 'inspector'
-                  ? 'border border-slate-200 bg-white text-purple-700 shadow-xs'
+                  ? 'bg-card text-brand border border-slate-200 shadow-xs'
                   : 'text-slate-500 hover:text-slate-800'
               }`}
               onClick={() => setActiveRightTab('inspector')}
@@ -2408,7 +2408,7 @@ export function SimulationStudioPage() {
               type="button"
               className={`tab-btn flex min-h-8 flex-none items-center justify-center gap-1 rounded-md px-2 py-1.5 text-[11px] font-semibold whitespace-nowrap transition-colors ${
                 activeRightTab === 'versions'
-                  ? 'border border-slate-200 bg-white text-purple-700 shadow-xs'
+                  ? 'bg-card text-brand border border-slate-200 shadow-xs'
                   : 'text-slate-500 hover:text-slate-800'
               }`}
               onClick={() => setActiveRightTab('versions')}
@@ -2420,7 +2420,7 @@ export function SimulationStudioPage() {
               type="button"
               className={`tab-btn flex min-h-8 flex-none items-center justify-center gap-1 rounded-md px-2 py-1.5 text-[11px] font-semibold whitespace-nowrap transition-colors ${
                 activeRightTab === 'executions'
-                  ? 'border border-slate-200 bg-white text-purple-700 shadow-xs'
+                  ? 'bg-card text-brand border border-slate-200 shadow-xs'
                   : 'text-slate-500 hover:text-slate-800'
               }`}
               onClick={() => setActiveRightTab('executions')}
@@ -2479,7 +2479,7 @@ export function SimulationStudioPage() {
                   {selectedGroupSimulation && (
                     <button
                       type="button"
-                      className="inline-flex min-h-7 items-center gap-1 rounded-md bg-[#9929EA] px-2 py-0.5 text-[11px] font-medium text-white hover:bg-[#7D1FC2]"
+                      className="bg-primary text-primary-foreground inline-flex min-h-7 items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium hover:bg-[var(--color-primary-hover)]"
                       onClick={() => openDuplicateDialog()}
                     >
                       <Plus className="h-3 w-3" /> Duplicate
@@ -2497,8 +2497,8 @@ export function SimulationStudioPage() {
                           key={version.simulationId}
                           className={`cursor-pointer rounded border px-2 py-1.5 transition-colors ${
                             version.simulationId === simulationId
-                              ? 'border-[#C6D2DF] bg-[#F5E7FF]'
-                              : 'border-slate-200 bg-white hover:border-slate-300'
+                              ? 'bg-accent border-[#C6D2DF]'
+                              : 'bg-card border-slate-200 hover:border-slate-300'
                           }`}
                           onClick={() => navigate(`/studio/${version.simulationId}`)}
                         >
@@ -2523,7 +2523,7 @@ export function SimulationStudioPage() {
                                   event.stopPropagation()
                                   openDuplicateDialog(version)
                                 }}
-                                className="inline-flex min-h-6 min-w-6 items-center justify-center rounded p-0.5 text-purple-700 transition hover:bg-purple-50 hover:text-purple-800"
+                                className="text-brand hover:bg-accent hover:text-accent-foreground inline-flex min-h-6 min-w-6 items-center justify-center rounded p-0.5 transition"
                               >
                                 <Copy className="h-3 w-3" />
                               </button>
@@ -2572,7 +2572,7 @@ export function SimulationStudioPage() {
       <Dialog open={autoLayoutConfirmOpen} onOpenChange={setAutoLayoutConfirmOpen}>
         <DialogContent className="gap-5 p-5 sm:max-w-sm">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-violet-50 text-violet-700">
+            <div className="bg-accent text-accent-foreground flex h-10 w-10 shrink-0 items-center justify-center rounded-lg">
               <Workflow className="h-5 w-5" aria-hidden="true" />
             </div>
             <div className="grid gap-1.5 pt-0.5">
@@ -2590,7 +2590,7 @@ export function SimulationStudioPage() {
             </Button>
             <Button
               type="button"
-              className="bg-[#9929EA] text-white hover:bg-[#7D1FC2]"
+              className="bg-primary text-primary-foreground hover:bg-[var(--color-primary-hover)]"
               onClick={() => {
                 setAutoLayoutConfirmOpen(false)
                 applyAutoLayout()
@@ -2704,7 +2704,7 @@ export function SimulationStudioPage() {
       >
         <DialogContent className="p-5 sm:max-w-md">
           <DialogTitle className="flex items-center gap-2 text-base font-semibold text-slate-900">
-            <Copy className="h-5 w-5 text-[#9929EA]" /> Duplicate simulation
+            <Copy className="text-brand h-5 w-5" /> Duplicate simulation
           </DialogTitle>
           <DialogDescription>
             Create a copy of this version. You can rename it and update the description before
@@ -2770,7 +2770,7 @@ export function SimulationStudioPage() {
               <Button
                 type="submit"
                 disabled={createDraft.isPending || !duplicateName.trim()}
-                className="bg-[#9929EA] text-white hover:bg-[#7D1FC2]"
+                className="bg-primary text-primary-foreground hover:bg-[var(--color-primary-hover)]"
               >
                 <Copy className="h-3.5 w-3.5" />
                 {createDraft.isPending ? 'Duplicating…' : 'Duplicate'}
@@ -2806,7 +2806,7 @@ function ExecutionHistoryPanel({
   return (
     <div className="execution-history-panel space-y-4">
       <h3 className="flex items-center gap-1.5 text-xs font-bold tracking-wider text-slate-500 uppercase">
-        <History className="h-4 w-4 text-purple-600" /> Execution Logs
+        <History className="text-brand h-4 w-4" /> Execution Logs
       </h3>
 
       {isLoading && <LoadingState />}
@@ -2821,8 +2821,8 @@ function ExecutionHistoryPanel({
           <div
             className={`w-full cursor-pointer rounded-md border p-2.5 text-left text-xs transition-colors ${
               selectedExecution?.executionId === execution.executionId
-                ? 'border-purple-300 bg-purple-50'
-                : 'border-slate-200 bg-white hover:border-slate-300'
+                ? 'border-ring bg-accent'
+                : 'bg-card border-slate-200 hover:border-slate-300'
             }`}
             key={execution.executionId}
             role="button"
@@ -2867,7 +2867,7 @@ function ExecutionHistoryPanel({
       {selectedExecution && (
         <div className="execution-detail space-y-2 border-t border-slate-200 pt-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-purple-700">Timeline Events</span>
+            <span className="text-brand text-xs font-bold">Timeline Events</span>
             <span className="text-[10px] text-slate-500">
               Node: {selectedExecution.currentNodeId ?? 'Completed'}
             </span>
@@ -2883,7 +2883,7 @@ function ExecutionHistoryPanel({
                 }`}
                 key={event.eventId}
               >
-                <summary className="flex cursor-pointer items-center justify-between font-medium hover:text-purple-700">
+                <summary className="hover:text-brand flex cursor-pointer items-center justify-between font-medium">
                   <span>{event.eventType}</span>
                   {event.nodeId && (
                     <span className="font-mono text-[10px] text-slate-500">{event.nodeId}</span>

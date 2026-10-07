@@ -94,8 +94,8 @@ export function DocumentEditor({
   }
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-[#f6f8fb]">
-      <div className="border-b border-slate-200 bg-white px-4 py-3">
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-[var(--color-canvas)]">
+      <div className="bg-card border-b border-slate-200 px-4 py-3">
         <div className="flex flex-wrap items-end gap-3">
           <label className="min-w-0 flex-1">
             <span className="mb-1 block text-[10px] font-bold tracking-[0.12em] text-slate-400 uppercase">
@@ -238,7 +238,7 @@ export function DocumentEditor({
                 contentEditable={!disabled && !isSaving}
                 suppressContentEditableWarning
                 data-placeholder="Start writing…"
-                className="min-h-[480px] rounded-md border border-slate-200 bg-white px-6 py-7 text-[13px] leading-7 text-slate-700 shadow-sm outline-none empty:before:text-slate-400 empty:before:content-[attr(data-placeholder)] focus-visible:border-violet-400 focus-visible:ring-3 focus-visible:ring-violet-500/20 sm:min-h-[620px] sm:px-10 sm:py-10"
+                className="document-paper focus-visible:border-ring focus-visible:ring-ring/20 min-h-[480px] rounded-md border border-slate-200 px-6 py-7 text-[13px] leading-7 shadow-sm outline-none empty:before:text-slate-400 empty:before:content-[attr(data-placeholder)] focus-visible:ring-3 sm:min-h-[620px] sm:px-10 sm:py-10"
                 onFocus={(event) => {
                   activeEditorRef.current = event.currentTarget
                 }}
@@ -257,7 +257,7 @@ export function DocumentEditor({
             <Button
               type="button"
               variant="outline"
-              className="min-h-11 rounded-md border-dashed border-slate-300 bg-white px-4 text-xs font-semibold text-indigo-700 shadow-none hover:border-indigo-300 hover:bg-indigo-50"
+              className="bg-card min-h-11 rounded-md border-dashed border-slate-300 px-4 text-xs font-semibold text-indigo-700 shadow-none hover:border-indigo-300 hover:bg-indigo-50"
               disabled={disabled || isSaving}
               aria-label="Add page"
               onClick={handleAddPage}

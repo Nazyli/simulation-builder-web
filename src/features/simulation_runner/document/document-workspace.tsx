@@ -41,10 +41,10 @@ export function DocumentWorkspace({
   }, [documents, search])
 
   return (
-    <div className="flex min-h-[480px] min-w-0 flex-1 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white">
+    <div className="bg-card flex min-h-[480px] min-w-0 flex-1 flex-col overflow-hidden rounded-lg border border-slate-200">
       <div className="flex h-full min-h-0 flex-col lg:flex-row">
         {/* Sidebar list */}
-        <aside className="flex min-w-0 shrink-0 flex-col border-b border-slate-200 bg-white lg:w-[340px] lg:border-r lg:border-b-0">
+        <aside className="bg-card flex min-w-0 shrink-0 flex-col border-b border-slate-200 lg:w-[340px] lg:border-r lg:border-b-0">
           <div className="flex items-center justify-between px-3 pt-3 pb-2">
             <p className="text-[10px] font-bold tracking-[0.12em] text-slate-400 uppercase">
               Documents
@@ -53,7 +53,7 @@ export function DocumentWorkspace({
               <button
                 type="button"
                 onClick={onCreateDocument}
-                className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold text-indigo-700 transition-colors hover:bg-indigo-50 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                className="focus-visible:ring-ring inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold text-indigo-700 transition-colors hover:bg-indigo-50 focus-visible:ring-2 focus-visible:outline-none"
               >
                 <Plus size={13} />
                 New
@@ -87,7 +87,7 @@ export function DocumentWorkspace({
                     key={doc.id}
                     type="button"
                     onClick={() => onSelectDocument(doc.id)}
-                    className={`group flex w-full min-w-0 items-stretch gap-0 border-b border-slate-200 text-left transition-colors last:border-b-0 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none ${active ? 'bg-violet-50' : 'bg-white'}`}
+                    className={`group focus-visible:ring-ring flex w-full min-w-0 items-stretch gap-0 border-b border-slate-200 text-left transition-colors last:border-b-0 hover:bg-slate-50 focus-visible:ring-2 focus-visible:outline-none ${active ? 'bg-accent' : 'bg-card'}`}
                   >
                     {/* Type ribbon */}
                     <span
@@ -182,9 +182,9 @@ function DocumentDetail({
   const statusMeta = DOCUMENT_STATUS_META[doc.status]
 
   return (
-    <div className="flex min-w-0 flex-1 flex-col bg-[#f6f8fb]">
+    <div className="flex min-w-0 flex-1 flex-col bg-[var(--color-canvas)]">
       {/* Header bar */}
-      <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-2.5">
+      <div className="bg-card flex items-center justify-between border-b border-slate-200 px-4 py-2.5">
         <div className="min-w-0 flex-1">
           <p className="truncate text-base font-semibold text-slate-600">{doc.title}</p>
           <div className="mt-1 flex items-center gap-2 text-xs text-slate-500">
@@ -206,7 +206,7 @@ function DocumentDetail({
           <button
             type="button"
             onClick={() => onEditDocument(doc)}
-            className="ml-3 inline-flex shrink-0 items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-indigo-700 transition-colors hover:border-indigo-200 hover:bg-indigo-50 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+            className="bg-card focus-visible:ring-ring ml-3 inline-flex shrink-0 items-center gap-1.5 rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-indigo-700 transition-colors hover:border-indigo-200 hover:bg-indigo-50 focus-visible:ring-2 focus-visible:outline-none"
           >
             <Edit3 size={13} />
             Edit document
@@ -218,7 +218,7 @@ function DocumentDetail({
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
         <div className="mx-auto max-w-3xl space-y-4">
           {/* Summary card */}
-          <div className="rounded-lg border border-slate-200 bg-white p-4">
+          <div className="bg-card rounded-lg border border-slate-200 p-4">
             <h3 className="mb-2 text-xs font-bold tracking-wide text-slate-500 uppercase">
               Summary
             </h3>
@@ -244,13 +244,13 @@ function DocumentDetail({
           </div>
 
           {/* Preview excerpt */}
-          <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
+          <div className="bg-card rounded-lg border border-slate-200 shadow-sm">
             <div className="flex items-center justify-between border-b border-slate-100 px-4 py-2.5">
               <h3 className="text-xs font-bold tracking-wide text-slate-500 uppercase">Preview</h3>
               <button
                 type="button"
                 onClick={() => onOpenPreview(doc)}
-                className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-indigo-700 transition-colors hover:border-indigo-200 hover:bg-indigo-50"
+                className="bg-card inline-flex items-center gap-1.5 rounded-md border border-slate-200 px-2.5 py-1 text-xs font-medium text-indigo-700 transition-colors hover:border-indigo-200 hover:bg-indigo-50"
               >
                 <ExternalLink size={12} />
                 Open full view
@@ -277,7 +277,7 @@ function DocumentDetail({
 
 function MetaCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="flex min-w-0 items-start gap-2 rounded-md border border-slate-200 bg-white px-3 py-2.5">
+    <div className="bg-card flex min-w-0 items-start gap-2 rounded-md border border-slate-200 px-3 py-2.5">
       <span className="mt-0.5 text-slate-400">{icon}</span>
       <span className="min-w-0">
         <span className="block text-[10px] font-bold tracking-wide text-slate-400 uppercase">

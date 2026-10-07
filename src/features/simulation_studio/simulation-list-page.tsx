@@ -196,7 +196,7 @@ export function SimulationListPage() {
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             placeholder="Search groups, versions, channels"
-            className="h-10 w-full rounded-md border border-slate-200 bg-white pr-3 pl-9 text-sm text-slate-800 shadow-sm transition outline-none placeholder:text-slate-400 focus:border-[#8e7ee2] focus:ring-4 focus:ring-[#8e7ee2]/15"
+            className="bg-card focus:border-ring focus:ring-ring/20 h-10 w-full rounded-md border border-slate-200 pr-3 pl-9 text-sm text-slate-800 shadow-sm transition outline-none placeholder:text-slate-400 focus:ring-4"
           />
         </label>
       </div>
@@ -205,7 +205,7 @@ export function SimulationListPage() {
         <div
           role="status"
           aria-label="Loading data"
-          className="rounded-sm border border-slate-200 bg-white px-4 py-4 text-sm text-slate-500"
+          className="bg-card rounded-sm border border-slate-200 px-4 py-4 text-sm text-slate-500"
         >
           Loading simulation registry...
         </div>
@@ -213,8 +213,8 @@ export function SimulationListPage() {
       {groups.isError && <ErrorState message="Unable to load simulations." />}
 
       {groups.data && groups.data.length === 0 && (
-        <div className="flex min-h-[250px] flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white px-6 py-10 text-center">
-          <span className="grid size-12 place-items-center rounded-lg bg-[#f1efff] text-[#6651c7]">
+        <div className="bg-card flex min-h-[250px] flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 px-6 py-10 text-center">
+          <span className="bg-accent text-accent-foreground grid size-12 place-items-center rounded-lg">
             <Boxes className="h-5 w-5" />
           </span>
           <h2 className="mt-4 text-base font-semibold text-slate-900">No simulations yet</h2>
@@ -230,7 +230,7 @@ export function SimulationListPage() {
       {groups.data && groups.data.length > 0 && (
         <SurfaceSection className="border-b-0 p-0">
           {filteredGroups.length === 0 ? (
-            <div className="flex min-h-[210px] flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white px-6 py-10 text-center">
+            <div className="bg-card flex min-h-[210px] flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 px-6 py-10 text-center">
               <Search className="h-5 w-5 text-slate-400" />
               <h2 className="mt-3 text-base font-semibold text-slate-900">
                 No groups match that search
@@ -261,7 +261,7 @@ export function SimulationListPage() {
                 return (
                   <article
                     key={group.groupSimulationId}
-                    className="group flex min-w-0 flex-col rounded-lg border border-slate-200 bg-white p-[var(--panel-inset)] shadow-[0_4px_18px_rgba(22,31,54,0.035)] transition duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_14px_30px_rgba(22,31,54,0.09)]"
+                    className="group bg-card flex min-w-0 flex-col rounded-lg border border-slate-200 p-[var(--panel-inset)] shadow-[0_4px_18px_rgba(22,31,54,0.035)] transition duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_14px_30px_rgba(22,31,54,0.09)]"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <button
@@ -320,7 +320,7 @@ export function SimulationListPage() {
                       <button
                         type="button"
                         onClick={() => openGroup(group)}
-                        className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-[#6651c7] transition-colors hover:text-[#4c3ca8]"
+                        className="text-brand hover:text-accent-foreground inline-flex shrink-0 items-center gap-1 text-xs font-semibold transition-colors"
                       >
                         Open builder <ArrowUpRight className="h-3.5 w-3.5" />
                       </button>
@@ -340,7 +340,7 @@ export function SimulationListPage() {
       >
         <DialogContent className="p-6 sm:max-w-md">
           <DialogTitle className="flex items-center gap-2 text-lg font-bold text-slate-900">
-            <Layers className="h-5 w-5 text-[#6651c7]" /> Choose a simulation
+            <Layers className="text-brand h-5 w-5" /> Choose a simulation
           </DialogTitle>
           <DialogDescription>
             {pickerGroup?.groupSimulationName} has {pickerGroup?.simulations?.length ?? 0}{' '}
@@ -351,7 +351,7 @@ export function SimulationListPage() {
               <button
                 key={simulation.simulationId}
                 type="button"
-                className={`flex w-full items-center justify-between rounded-md border p-3 text-left transition-all ${simulation.simulationId === pickerBest?.simulationId ? 'border-[#c8bffb] bg-[#f5f2ff]' : 'border-slate-200 bg-white hover:border-slate-300'}`}
+                className={`flex w-full items-center justify-between rounded-md border p-3 text-left transition-all ${simulation.simulationId === pickerBest?.simulationId ? 'border-ring bg-accent' : 'bg-card border-slate-200 hover:border-slate-300'}`}
                 onClick={() => navigate(`/studio/${simulation.simulationId}`)}
               >
                 <span className="flex items-center gap-2 text-sm font-semibold text-slate-800">
@@ -363,7 +363,7 @@ export function SimulationListPage() {
                   )}
                 </span>
                 {simulation.simulationId === pickerBest?.simulationId && (
-                  <span className="text-xs font-bold tracking-wider text-[#6651c7] uppercase">
+                  <span className="text-brand text-xs font-bold tracking-wider uppercase">
                     Default
                   </span>
                 )}
@@ -381,7 +381,7 @@ export function SimulationListPage() {
       >
         <DialogContent className="p-6 sm:max-w-md">
           <DialogTitle className="flex items-center gap-2 text-lg font-bold text-slate-900">
-            <FolderKanban className="h-5 w-5 text-[#6651c7]" />{' '}
+            <FolderKanban className="text-brand h-5 w-5" />{' '}
             {editing ? 'Edit simulation group' : 'Create simulation group'}
           </DialogTitle>
           <form

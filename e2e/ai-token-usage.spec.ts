@@ -342,6 +342,18 @@ for (const viewport of [
       page.locator('.recharts-line').first().locator('path.recharts-line-curve'),
     ).toHaveCSS('stroke', await inputBar.evaluate((bar) => getComputedStyle(bar).backgroundColor))
     await expect(page.getByText(/Showing weekly totals/)).toBeVisible()
+    const originalInput = await inputBar.evaluate((bar) => getComputedStyle(bar).backgroundColor)
+    const activityDay = page.getByLabel('2026-04-01: 3 recorded requests', { exact: true })
+    const originalDay = await activityDay.evaluate((day) => getComputedStyle(day).backgroundColor)
+    await page.getByRole('button', { name: 'Customize theme' }).click()
+    await page.getByRole('radio', { name: 'Teal theme' }).check()
+    await page.keyboard.press('Escape')
+    await expect(inputBar).not.toHaveCSS('background-color', originalInput)
+    await expect(activityDay).not.toHaveCSS('background-color', originalDay)
+    const tealInput = await inputBar.evaluate((bar) => getComputedStyle(bar).backgroundColor)
+    await expect(
+      page.locator('.recharts-line').first().locator('path.recharts-line-curve'),
+    ).toHaveCSS('stroke', tealInput)
     const beforePage = analyticsRequests
     await page.getByRole('button', { name: 'Next', exact: true }).click()
     await expect(page.getByText('Page 2 / 2')).toBeVisible()
@@ -373,6 +385,10 @@ for (const viewport of [
       '/ai-token-usage/94839?from=2026-01-01&to=2026-01-01&interval=monthly&provider=missing',
     )
     await expect(page.getByRole('heading', { name: 'Participant 94839' })).toBeVisible()
+    await expect(page.locator('.usage-stacked-track__input').first()).toHaveCSS(
+      'background-color',
+      tealInput,
+    )
     await expect(page.getByRole('region', { name: 'Filter participant usage' })).toHaveCount(0)
     await expect(page.getByLabel('Date from', { exact: true })).toHaveCount(0)
     await expect(page.getByLabel('Date to', { exact: true })).toHaveCount(0)

@@ -44,12 +44,13 @@ test('workflow edge labels use tighter padding and translucent backgrounds', () 
   const edge = source('features/simulation_studio/simulation-graph-edge.tsx')
   const styles = source('index.css')
 
-  assert.match(edge, /rounded-md border border-slate-200 bg-white\/75 p-0\.5 shadow-sm/)
+  assert.match(edge, /bg-card\/75/)
+  assert.match(edge, /rounded-md border border-slate-200 p-0\.5 shadow-sm/)
   assert.match(edge, /rounded-md px-1 py-0 text-xs font-medium/)
-  assert.match(edge, /bg-\[#F5E7FF\]\/80/)
+  assert.match(edge, /bg-accent\/80/)
   assert.match(
     styles,
-    /\.history-edge-label--participant \{[^}]*background: rgba\(255, 255, 255, 0\.78\);/,
+    /\.history-edge-label--participant \{[^}]*background: color-mix\(in srgb, var\(--card\) 78%, transparent\);/,
   )
 })
 
@@ -58,7 +59,7 @@ test('visual group surfaces stay translucent so graph edges remain visible under
 
   assert.match(
     node,
-    /visual-group-node h-full w-full overflow-visible rounded-sm border-2 bg-white\/60 shadow-sm/,
+    /visual-group-node bg-card\/60 h-full w-full overflow-visible rounded-sm border-2 shadow-sm/,
   )
 })
 
@@ -118,7 +119,7 @@ test('Studio canvas toolbar and node search use compact control sizing', () => {
   )
   assert.match(
     page,
-    /h-\[22px\] cursor-pointer rounded-md border border-\[#DBE3EC\] bg-white px-1 text-\[10px\]/,
+    /bg-card h-\[22px\] cursor-pointer rounded-md border border-\[#DBE3EC\] px-1 text-\[10px\]/,
   )
   assert.equal((page.match(/min-h-\[22px\] items-center[^\n]*text-\[10px\]/g) ?? []).length, 2)
   assert.match(page, /max-\[760px\]:h-6 max-\[760px\]:w-6/)
@@ -248,11 +249,10 @@ test('Studio header reserves the brand color for Run and softens supporting acti
   }
 
   assert.match(buttonClasses('Run Simulation'), /bg-primary/)
-  assert.match(buttonClasses('Validate'), /border border-(?:slate-300|\[#C6D2DF\]) bg-white/)
-  assert.match(
-    buttonClasses('Workflow actions'),
-    /border border-(?:slate-300|\[#C6D2DF\]) bg-white/,
-  )
+  assert.match(buttonClasses('Validate'), /bg-card/)
+  assert.match(buttonClasses('Validate'), /border border-(?:slate-300|\[#C6D2DF\])/)
+  assert.match(buttonClasses('Workflow actions'), /border border-(?:slate-300|\[#C6D2DF\])/)
+  assert.match(buttonClasses('Workflow actions'), /bg-card/)
   assert.match(buttonClasses('Duplicate to Edit'), /border-amber-200 bg-amber-50 .*text-amber-800/)
   for (const label of ['Run Simulation', 'Validate', 'Duplicate to Edit']) {
     assert.match(

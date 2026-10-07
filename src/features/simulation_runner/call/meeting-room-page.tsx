@@ -263,7 +263,7 @@ export function CallMeetingRoomPage() {
           </div>
 
           {/* Bottom control bar - always visible */}
-          <div className="border-t border-slate-200 bg-white px-4 py-2.5">
+          <div className="bg-card border-t border-slate-200 px-4 py-2.5">
             <div className="flex items-center justify-center">
               <MediaControlBar
                 choices={effectiveChoices}

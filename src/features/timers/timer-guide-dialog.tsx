@@ -108,7 +108,7 @@ export function TimerGuideDialog() {
       <DialogTrigger asChild>
         <button
           type="button"
-          className="ml-auto inline-flex h-8 items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-violet-700 focus-visible:ring-2 focus-visible:ring-violet-500/40 focus-visible:outline-none"
+          className="bg-card focus-visible:ring-ring/40 ml-auto inline-flex h-8 items-center gap-1.5 rounded-md border border-slate-200 px-2.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-700 focus-visible:ring-2 focus-visible:outline-none"
         >
           <BookOpen size={13} aria-hidden="true" />
           Panduan

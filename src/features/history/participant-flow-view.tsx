@@ -44,7 +44,7 @@ const nodeRenderers = {
 }
 const edgeRenderers = { simulation: SimulationGraphEdge }
 const MASTER_COLOR = '#94a3b8'
-const PATH_COLOR = '#7c3aed'
+const PATH_COLOR = 'var(--color-graph-accent)'
 const EMPTY_VISUAL_GROUPS: VisualGroup[] = []
 
 type EdgePathReport = { path: string; sx: number; sy: number; tx: number; ty: number }
@@ -97,7 +97,7 @@ function ZoomSliderPanel() {
   const clamped = Math.min(STUDIO_ZOOM_SLIDER_MAX, Math.max(STUDIO_ZOOM_SLIDER_MIN, percent))
   return (
     <div
-      className="absolute bottom-3 left-[72px] z-10 flex h-6 items-center gap-1 rounded-md border border-[#C6D2DF] bg-white px-1.5 py-0.5 text-slate-700 shadow-sm sm:px-2"
+      className="bg-card absolute bottom-3 left-[72px] z-10 flex h-6 items-center gap-1 rounded-md border border-[#C6D2DF] px-1.5 py-0.5 text-slate-700 shadow-sm sm:px-2"
       aria-label="Zoom slider"
     >
       <span className="hidden text-[10px] font-bold tracking-widest text-slate-500 lg:inline">
@@ -504,7 +504,7 @@ export function ParticipantFlowCanvas({
           Visited node ({view.visitedCount})
         </span>
         {currentState && (
-          <span className="flex items-center gap-1.5 text-[#9929EA]">
+          <span className="text-brand flex items-center gap-1.5">
             ● Current state: {currentState}
           </span>
         )}
@@ -512,7 +512,7 @@ export function ParticipantFlowCanvas({
           <select
             value={edgePathType}
             onChange={(e) => setEdgePathType(e.target.value as EdgePathType)}
-            className="ml-auto h-6 cursor-pointer rounded-md border border-slate-200 bg-white px-1.5 text-[11px] font-semibold text-slate-600 transition-colors outline-none hover:bg-slate-50"
+            className="bg-card ml-auto h-6 cursor-pointer rounded-md border border-slate-200 px-1.5 text-[11px] font-semibold text-slate-600 transition-colors outline-none hover:bg-slate-50"
             title="Edge path style"
           >
             <option value="default">Bezier</option>
@@ -522,7 +522,7 @@ export function ParticipantFlowCanvas({
           </select>
           <button
             type="button"
-            className="inline-flex h-6 items-center justify-center rounded-md border border-slate-200 bg-white px-2 text-slate-600 transition-colors hover:bg-slate-50"
+            className="bg-card inline-flex h-6 items-center justify-center rounded-md border border-slate-200 px-2 text-slate-600 transition-colors hover:bg-slate-50"
             onClick={() => flowInstance?.fitView({ padding: 0.2, duration: 240 })}
             title="Fit view"
             aria-label="Fit view"
@@ -531,7 +531,7 @@ export function ParticipantFlowCanvas({
           </button>
           <button
             type="button"
-            className={`inline-flex h-6 items-center justify-center rounded-md border px-2 transition-colors ${showMiniMap ? 'border-purple-200 bg-purple-50 text-purple-700' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}
+            className={`inline-flex h-6 items-center justify-center rounded-md border px-2 transition-colors ${showMiniMap ? 'border-ring bg-accent text-accent-foreground' : 'bg-card border-slate-200 text-slate-600 hover:bg-slate-50'}`}
             onClick={() => setShowMiniMap((v) => !v)}
             title="Toggle minimap"
             aria-label="Toggle minimap"
@@ -587,12 +587,10 @@ export function ParticipantFlowCanvas({
                 <Background color="#cbd5e1" gap={20} size={1} />
                 <Controls
                   showInteractive={false}
-                  className="border-slate-200 bg-white fill-current text-slate-700 shadow-md"
+                  className="bg-card border-slate-200 fill-current text-slate-700 shadow-md"
                 />
                 <ZoomSliderPanel />
-                {showMiniMap && (
-                  <MiniMap pannable className="border-slate-200 bg-white shadow-md" />
-                )}
+                {showMiniMap && <MiniMap pannable className="bg-card border-slate-200 shadow-md" />}
                 <NodeSearch
                   position="top-right"
                   placeholder="Search nodes... ⌘K"

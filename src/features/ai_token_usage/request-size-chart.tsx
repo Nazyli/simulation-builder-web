@@ -82,7 +82,7 @@ export function RequestSizeChart({
                     const row = payload?.[0]?.payload as UsageEvent | undefined
                     if (!active || !row) return null
                     return (
-                      <div className="rounded-md border border-slate-200 bg-white px-3 py-2 text-xs shadow-sm">
+                      <div className="bg-card rounded-md border border-slate-200 px-3 py-2 text-xs shadow-sm">
                         <p className="m-0 font-medium">
                           {row.node_type ?? row.activity_type} · {row.model ?? 'Unknown model'}
                         </p>

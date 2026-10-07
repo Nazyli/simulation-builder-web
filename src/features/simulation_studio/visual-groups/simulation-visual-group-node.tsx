@@ -30,7 +30,7 @@ export function SimulationVisualGroupNode({ id, data, selected }: NodeProps<Visu
         handleStyle={{ backgroundColor: group.style.color, borderColor: 'white' }}
       />
       <NodeToolbar isVisible={selected} position={Position.Top}>
-        <div className="nodrag flex items-center gap-1 rounded-md border border-slate-200 bg-white p-1 shadow-md">
+        <div className="nodrag bg-card flex items-center gap-1 rounded-md border border-slate-200 p-1 shadow-md">
           <button
             type="button"
             className="rounded p-1 text-slate-600 hover:bg-slate-100"
@@ -74,7 +74,7 @@ export function SimulationVisualGroupNode({ id, data, selected }: NodeProps<Visu
         </div>
       </NodeToolbar>
       <div
-        className="visual-group-node h-full w-full overflow-visible rounded-sm border-2 bg-white/60 shadow-sm"
+        className="visual-group-node bg-card/60 h-full w-full overflow-visible rounded-sm border-2 shadow-sm"
         style={{ borderColor: group.style.color, borderStyle }}
       >
         <Handle
@@ -107,7 +107,7 @@ export function SimulationVisualGroupNode({ id, data, selected }: NodeProps<Visu
                 if (event.key === 'Escape') setEditingName(false)
               }}
               onClick={(event) => event.stopPropagation()}
-              className="nodrag nowheel min-w-0 flex-1 rounded border border-slate-300 bg-white/80 px-1.5 py-0.5 text-xs font-medium outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-200"
+              className="nodrag nowheel bg-card/80 focus:border-ring focus:ring-ring/20 min-w-0 flex-1 rounded border border-slate-300 px-1.5 py-0.5 text-xs font-medium outline-none focus:ring-1"
               aria-label="Visual group name"
             />
           ) : (

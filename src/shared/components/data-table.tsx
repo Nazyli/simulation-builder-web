@@ -116,9 +116,9 @@ export function DataTable<T extends { id: string }>({
   return (
     <section
       aria-busy={server?.isFetching}
-      className="app-data-table min-w-0 overflow-hidden rounded-lg border border-slate-200 bg-white"
+      className="app-data-table bg-card min-w-0 overflow-hidden rounded-lg border border-slate-200"
     >
-      <div className="app-data-table__toolbar flex min-w-0 flex-wrap items-center gap-2 border-b border-slate-100 bg-white px-3.5 py-3">
+      <div className="app-data-table__toolbar bg-card flex min-w-0 flex-wrap items-center gap-2 border-b border-slate-100 px-3.5 py-3">
         <Input
           aria-label="Filter rows"
           placeholder="Filter"
@@ -135,10 +135,10 @@ export function DataTable<T extends { id: string }>({
         {toolbarActions}
         {showColumnToggle && (
           <details className="group relative ml-auto">
-            <summary className="cursor-pointer text-xs font-semibold text-slate-500 group-open:text-violet-600">
+            <summary className="group-open:text-brand cursor-pointer text-xs font-semibold text-slate-500">
               Columns
             </summary>
-            <div className="absolute top-full right-0 z-20 mt-1.5 grid min-w-[150px] gap-0.5 rounded-lg border border-slate-200 bg-white p-1.5 shadow-lg">
+            <div className="bg-card absolute top-full right-0 z-20 mt-1.5 grid min-w-[150px] gap-0.5 rounded-lg border border-slate-200 p-1.5 shadow-lg">
               {columns.map((column) => (
                 <label
                   key={column.id}
@@ -207,7 +207,7 @@ export function DataTable<T extends { id: string }>({
                         if (server) server.onSortChange(next)
                         else setSort(next)
                       }}
-                      className={`inline-flex cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-[11px] font-semibold tracking-normal text-slate-500 transition hover:text-violet-600 ${column.headerClassName?.includes('text-right') ? 'w-full justify-end' : ''}`}
+                      className={`hover:text-brand inline-flex cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-[11px] font-semibold tracking-normal text-slate-500 transition ${column.headerClassName?.includes('text-right') ? 'w-full justify-end' : ''}`}
                     >
                       {column.header}
                       {sort?.id === column.id ? (sort.desc ? ' ↓' : ' ↑') : ''}
@@ -268,7 +268,7 @@ export function DataTable<T extends { id: string }>({
                 aria-label="Rows per page"
                 value={server.size}
                 onChange={(event) => server.onSizeChange(Number(event.target.value))}
-                className="rounded-md border border-slate-200 bg-white px-2 py-1"
+                className="bg-card rounded-md border border-slate-200 px-2 py-1"
               >
                 {[10, 20, 50, 100].map((size) => (
                   <option key={size} value={size}>

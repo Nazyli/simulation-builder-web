@@ -52,7 +52,7 @@ test('Simulation registry cards keep responsive hierarchy and mobile action targ
 
   assert.match(simulationList, /grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-4/)
   assert.doesNotMatch(simulationList, /min-h-\[238px\]/)
-  assert.match(simulationList, /group flex min-w-0 flex-col rounded-lg/)
+  assert.match(simulationList, /group bg-card flex min-w-0 flex-col rounded-lg/)
   assert.match(simulationList, /hover:-translate-y-0\.5/)
   assert.equal(
     (simulationList.match(/max-\[640px\]:min-h-11 max-\[640px\]:min-w-11/g) ?? []).length,

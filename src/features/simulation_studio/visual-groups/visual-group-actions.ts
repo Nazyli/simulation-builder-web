@@ -55,7 +55,7 @@ export function createVisualGroup(
       MIN_GROUP_HEIGHT,
       bounds.maxY - bounds.minY + GROUP_PADDING * 2 + GROUP_HEADER_HEIGHT,
     ),
-    style: defaults.style ?? { color: '#7c3aed', borderStyle: 'dashed' },
+    style: defaults.style ?? { color: '#64748b', borderStyle: 'dashed' },
     isCollapsed: defaults.isCollapsed ?? false,
   }
 }

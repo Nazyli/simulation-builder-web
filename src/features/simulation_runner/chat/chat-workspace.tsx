@@ -57,7 +57,7 @@ export function ChatWorkspace({
     : null
 
   return (
-    <section className="col-span-full flex min-h-0 min-h-[480px] min-w-0 flex-1 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white">
+    <section className="bg-card col-span-full flex min-h-0 min-h-[480px] min-w-0 flex-1 flex-col overflow-hidden rounded-lg border border-slate-200">
       <div className="flex h-full min-h-0 flex-col lg:flex-row">
         <SimulationSidebar
           simulations={simulations}

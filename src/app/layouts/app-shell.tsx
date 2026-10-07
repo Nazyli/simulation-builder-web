@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar } from './app-sidebar'
 import { navigation, pageNames } from './navigation'
+import { ThemePanel } from '../../shared/theme/theme-panel'
 
 function Breadcrumb() {
   const location = useLocation()
@@ -34,13 +35,14 @@ function Breadcrumb() {
 
 export function AppShell({ children }: PropsWithChildren) {
   return (
-    <SidebarProvider defaultOpen={true} className="overflow-x-hidden bg-slate-100">
+    <SidebarProvider defaultOpen={true} className="overflow-x-hidden bg-[var(--color-canvas)]">
       <AppSidebar items={navigation} />
 
-      <SidebarInset className="min-w-0 overflow-x-hidden bg-slate-100">
-        <header className="sticky top-0 z-10 flex h-[var(--app-header-height)] w-full min-w-0 shrink-0 items-center gap-1.5 overflow-hidden border-b border-slate-200 bg-[#fbfcfe] px-[var(--page-inset)]">
+      <SidebarInset className="min-w-0 overflow-x-hidden bg-[var(--color-canvas)]">
+        <header className="sticky top-0 z-10 flex h-[var(--app-header-height)] w-full min-w-0 shrink-0 items-center gap-1.5 overflow-hidden border-b border-slate-200 bg-[var(--color-header)] px-[var(--page-inset)]">
           <SidebarTrigger className="shrink-0 text-slate-500" />
           <Breadcrumb />
+          <ThemePanel />
         </header>
         <div className="app-content max-w-none min-w-0">{children}</div>
       </SidebarInset>

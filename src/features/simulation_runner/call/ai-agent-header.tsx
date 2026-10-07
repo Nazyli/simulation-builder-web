@@ -38,9 +38,9 @@ export function AiAgentHeader({
   }
 
   return (
-    <header className="flex min-w-0 items-center justify-between border-b border-slate-200 bg-white px-4 py-2.5">
+    <header className="bg-card flex min-w-0 items-center justify-between border-b border-slate-200 px-4 py-2.5">
       <div className="flex min-w-0 items-center gap-3">
-        <div className="grid size-8 shrink-0 place-items-center rounded-md bg-violet-50 text-sm font-bold text-violet-700">
+        <div className="bg-accent text-accent-foreground grid size-8 shrink-0 place-items-center rounded-md text-sm font-bold">
           {agentName.charAt(0).toUpperCase()}
         </div>
         <div className="min-w-0">

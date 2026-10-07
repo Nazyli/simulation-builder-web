@@ -192,11 +192,11 @@ export function NodeConfigurationForm({
       )}
       <div className="flex min-w-0 items-center justify-between gap-3 border-b border-slate-200 pb-2">
         <div className="flex min-w-0 items-center gap-2">
-          <Sliders className="text-primary h-3.5 w-3.5 shrink-0" />
+          <Sliders className="text-brand h-3.5 w-3.5 shrink-0" />
           <h3 className="text-xs font-semibold text-slate-900">Node configuration</h3>
         </div>
         <span
-          className="max-w-20 truncate rounded border border-violet-200 bg-violet-50 px-1 py-0 text-[7px] leading-3 font-semibold tracking-[0.02em] whitespace-nowrap text-violet-800 uppercase"
+          className="max-w-20 truncate rounded border border-slate-200 bg-slate-50 px-1 py-0 text-[7px] leading-3 font-semibold tracking-[0.02em] whitespace-nowrap text-slate-800 uppercase"
           title={node.nodeType}
         >
           {node.nodeType}
@@ -406,7 +406,7 @@ function AttachmentOpenConfigurationFields({
           value={sourceNodeId}
           onValueChange={(value) => onChange({ sourceSendEmailNodeId: value, attachmentIds: [] })}
         >
-          <SelectTrigger id="source-send-email-node" size="sm" className="w-full bg-white">
+          <SelectTrigger id="source-send-email-node" size="sm" className="bg-card w-full">
             <SelectValue placeholder="Choose a Send Email node" />
           </SelectTrigger>
           <SelectContent className="[&_[data-slot=select-item]]:text-xs">
@@ -437,7 +437,7 @@ function AttachmentOpenConfigurationFields({
           }
           disabled={!emailId}
         >
-          <SelectTrigger id="attachment-selection" size="sm" className="w-full bg-white">
+          <SelectTrigger id="attachment-selection" size="sm" className="bg-card w-full">
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="[&_[data-slot=select-item]]:text-xs">
@@ -472,7 +472,7 @@ function AttachmentOpenConfigurationFields({
           onValueChange={(value) => onChange({ completionMode: value })}
           disabled={!emailId}
         >
-          <SelectTrigger id="completion-mode" size="sm" className="w-full bg-white">
+          <SelectTrigger id="completion-mode" size="sm" className="bg-card w-full">
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="[&_[data-slot=select-item]]:text-xs">
@@ -506,7 +506,7 @@ function AttachmentPicker({
   onChange: (attachmentId: string, checked: boolean) => void
 }) {
   return (
-    <div className="space-y-2 rounded-md border border-emerald-100 bg-white p-2">
+    <div className="bg-card space-y-2 rounded-md border border-emerald-100 p-2">
       {attachments.map((attachment) => (
         <label
           key={attachment.attachmentId}
@@ -975,7 +975,7 @@ export function EdgeConfigurationForm({
       )}
       <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
         <div className="flex items-center gap-2">
-          <GitBranch className="text-primary h-4 w-4" />
+          <GitBranch className="text-brand h-4 w-4" />
           <h3 className="text-sm font-semibold text-slate-900">Edge inspector</h3>
         </div>
       </div>

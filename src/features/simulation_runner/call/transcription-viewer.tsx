@@ -81,7 +81,7 @@ export function TranscriptionViewer({
   const isParticipant = latestSegment.sender === participantName
   return (
     <div className="animate-in fade-in slide-in-from-bottom-2 mx-auto max-w-lg duration-300">
-      <div className="rounded-lg border border-slate-200 bg-white/95 px-4 py-3 shadow-sm">
+      <div className="bg-card/95 rounded-lg border border-slate-200 px-4 py-3 shadow-sm">
         <p className="text-sm leading-relaxed text-slate-800">
           <span
             className={`mr-2 inline-block rounded-sm px-1.5 py-0.5 text-[11px] font-semibold tracking-wide uppercase ${

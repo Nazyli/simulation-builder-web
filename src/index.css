@@ -5,6 +5,24 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Brand fills keep the selected color; text accents need readable contrast. */
+@utility text-brand {
+  color: var(--primary-text);
+}
+
+/* Authored document content keeps paper colors independent of UI preferences. */
+.document-paper {
+  background: #ffffff;
+  color: #334155;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #64748b;
+  --color-slate-700: #334155;
+  --color-slate-900: #0f172a;
+  --color-text: #172033;
+  --foreground: #334155;
+  --muted-foreground: #64748b;
+}
+
 @layer base {
   @import '@xyflow/react/dist/style.css';
   * {
@@ -19,8 +37,8 @@
 }
 
 :root {
-  color: #172033;
-  background: #f6f8fb;
+  color: var(--color-text);
+  background: var(--color-canvas);
   font-family:
     'Plus Jakarta Sans Variable', sans-serif; /* impeccable-disable-line overused-font -- project typography is defined by DESIGN.md */
   --background: oklch(1 0 0);
@@ -33,6 +51,7 @@
   --lk-fg: #6366f1;
   --lk-va-bg: #cbd5e1;
   --primary: #9929ea;
+  --primary-text: #9929ea;
   --primary-foreground: #ffffff;
   --secondary: #dbabff;
   --secondary-foreground: #3b0a5c;
@@ -94,7 +113,7 @@ body {
 .documentation-article h4,
 .documentation-article h5,
 .documentation-article h6 {
-  color: #172033;
+  color: var(--color-text);
   font-weight: 700;
   line-height: 1.25;
   scroll-margin-top: 84px;
@@ -107,7 +126,7 @@ body {
 .documentation-article h2 {
   margin: 1.75rem 0 0.55rem;
   padding-bottom: 0.35rem;
-  border-bottom: 1px solid #e5eaf0;
+  border-bottom: 1px solid var(--color-border);
   font-size: 1.15rem;
   letter-spacing: -0.015em;
 }
@@ -119,30 +138,30 @@ body {
   margin: 0 0 0.75rem;
 }
 .documentation-article a {
-  color: #5946c5;
+  color: var(--primary-text);
   text-decoration: underline;
-  text-decoration-color: #c4b5fd;
+  text-decoration-color: var(--color-border-strong);
   text-underline-offset: 3px;
 }
 .documentation-article a:hover {
-  color: #4338a5;
-  text-decoration-color: #8b5cf6;
+  color: var(--accent-foreground);
+  text-decoration-color: var(--primary-text);
 }
 .documentation-article strong {
-  color: #26324a;
+  color: var(--color-text);
   font-weight: 700;
 }
 .documentation-article code {
   border-radius: var(--radius-sm);
-  background: #f1f3f7;
+  background: var(--color-surface-muted);
   padding: 0.12rem 0.35rem;
-  color: #4c3d9a;
+  color: var(--color-text);
   font-size: 0.88em;
 }
 .documentation-article pre {
   margin: 0.9rem 0 1rem;
   overflow-x: auto;
-  border: 1px solid #dbe3ec;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   background: #172033;
   padding: 0.75rem 1rem;
@@ -186,11 +205,11 @@ body {
 }
 .documentation-article blockquote {
   margin: 0.9rem 0;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  background: #faf9ff;
+  background: var(--color-surface-muted);
   padding: 0.75rem 1rem;
-  color: #596579;
+  color: var(--color-text-muted);
 }
 .documentation-article blockquote p:last-child {
   margin-bottom: 0;
@@ -198,7 +217,7 @@ body {
 .documentation-article hr {
   margin: 1.5rem 0;
   border: 0;
-  border-top: 1px solid #e5eaf0;
+  border-top: 1px solid var(--color-border);
 }
 .documentation-article table {
   display: block;
@@ -219,8 +238,8 @@ body {
   vertical-align: top;
 }
 .documentation-article th {
-  background: #f8fafc;
-  color: #334155;
+  background: var(--color-surface-muted);
+  color: var(--color-text);
   font-weight: 700;
 }
 .documentation-article img {
@@ -265,7 +284,7 @@ button:not(:disabled) {
   outline-offset: 1px;
 }
 .react-flow__node.history-node-current {
-  outline: 2px solid rgb(91 70 197 / 0.65);
+  outline: 2px solid var(--color-graph-accent);
   outline-offset: 1px;
 }
 
@@ -283,9 +302,9 @@ button:not(:disabled) {
     from 0deg,
     transparent 0deg,
     transparent 90deg,
-    #6366f1 150deg,
-    #8b5cf6 210deg,
-    #06b6d4 260deg,
+    var(--color-graph-accent) 150deg,
+    var(--color-graph-accent) 210deg,
+    var(--color-graph-accent) 260deg,
     transparent 320deg,
     transparent 360deg
   );
@@ -293,7 +312,7 @@ button:not(:disabled) {
   will-change: transform;
 }
 .node-status-indicator {
-  /* keep violet glow consistent — React Flow outer filter already handles it,
+  /* Keep the theme highlight consistent — React Flow outer filter handles it,
      but ensure inner clipping respects BaseNode radius */
   border-radius: calc(var(--radius-lg) + 2.5px);
 }
@@ -304,24 +323,24 @@ button:not(:disabled) {
   border-top: 2.5px dashed #94a3b8;
 }
 .history-legend-line--path {
-  border-top: 2.5px solid #7c3aed;
+  border-top: 2.5px solid var(--color-graph-accent);
 }
 .history-legend-node {
   display: inline-block;
   width: 10px;
   height: 10px;
   border-radius: 999px;
-  background: rgba(124, 58, 237, 0.22);
-  border: 2px solid #7c3aed;
+  background: color-mix(in srgb, var(--color-graph-accent) 22%, transparent);
+  border: 2px solid var(--color-graph-accent);
 }
 
 .history-flow-canvas .history-edge-background {
   opacity: 0.56;
 }
 .history-edge-label--participant {
-  border-color: rgba(196, 181, 253, 0.9);
-  background: rgba(255, 255, 255, 0.78);
-  color: #5b21b6;
+  border-color: var(--color-border-strong);
+  background: color-mix(in srgb, var(--card) 78%, transparent);
+  color: var(--primary-text);
 }
 .history-edge-label--background {
   opacity: 0.52;
@@ -330,6 +349,13 @@ button:not(:disabled) {
 :root {
   --color-canvas: #f6f8fb;
   --color-surface: #ffffff;
+  --color-canvas-foreground: #172033;
+  --color-canvas-heading: #0f172a;
+  --color-canvas-brand-text: #9929ea;
+  --color-canvas-text-muted: #64748b;
+  --color-header: #fbfcfe;
+  --color-graph: #fbfcfe;
+  --color-graph-accent: #9929ea;
   --color-surface-muted: #f8fafc;
   --color-text: #172033;
   --color-text-muted: #64748b;
@@ -386,7 +412,7 @@ button:not(:disabled) {
   }
 }
 body {
-  color: var(--color-text);
+  color: var(--color-canvas-foreground);
   background: var(--color-canvas);
   font-family: var(--font-sans);
   font-size: 0.875rem;
@@ -468,7 +494,7 @@ button:disabled {
   min-height: 580px;
   border-color: var(--color-border);
   border-radius: var(--radius-lg);
-  background: #fbfcfe;
+  background: var(--color-graph);
 }
 .graph.studio-canvas-graph {
   border-radius: 0;
@@ -658,14 +684,18 @@ button:disabled {
 }
 
 .node-status-indicator__spinner {
-  background: conic-gradient(from 0deg at 50% 50%, #4f46e5 0deg, rgba(99, 102, 241, 0) 360deg);
+  background: conic-gradient(
+    from 0deg at 50% 50%,
+    var(--color-graph-accent) 0deg,
+    transparent 360deg
+  );
   border-radius: 9999px;
   animation: node-status-spin 2s linear infinite;
   transform-origin: center;
 }
 
 .react-flow__node.history-node-current--active {
-  outline: 2px solid rgb(79 70 229 / 0.55);
+  outline: 2px solid var(--color-graph-accent);
   outline-offset: 1px;
 }
 

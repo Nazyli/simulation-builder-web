@@ -184,7 +184,7 @@ export function ParticipantHistoryPage() {
           </button>
           <button
             onClick={() => navigate(`/history/${row.execution.executionId}?tab=flow`)}
-            className="rounded-md border border-violet-200 bg-violet-50 px-2 py-1 text-[11px] font-semibold text-violet-700 shadow-none transition hover:border-violet-300 hover:bg-violet-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600"
+            className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-[11px] font-semibold text-slate-700 shadow-none transition hover:border-slate-300 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-600"
           >
             <Route size={12} className="mr-1 inline" />
             Flow

@@ -115,7 +115,7 @@ export function useVisualGroups({
 
   const cycleColor = useCallback(
     async (groupId: string) => {
-      const palette = ['#7c3aed', '#2563eb', '#059669', '#d97706', '#dc2626']
+      const palette = ['#64748b', '#2563eb', '#059669', '#d97706', '#dc2626']
       const group = groups.find((item) => item.visualGroupId === groupId)
       if (!group) return
       const currentIndex = palette.indexOf(group.style.color)

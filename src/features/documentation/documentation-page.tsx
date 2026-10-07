@@ -82,7 +82,7 @@ function DocumentationNav({
             onChange={(event) => onQueryChange(event.target.value)}
             placeholder="Search docs..."
             aria-label="Search documentation"
-            className="h-9 w-full rounded-md border border-slate-200 bg-slate-50 pr-8 pl-9 text-xs text-slate-700 transition-colors outline-none placeholder:text-slate-400 focus:border-violet-300 focus:bg-white focus:ring-3 focus:ring-violet-100"
+            className="focus:bg-card focus:border-ring focus:ring-ring/20 h-9 w-full rounded-md border border-slate-200 bg-slate-50 pr-8 pl-9 text-xs text-slate-700 transition-colors outline-none placeholder:text-slate-400 focus:ring-3"
           />
           {query && (
             <button
@@ -118,9 +118,9 @@ function DocumentationNav({
                     className={({ isActive }) =>
                       `group flex min-h-9 items-center gap-2 rounded-md px-3 py-2 text-sm leading-tight transition-colors ${
                         isActive
-                          ? 'bg-violet-100 font-semibold text-violet-800'
+                          ? 'bg-accent text-accent-foreground font-semibold'
                           : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                      } ${isActive ? '[&>span:first-child]:bg-violet-500' : ''}`
+                      } ${isActive ? '[&>span:first-child]:bg-primary' : ''}`
                     }
                   >
                     <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-slate-300 transition-colors" />
@@ -169,12 +169,12 @@ function DocumentPager({ entry }: { entry: DocumentationEntry }) {
       {previous ? (
         <Link
           to={`/documentation/${previous.slug}`}
-          className="group rounded-lg border border-slate-200 bg-white p-4 transition-colors hover:border-violet-200 hover:bg-violet-50"
+          className="group bg-card hover:border-ring hover:bg-accent rounded-lg border border-slate-200 p-4 transition-colors"
         >
           <span className="flex items-center gap-1.5 text-xs text-slate-400">
             <ArrowLeft size={14} /> Previous
           </span>
-          <strong className="mt-2 block text-sm text-slate-700 group-hover:text-violet-800">
+          <strong className="group-hover:text-accent-foreground mt-2 block text-sm text-slate-700">
             {previous.title}
           </strong>
         </Link>
@@ -184,12 +184,12 @@ function DocumentPager({ entry }: { entry: DocumentationEntry }) {
       {next && (
         <Link
           to={`/documentation/${next.slug}`}
-          className="group rounded-lg border border-slate-200 bg-white p-4 text-left transition-colors hover:border-violet-200 hover:bg-violet-50 sm:text-right"
+          className="group bg-card hover:border-ring hover:bg-accent rounded-lg border border-slate-200 p-4 text-left transition-colors sm:text-right"
         >
           <span className="flex items-center justify-end gap-1.5 text-xs text-slate-400">
             Next <ArrowRight size={14} />
           </span>
-          <strong className="mt-2 block text-sm text-slate-700 group-hover:text-violet-800">
+          <strong className="group-hover:text-accent-foreground mt-2 block text-sm text-slate-700">
             {next.title}
           </strong>
         </Link>
@@ -348,10 +348,10 @@ export function DocumentationPage() {
     <PageFrame mode="reference" density="compact" className="documentation-page">
       <PageHeader title="Documentation" />
 
-      <details className="rounded-lg border border-slate-200 bg-white p-3 lg:hidden">
+      <details className="bg-card rounded-lg border border-slate-200 p-3 lg:hidden">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-slate-700">
           <span className="flex items-center gap-2">
-            <BookOpen size={16} className="text-violet-600" />
+            <BookOpen size={16} className="text-brand" />
             Sections
           </span>
           <ChevronDown size={16} className="text-slate-400" />

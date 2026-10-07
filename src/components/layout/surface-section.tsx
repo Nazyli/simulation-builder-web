@@ -25,7 +25,7 @@ export function SurfaceSection({
       className={cn(
         'app-surface-section min-w-0',
         variant === 'panel'
-          ? 'rounded-lg border border-slate-200 bg-white p-[var(--panel-inset)]'
+          ? 'bg-card rounded-lg border border-slate-200 p-[var(--panel-inset)]'
           : 'border-b border-slate-200 pb-[var(--page-gap)] last:border-b-0',
         className,
       )}

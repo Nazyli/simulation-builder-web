@@ -41,8 +41,8 @@ export function MessageBubble({ message, participantId }: MessageBubbleProps) {
         <div
           className={`mt-0.5 block max-w-full rounded-lg px-3.5 py-2 text-left text-sm leading-relaxed break-words whitespace-pre-wrap ${
             own
-              ? 'rounded-br-md bg-[#9929EA] text-white'
-              : 'rounded-bl-md border border-slate-200 bg-white text-slate-800'
+              ? 'bg-primary text-primary-foreground rounded-br-md'
+              : 'bg-card rounded-bl-md border border-slate-200 text-slate-800'
           }`}
         >
           {splitMessageLinks(content).map((segment, index) =>

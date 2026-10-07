@@ -198,7 +198,7 @@ export function DocumentChannelPage() {
   if (documentsQuery.isPending || documentsQuery.isError) {
     const failed = documentsQuery.isError
     return (
-      <div className="flex h-full min-h-[420px] flex-col items-center justify-center gap-3 rounded-lg border border-slate-200 bg-white px-6 text-center">
+      <div className="bg-card flex h-full min-h-[420px] flex-col items-center justify-center gap-3 rounded-lg border border-slate-200 px-6 text-center">
         <span className="grid h-12 w-12 place-items-center rounded-full bg-slate-100">
           <FileText size={20} className="text-slate-400" />
         </span>
@@ -214,7 +214,7 @@ export function DocumentChannelPage() {
           <button
             type="button"
             onClick={() => documentsQuery.refetch()}
-            className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-indigo-700 transition-colors hover:border-indigo-200 hover:bg-indigo-50"
+            className="bg-card rounded-md border border-slate-200 px-2.5 py-1 text-xs font-medium text-indigo-700 transition-colors hover:border-indigo-200 hover:bg-indigo-50"
           >
             Retry
           </button>

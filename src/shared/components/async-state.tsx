@@ -15,10 +15,10 @@ export function LoadingState({
   const widths = ['w-full', 'w-[84%]', 'w-[68%]']
   const containerClass =
     variant === 'canvas'
-      ? 'grid min-h-[360px] place-items-center rounded-lg border border-slate-200 bg-white p-4'
+      ? 'grid min-h-[360px] place-items-center rounded-lg border border-slate-200 bg-card p-4'
       : variant === 'runner'
-        ? 'grid grid-cols-2 gap-2.5 rounded-lg border border-slate-200 bg-white p-4'
-        : 'grid gap-2.5 rounded-lg border border-slate-200 bg-white p-4'
+        ? 'grid grid-cols-2 gap-2.5 rounded-lg border border-slate-200 bg-card p-4'
+        : 'grid gap-2.5 rounded-lg border border-slate-200 bg-card p-4'
   return (
     <motion.section
       role="status"
@@ -75,9 +75,9 @@ export function EmptyState({
     <motion.section
       initial={reduceMotion ? undefined : { opacity: 0, y: 8 }}
       animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-      className="grid justify-items-center gap-2 rounded-lg border border-dashed border-slate-300 bg-white p-12 text-center text-slate-400"
+      className="bg-card grid justify-items-center gap-2 rounded-lg border border-dashed border-slate-300 p-12 text-center text-slate-400"
     >
-      <span className="grid size-10 place-items-center rounded-sm bg-violet-100 text-violet-600">
+      <span className="bg-accent text-accent-foreground grid size-10 place-items-center rounded-sm">
         <Inbox size={22} />
       </span>
       <strong className="text-sm text-slate-700">{title}</strong>

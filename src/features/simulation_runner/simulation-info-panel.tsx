@@ -38,7 +38,7 @@ export function SimulationInfoPanel({ participantId }: { participantId: string }
           setVisible(true)
           persistPanelVisible(true)
         }}
-        className="hover:text-primary flex w-full items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-500 transition hover:border-violet-200 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+        className="hover:text-brand bg-card hover:border-secondary focus-visible:ring-ring flex w-full items-center justify-center gap-2 rounded-md border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-500 transition focus-visible:ring-2 focus-visible:outline-none"
       >
         <ChevronDown size={14} /> Show simulation info
       </button>
@@ -47,13 +47,13 @@ export function SimulationInfoPanel({ participantId }: { participantId: string }
 
   return (
     <div>
-      <header className="flex min-w-0 flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3">
+      <header className="bg-card flex min-w-0 flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 px-4 py-3">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="grid size-9 shrink-0 place-items-center rounded-md bg-violet-50 text-violet-700">
+          <span className="bg-accent text-accent-foreground grid size-9 shrink-0 place-items-center rounded-md">
             <Play size={18} />
           </span>
           <div className="min-w-0">
-            <span className="text-[10px] font-bold tracking-[0.12em] text-purple-700 uppercase">
+            <span className="text-brand text-[10px] font-bold tracking-[0.12em] uppercase">
               Participant console
             </span>
             <h2 className="min-w-0 truncate text-base font-bold text-slate-900">
@@ -68,7 +68,7 @@ export function SimulationInfoPanel({ participantId }: { participantId: string }
         </div>
         <div className="flex max-w-full min-w-0 flex-wrap items-center gap-1.5">
           <div className="flex min-w-0 items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1.5">
-            <UserRound size={14} className="text-primary shrink-0" />
+            <UserRound size={14} className="text-brand shrink-0" />
             <div className="min-w-0">
               <small className="block text-[10px] font-semibold tracking-wide text-slate-400 uppercase">
                 Participant
@@ -79,7 +79,7 @@ export function SimulationInfoPanel({ participantId }: { participantId: string }
             </div>
           </div>
           <div className="flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1.5">
-            <Clock3 size={14} className="text-primary shrink-0" />
+            <Clock3 size={14} className="text-brand shrink-0" />
             <div>
               <small className="block text-[10px] font-semibold tracking-wide text-slate-400 uppercase">
                 Elapsed
@@ -102,7 +102,7 @@ export function SimulationInfoPanel({ participantId }: { participantId: string }
               setVisible(false)
               persistPanelVisible(false)
             }}
-            className="grid size-8 place-items-center rounded-md border border-slate-200 bg-white text-slate-400 transition hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+            className="bg-card focus-visible:ring-ring grid size-8 place-items-center rounded-md border border-slate-200 text-slate-400 transition hover:text-slate-700 focus-visible:ring-2 focus-visible:outline-none"
           >
             <ChevronUp size={15} />
           </button>

@@ -76,7 +76,7 @@ export function ConversationSidebar({
 
   return (
     <>
-      <aside className="flex min-w-0 shrink-0 gap-1 overflow-x-auto border-b border-slate-200 bg-white p-1.5 lg:w-[280px] lg:flex-col lg:overflow-y-auto lg:border-r lg:border-b-0 lg:p-2">
+      <aside className="bg-card flex min-w-0 shrink-0 gap-1 overflow-x-auto border-b border-slate-200 p-1.5 lg:w-[280px] lg:flex-col lg:overflow-y-auto lg:border-r lg:border-b-0 lg:p-2">
         <p className="hidden px-2 pb-1 text-[10px] font-bold tracking-wider text-slate-400 uppercase lg:block">
           Conversations
         </p>
@@ -128,9 +128,9 @@ export function ConversationSidebar({
               key={actor.actorId}
               type="button"
               onClick={() => onSelect(actor.actorId)}
-              className={`flex max-w-[320px] min-w-[220px] items-center gap-3 rounded-md px-2.5 py-2 text-left focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none lg:min-w-0 ${
+              className={`focus-visible:ring-ring flex max-w-[320px] min-w-[220px] items-center gap-3 rounded-md px-2.5 py-2 text-left focus-visible:ring-2 focus-visible:outline-none lg:min-w-0 ${
                 active
-                  ? '!text-primary !border-0 !bg-violet-50'
+                  ? '!text-brand !bg-accent !border-0'
                   : '!border-0 !bg-transparent !text-slate-700 hover:!bg-slate-50'
               }`}
             >
@@ -142,7 +142,7 @@ export function ConversationSidebar({
               <span className="min-w-0 flex-1">
                 <span className="flex items-baseline justify-between gap-2">
                   <span className="truncate text-sm font-semibold">{actor.actorName}</span>
-                  <span className="text-primary shrink-0 rounded-sm bg-violet-100 px-1.5 text-xs font-semibold">
+                  <span className="text-brand bg-secondary/30 shrink-0 rounded-sm px-1.5 text-xs font-semibold">
                     {actor.actorId}
                   </span>
                 </span>
@@ -151,7 +151,7 @@ export function ConversationSidebar({
                   {actor.unreadCount > 0 ? (
                     <span
                       aria-label={`${actor.unreadCount} unread message${actor.unreadCount === 1 ? '' : 's'}`}
-                      className="grid size-5 shrink-0 place-items-center rounded-md bg-violet-600 text-[10px] font-bold text-white"
+                      className="bg-primary text-primary-foreground grid size-5 shrink-0 place-items-center rounded-md text-[10px] font-bold"
                     >
                       {actor.unreadCount}
                     </span>
@@ -211,7 +211,7 @@ export function ConversationSidebar({
                     key={item.actorId}
                     type="button"
                     onClick={() => handlePick(item.actorId, item.actorName)}
-                    className="flex items-center gap-3 rounded-md px-3 py-2.5 text-left hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+                    className="focus-visible:ring-ring flex items-center gap-3 rounded-md px-3 py-2.5 text-left hover:bg-slate-50 focus-visible:ring-2 focus-visible:outline-none"
                   >
                     <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-slate-100 text-xs font-bold text-slate-500">
                       {item.actorName.slice(0, 1).toUpperCase()}
@@ -221,7 +221,7 @@ export function ConversationSidebar({
                         <span className="truncate text-sm font-semibold text-slate-700">
                           {item.actorName}
                         </span>
-                        <span className="text-primary shrink-0 rounded-sm bg-violet-100 px-1.5 text-xs font-semibold">
+                        <span className="text-brand bg-secondary/30 shrink-0 rounded-sm px-1.5 text-xs font-semibold">
                           {item.actorId}
                         </span>
                       </span>

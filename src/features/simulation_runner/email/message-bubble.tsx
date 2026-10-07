@@ -32,7 +32,7 @@ export function MessageBubble({
   }, [message.content])
 
   return (
-    <article className="border-t border-slate-200 bg-white">
+    <article className="bg-card border-t border-slate-200">
       {/* Subject */}
       <div className="px-5 pt-4 pb-1.5">
         <h2 className="text-base leading-snug font-semibold text-slate-600">

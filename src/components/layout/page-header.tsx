@@ -29,20 +29,20 @@ export function PageHeader({
     >
       <div className="min-w-0 flex-1">
         {eyebrow && (
-          <p className="mb-1 text-xs font-semibold tracking-[0.08em] text-violet-700 uppercase">
+          <p className="mb-1 text-xs font-semibold tracking-[0.08em] text-[var(--color-canvas-brand-text)] uppercase">
             {eyebrow}
           </p>
         )}
-        <h1 className="min-w-0 text-[20px] leading-tight font-semibold tracking-[-0.02em] break-words text-slate-900 max-[620px]:text-[18px]">
+        <h1 className="min-w-0 text-[20px] leading-tight font-semibold tracking-[-0.02em] break-words text-[var(--color-canvas-heading)] max-[620px]:text-[18px]">
           {title}
         </h1>
         {description && (
-          <p className="mt-1 max-w-[72ch] text-sm leading-relaxed break-words text-slate-500">
+          <p className="mt-1 max-w-[72ch] text-sm leading-relaxed break-words text-[var(--color-canvas-text-muted)]">
             {description}
           </p>
         )}
         {metadata && (
-          <div className="mt-2 flex max-w-full min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+          <div className="mt-2 flex max-w-full min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--color-canvas-text-muted)]">
             {metadata}
           </div>
         )}

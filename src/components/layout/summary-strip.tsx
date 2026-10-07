@@ -12,7 +12,7 @@ export type SummaryStripItem = {
 
 const toneClasses: Record<SummaryStripTone, string> = {
   neutral: 'text-slate-900',
-  accent: 'text-violet-700',
+  accent: 'text-accent-foreground',
   success: 'text-emerald-700',
   warning: 'text-amber-700',
   danger: 'text-red-700',
@@ -28,7 +28,7 @@ export function SummaryStrip({
   return (
     <dl
       className={cn(
-        'app-summary-strip grid min-w-0 auto-cols-[minmax(112px,1fr)] grid-flow-col divide-x divide-slate-200 overflow-x-auto rounded-lg border border-slate-200 bg-white',
+        'app-summary-strip bg-card grid min-w-0 auto-cols-[minmax(112px,1fr)] grid-flow-col divide-x divide-slate-200 overflow-x-auto rounded-lg border border-slate-200',
         className,
       )}
     >

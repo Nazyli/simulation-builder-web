@@ -28,7 +28,7 @@ export function AttachmentPreviewDialog({
           {pages.map((page) => (
             <article
               key={page.participantAttachmentEmailId}
-              className="mx-auto mb-6 min-h-[720px] max-w-[680px] bg-white p-6 text-sm leading-7 text-slate-700 sm:p-10"
+              className="document-paper mx-auto mb-6 min-h-[720px] max-w-[680px] p-6 text-sm leading-7 sm:p-10"
             >
               {!page.content ? (
                 <p className="text-slate-400">No content</p>

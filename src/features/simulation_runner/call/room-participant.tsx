@@ -121,7 +121,7 @@ function ParticipantTile({
                 className="pointer-events-none absolute size-20 scale-165 md:size-24"
               />
             ) : null}
-            <div className="relative z-10 flex size-20 items-center justify-center rounded-full bg-violet-700 text-2xl font-bold text-white md:size-24 md:text-3xl">
+            <div className="bg-primary text-primary-foreground relative z-10 flex size-20 items-center justify-center rounded-full text-2xl font-bold md:size-24 md:text-3xl">
               {getInitials(participant.name || participant.identity)}
             </div>
           </div>
@@ -131,7 +131,7 @@ function ParticipantTile({
         </div>
       )}
 
-      <div className="absolute top-2 left-2 flex items-center gap-1.5 rounded-md border border-slate-200 bg-white/95 px-2.5 py-1.5 text-xs text-slate-700 shadow-sm md:top-3 md:left-3">
+      <div className="bg-card/95 absolute top-2 left-2 flex items-center gap-1.5 rounded-md border border-slate-200 px-2.5 py-1.5 text-xs text-slate-700 shadow-sm md:top-3 md:left-3">
         {isMicMuted ? (
           <MicOff className="size-3.5 text-red-500" />
         ) : (

@@ -134,7 +134,7 @@ export function ChatSidebar({
   }
 
   return (
-    <aside className="flex h-full w-full flex-col bg-white">
+    <aside className="bg-card flex h-full w-full flex-col">
       <header className="border-b border-slate-200 px-4 py-3">
         <h2 className="text-sm font-semibold text-slate-800">In-call messages</h2>
       </header>

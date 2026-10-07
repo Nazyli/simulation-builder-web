@@ -165,7 +165,7 @@ export function ExecutionDetailPage() {
                               cy="18"
                             />
                             <circle
-                              className="text-violet-600 transition-all duration-1000"
+                              className="text-brand transition-all duration-1000"
                               strokeWidth="3"
                               strokeDasharray={`${(timeLeft / pollInterval) * 100}, 100`}
                               strokeDashoffset="0"
@@ -218,7 +218,7 @@ export function ExecutionDetailPage() {
                     onClick={refreshFlow}
                     disabled={isFlowRefreshing}
                     aria-label="Refresh flow"
-                    className="inline-flex h-6 items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-600 transition hover:border-violet-200 hover:bg-slate-50 hover:text-violet-700 focus-visible:ring-2 focus-visible:ring-violet-500/40 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                    className="bg-card hover:border-ring hover:text-brand focus-visible:ring-ring/40 inline-flex h-6 items-center gap-1.5 rounded-md border border-slate-200 px-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     <RefreshCw
                       size={12}
@@ -231,7 +231,7 @@ export function ExecutionDetailPage() {
             </PageToolbar>
           }
         />
-        <PageToolbar inset className="shrink-0 justify-between border-b border-slate-200 bg-white">
+        <PageToolbar inset className="bg-card shrink-0 justify-between border-b border-slate-200">
           <TabsList className="h-9 bg-slate-100 p-1">
             <TabsTrigger value="flow" className="px-3 text-xs font-semibold">
               <Route size={14} />
@@ -247,7 +247,7 @@ export function ExecutionDetailPage() {
           </span>
         </PageToolbar>
 
-        <TabsContent value="flow" className="min-h-0 flex-1 overflow-hidden bg-white">
+        <TabsContent value="flow" className="bg-card min-h-0 flex-1 overflow-hidden">
           <ParticipantFlowCanvas
             simulationId={data.simulationId}
             executionId={data.executionId}
@@ -255,7 +255,7 @@ export function ExecutionDetailPage() {
           />
         </TabsContent>
 
-        <TabsContent value="detail" className="min-h-0 flex-1 overflow-auto bg-white">
+        <TabsContent value="detail" className="bg-card min-h-0 flex-1 overflow-auto">
           <PageContent>
             <NodeExecutionTable
               nodeExecutions={nodeExecutions.data ?? []}
@@ -324,7 +324,7 @@ function NodeExecutionTable({
               <TableCell>
                 {item.selectedPort ? (
                   <div className="flex flex-col items-start gap-1">
-                    <span className="inline-flex rounded-sm bg-violet-50 px-1.5 py-0.5 font-mono text-[11px] font-bold text-violet-700">
+                    <span className="bg-accent text-accent-foreground inline-flex rounded-sm px-1.5 py-0.5 font-mono text-[11px] font-bold">
                       {item.selectedPort}
                     </span>
                     {item.selectedEdgeId && (

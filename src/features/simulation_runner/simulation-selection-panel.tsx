@@ -55,7 +55,7 @@ export function SimulationSelectionPanel({
   const resultCount = groupedSimulations.reduce((total, [, group]) => total + group.length, 0)
 
   return (
-    <section className={cn('min-w-0 rounded-lg border border-slate-200 bg-white p-3', className)}>
+    <section className={cn('bg-card min-w-0 rounded-lg border border-slate-200 p-3', className)}>
       <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <label className="text-xs font-semibold text-slate-800" htmlFor="runner-simulation">
@@ -66,14 +66,14 @@ export function SimulationSelectionPanel({
           <span
             aria-live="polite"
             aria-atomic="true"
-            className="rounded-sm bg-violet-50 px-1.5 py-0.5 text-xs font-semibold text-violet-800"
+            className="bg-accent text-accent-foreground rounded-sm px-1.5 py-0.5 text-xs font-semibold"
           >
             {selectedIds.length} selected
           </span>
           {selectedIds.length > 0 && (
             <button
               type="button"
-              className="text-primary focus-visible:ring-primary/40 rounded px-1 py-0.5 text-xs font-semibold transition-colors hover:bg-violet-50 focus-visible:ring-2 focus-visible:outline-none"
+              className="text-brand focus-visible:ring-primary/40 hover:bg-accent rounded px-1 py-0.5 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none"
               onClick={() => onSelectionChange([])}
             >
               Clear selection
@@ -96,11 +96,11 @@ export function SimulationSelectionPanel({
             if (event.key === 'Enter') event.preventDefault()
           }}
           onChange={(event) => setSearchQuery(event.target.value)}
-          className="h-8 w-full rounded-md border border-slate-200 bg-slate-50 pr-2 pl-8 text-[11px] transition outline-none placeholder:text-slate-400 focus-visible:border-[#9929EA] focus-visible:ring-3 focus-visible:ring-[#9929EA]/20"
+          className="focus-visible:border-primary focus-visible:ring-primary/20 h-8 w-full rounded-md border border-slate-200 bg-slate-50 pr-2 pl-8 text-[11px] transition outline-none placeholder:text-slate-400 focus-visible:ring-3"
         />
       </div>
 
-      <div className="mt-1.5 max-h-[min(48vh,26rem)] min-w-0 space-y-2 overflow-y-auto rounded-md border border-slate-200/80 bg-white p-1.5">
+      <div className="bg-card mt-1.5 max-h-[min(48vh,26rem)] min-w-0 space-y-2 overflow-y-auto rounded-md border border-slate-200/80 p-1.5">
         {isLoading ? (
           <p className="py-5 text-center text-xs text-slate-500">Loading simulations…</p>
         ) : hasError ? (
@@ -136,10 +136,10 @@ export function SimulationSelectionPanel({
                     <label
                       key={simulation.simulationId}
                       className={cn(
-                        'flex min-h-9 min-w-0 cursor-pointer items-center gap-1.5 rounded-md border px-2 py-1.5 text-[11px] transition-colors focus-within:ring-2 focus-within:ring-[#9929EA]/30',
+                        'focus-within:ring-primary/30 flex min-h-9 min-w-0 cursor-pointer items-center gap-1.5 rounded-md border px-2 py-1.5 text-[11px] transition-colors focus-within:ring-2',
                         selected
-                          ? 'border-violet-300 bg-violet-50/70'
-                          : 'border-slate-200 bg-white hover:border-violet-300 hover:bg-violet-50/40',
+                          ? 'border-ring/40 bg-accent/70'
+                          : 'bg-card hover:border-ring/40 hover:bg-accent/40 border-slate-200',
                       )}
                     >
                       <Checkbox

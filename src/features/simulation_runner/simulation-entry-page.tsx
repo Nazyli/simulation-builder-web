@@ -80,7 +80,7 @@ export function SimulationEntryPage() {
         <div className="runner-entry-grid min-w-0">
           <section
             aria-label="Participant profile"
-            className="min-w-0 rounded-lg border border-slate-200 bg-white p-[var(--panel-inset)] shadow-[0_1px_2px_rgba(15,23,42,0.03)]"
+            className="bg-card min-w-0 rounded-lg border border-slate-200 p-[var(--panel-inset)] shadow-[0_1px_2px_rgba(15,23,42,0.03)]"
           >
             <fieldset className="space-y-2.5">
               <legend className="sr-only">Participant details</legend>
@@ -166,7 +166,7 @@ export function SimulationEntryPage() {
 
           <section
             aria-label="Choose simulations"
-            className="flex min-w-0 flex-col rounded-lg border border-slate-200 bg-white p-[var(--panel-inset)] shadow-[0_1px_2px_rgba(15,23,42,0.03)]"
+            className="bg-card flex min-w-0 flex-col rounded-lg border border-slate-200 p-[var(--panel-inset)] shadow-[0_1px_2px_rgba(15,23,42,0.03)]"
           >
             <SimulationSelectionPanel
               className="border-0 bg-transparent p-0 shadow-none"

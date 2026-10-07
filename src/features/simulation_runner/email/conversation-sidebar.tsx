@@ -45,7 +45,7 @@ export function ConversationSidebar({
   }, [threads, search])
 
   return (
-    <aside className="flex min-w-0 shrink-0 flex-col border-b border-slate-200 bg-white lg:w-[320px] lg:border-r lg:border-b-0">
+    <aside className="bg-card flex min-w-0 shrink-0 flex-col border-b border-slate-200 lg:w-[320px] lg:border-r lg:border-b-0">
       <p className="px-3 pt-3 pb-2 text-[10px] font-bold tracking-[0.12em] text-slate-400 uppercase">
         Inbox
       </p>
@@ -67,8 +67,8 @@ export function ConversationSidebar({
               key={thread.rootId}
               type="button"
               onClick={() => onSelect(thread.rootId)}
-              className={`flex w-full min-w-0 items-center gap-3 border-b border-slate-200 px-3 py-2.5 text-left transition-colors last:border-b-0 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none ${
-                active ? 'bg-violet-50' : 'bg-white'
+              className={`focus-visible:ring-ring flex w-full min-w-0 items-center gap-3 border-b border-slate-200 px-3 py-2.5 text-left transition-colors last:border-b-0 hover:bg-slate-50 focus-visible:ring-2 focus-visible:outline-none ${
+                active ? 'bg-accent' : 'bg-card'
               }`}
             >
               <span

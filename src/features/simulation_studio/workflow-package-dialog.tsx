@@ -26,7 +26,7 @@ export function WorkflowPackageDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="p-5 sm:max-w-lg">
         <DialogTitle className="flex items-center gap-2 text-base font-semibold text-slate-900">
-          <Upload className="text-primary h-5 w-5" /> Import workflow JSON
+          <Upload className="text-brand h-5 w-5" /> Import workflow JSON
         </DialogTitle>
         <DialogDescription>
           Import creates a new draft in the current group. Existing workflows and master-data will

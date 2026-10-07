@@ -67,7 +67,7 @@ function DeviceMenu({
         onClick={onClose}
         type="button"
       />
-      <div className="absolute bottom-full left-1/2 z-50 mb-3 max-h-52 w-56 -translate-x-1/2 overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-lg">
+      <div className="bg-card absolute bottom-full left-1/2 z-50 mb-3 max-h-52 w-56 -translate-x-1/2 overflow-y-auto rounded-lg border border-slate-200 shadow-lg">
         {fullItems.length === 0 ? (
           <p className="px-3 py-2.5 text-xs text-slate-500">No devices found</p>
         ) : (
