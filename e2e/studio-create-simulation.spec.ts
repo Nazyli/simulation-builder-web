@@ -3,7 +3,10 @@ import { expect, test } from '@playwright/test'
 const apiPath = '/api/v1/admin/studio/group-simulations'
 
 test('creates a simulation through the real API and opens it in Studio', async ({ page }) => {
-  const timestamp = new Date().toISOString().replace(/[-:.TZ]/g, '').slice(0, 14)
+  const timestamp = new Date()
+    .toISOString()
+    .replace(/[-:.TZ]/g, '')
+    .slice(0, 14)
   const runId = `${timestamp}-${Math.random().toString(36).slice(2, 7)}`
   const groupName = `E2E onboarding ${runId}`
   const simulationName = `Main workflow ${runId}`
@@ -18,12 +21,14 @@ test('creates a simulation through the real API and opens it in Studio', async (
 
   await page.getByRole('button', { name: 'New simulation' }).click()
   await page.getByLabel('Group simulation name').fill(groupName)
-  await page.getByLabel('Initial simulation name').fill(simulationName)
+  await expect(page.getByRole('dialog').getByRole('textbox')).toHaveCount(2)
 
   const simulationCreateResponse = page.waitForResponse((response) => {
     const request = response.request()
     const path = new URL(response.url()).pathname
-    return request.method() === 'POST' && path.startsWith(`${apiPath}/`) && path.endsWith('/simulations')
+    return (
+      request.method() === 'POST' && path.startsWith(`${apiPath}/`) && path.endsWith('/simulations')
+    )
   })
 
   await page.getByRole('button', { name: 'Create simulation' }).click()
@@ -35,6 +40,12 @@ test('creates a simulation through the real API and opens it in Studio', async (
   expect(group.groupSimulationName).toBe(groupName)
   expect(group.groupSimulationId).toBeTruthy()
 
+  await expect(page).toHaveURL(new RegExp(`/studio/groups/${group.groupSimulationId}$`))
+  const masterForm = page.getByRole('dialog', { name: 'Create master simulation' })
+  await expect(masterForm).toBeVisible()
+  await masterForm.getByLabel('Name', { exact: true }).fill(simulationName)
+  await masterForm.getByRole('button', { name: 'Create master simulation', exact: true }).click()
+
   const simulationResponse = await simulationCreateResponse
   expect(simulationResponse.status(), 'The real API should create the initial simulation').toBe(201)
   const simulationEnvelope = await simulationResponse.json()
@@ -44,7 +55,9 @@ test('creates a simulation through the real API and opens it in Studio', async (
   expect(simulation.simulationId).toBeTruthy()
 
   await expect(page).toHaveURL(new RegExp(`/studio/${simulation.simulationId}$`))
-  await expect(page.getByRole('heading', { name: groupName })).toBeVisible()
+  await expect(
+    page.locator('.studio-top-header').getByText(groupName, { exact: true }),
+  ).toBeVisible()
   await expect(page.locator('.studio-top-header').getByRole('combobox')).toHaveValue(
     simulation.simulationId,
   )

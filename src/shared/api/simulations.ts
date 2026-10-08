@@ -10,6 +10,10 @@ import type {
 
 export const getGroupSimulations = () =>
   apiClient<GroupSimulation[]>('/admin/studio/group-simulations')
+export const getGroupSimulation = (groupSimulationId: string) =>
+  apiClient<GroupSimulation>(
+    `/admin/studio/group-simulations/${encodeURIComponent(groupSimulationId)}`,
+  )
 export const getSimulationDetail = (simulationId: string) =>
   apiClient<SimulationDetail>(`/admin/studio/simulations/${encodeURIComponent(simulationId)}`)
 export const createGroupSimulation = (
@@ -45,6 +49,14 @@ export const createSimulation = (
       body: JSON.stringify(payload),
     },
   )
+export const updateSimulation = (
+  simulationId: string,
+  payload: Pick<Simulation, 'simulationName' | 'simulationDesc' | 'channelName' | 'duration'>,
+) =>
+  apiClient<Simulation>(`/admin/studio/simulations/${encodeURIComponent(simulationId)}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  })
 export const duplicateSimulation = (
   simulationId: string,
   payload?: Pick<Simulation, 'simulationName' | 'simulationDesc'>,

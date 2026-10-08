@@ -26,7 +26,6 @@ import { SurfaceSection } from '../../components/layout/surface-section'
 import { ApiError } from '../../shared/api/client'
 import {
   createGroupSimulation,
-  createSimulation,
   deleteGroupSimulation,
   getGroupSimulations,
   updateGroupSimulation,
@@ -67,29 +66,19 @@ export function SimulationListPage() {
   )
 
   const create = useMutation({
-    mutationFn: async (
-      payload: Pick<GroupSimulation, 'groupSimulationName' | 'groupSimulationDesc'> & {
-        simulationName: string
-        channelName: string
-        duration: number
-      },
-    ) => {
-      const group = await createGroupSimulation({
-        groupSimulationName: payload.groupSimulationName,
-        groupSimulationDesc: payload.groupSimulationDesc,
+    mutationFn: createGroupSimulation,
+    onSuccess: (group) => {
+      queryClient.setQueryData(['group-simulation', group.groupSimulationId], {
+        ...group,
+        simulations: [],
       })
-      const simulation = await createSimulation(group.groupSimulationId, {
-        simulationName: payload.simulationName,
-        simulationDesc: null,
-        channelName: payload.channelName,
-        duration: payload.duration,
-      })
-      return { group, simulation }
-    },
-    onSuccess: ({ simulation }) => {
+      queryClient.setQueryData<GroupSimulation[]>(['group-simulations'], (current) => [
+        ...(current ?? []),
+        { ...group, simulations: [] },
+      ])
       queryClient.invalidateQueries({ queryKey: ['group-simulations'] })
       setFormGroup(null)
-      navigate(`/studio/${simulation.simulationId}`)
+      navigate(`/studio/groups/${group.groupSimulationId}`)
     },
     onError: (error) => toast.error(apiErrorMessage(error)),
   })
@@ -104,6 +93,7 @@ export function SimulationListPage() {
     }) => updateGroupSimulation(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['group-simulations'] })
+      queryClient.invalidateQueries({ queryKey: ['group-simulation'] })
       setFormGroup(null)
       toast.success('Simulation group updated.')
     },
@@ -112,7 +102,8 @@ export function SimulationListPage() {
 
   const remove = useMutation({
     mutationFn: deleteGroupSimulation,
-    onSuccess: () => {
+    onSuccess: (_result, groupSimulationId) => {
+      queryClient.removeQueries({ queryKey: ['group-simulation', groupSimulationId], exact: true })
       queryClient.invalidateQueries({ queryKey: ['group-simulations'] })
       setDeleteTarget(null)
       toast.success('Simulation group deleted.')
@@ -120,25 +111,10 @@ export function SimulationListPage() {
     onError: (error) => toast.error(apiErrorMessage(error)),
   })
 
-  const bootstrapSimulation = useMutation({
-    mutationFn: (groupSimulationId: string) =>
-      createSimulation(groupSimulationId, {
-        simulationName: 'Simulation 1',
-        simulationDesc: null,
-        channelName: 'chat',
-        duration: 60,
-      }),
-    onSuccess: (simulation) => {
-      queryClient.invalidateQueries({ queryKey: ['group-simulations'] })
-      navigate(`/studio/${simulation.simulationId}`)
-    },
-    onError: (error) => toast.error(apiErrorMessage(error)),
-  })
-
   function openGroup(group: GroupSimulation) {
     const simulations = group.simulations ?? []
     if (simulations.length === 0) {
-      bootstrapSimulation.mutate(group.groupSimulationId)
+      navigate(`/studio/groups/${group.groupSimulationId}`)
       return
     }
     if (simulations.length === 1) {
@@ -153,9 +129,6 @@ export function SimulationListPage() {
     const form = new FormData(event.currentTarget)
     const groupName = String(form.get('name'))
     const groupDesc = String(form.get('description')) || null
-    const simulationName = String(form.get('simulationName') || groupName)
-    const channelName = String(form.get('channelName') || 'chat')
-    const duration = Number(form.get('duration') || 60)
     if (formGroup && formGroup !== 'new') {
       update.mutate({
         id: formGroup.groupSimulationId,
@@ -165,9 +138,6 @@ export function SimulationListPage() {
       create.mutate({
         groupSimulationName: groupName,
         groupSimulationDesc: groupDesc,
-        simulationName,
-        channelName,
-        duration,
       })
     }
   }
@@ -413,39 +383,6 @@ export function SimulationListPage() {
                 placeholder="Describe the purpose of this simulation..."
               />
             </div>
-            {!editing && (
-              <>
-                <div className="grid gap-1.5">
-                  <Label htmlFor="sim-name" className="text-slate-700">
-                    Initial simulation name
-                  </Label>
-                  <Input
-                    id="sim-name"
-                    name="simulationName"
-                    required
-                    placeholder="e.g. Main flow"
-                  />
-                </div>
-                <div className="grid gap-1.5">
-                  <Label htmlFor="channel-name" className="text-slate-700">
-                    Channel Name
-                  </Label>
-                  <Input id="channel-name" name="channelName" />
-                </div>
-                <div className="grid gap-1.5">
-                  <Label htmlFor="duration" className="text-slate-700">
-                    Duration (minutes)
-                  </Label>
-                  <Input
-                    id="duration"
-                    name="duration"
-                    type="number"
-                    defaultValue="60"
-                    placeholder="60"
-                  />
-                </div>
-              </>
-            )}
             <div className="mt-2 flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => setFormGroup(null)}>
                 Cancel

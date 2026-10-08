@@ -47,6 +47,7 @@ import {
   Trash2,
   MapPin,
   Workflow,
+  Pencil,
 } from 'lucide-react'
 import {
   useCallback,
@@ -91,6 +92,7 @@ import { PageFrame } from '../../components/layout/page-frame'
 import { buildWorkflowExportFileName } from './workflow-package-logic'
 import type {
   Execution,
+  GroupSimulation,
   NodeDefinition,
   OutputPort,
   VisualGroup,
@@ -110,6 +112,7 @@ import {
 import { projectWorkflowEdges } from './visual-groups/visual-group-projection'
 import { NodeAutosaveQueue, type NodeAutosaveStatus } from './node-autosave'
 import { WorkflowPackageDialog } from './workflow-package-dialog'
+import { MasterSimulationDialog } from './master-simulation-dialog'
 import { deriveNodeSummary } from '../../shared/utils/node-summary'
 import {
   buildNodePaletteGroups,
@@ -361,13 +364,14 @@ function apiErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : 'Unknown error.'
 }
 
-export function SimulationStudioPage() {
+export function SimulationStudioPage({ emptyGroup }: { emptyGroup?: GroupSimulation } = {}) {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const { simulationId: urlSimulationId } = useParams<{ simulationId: string }>()
 
   // State management
   const [simulationId, setSimulationId] = useState<string | null>(null)
+  const [masterDialogOpen, setMasterDialogOpen] = useState(Boolean(emptyGroup))
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null)
   const [selectedExecutionId, setSelectedExecutionId] = useState<string | null>(null)
@@ -567,8 +571,8 @@ export function SimulationStudioPage() {
             groupSimulationId: versionDetail.data.groupSimulationId,
             groupSimulationName: versionDetail.data.groupSimulationName,
           }
-        : null,
-    [versionDetail.data],
+        : (emptyGroup ?? null),
+    [versionDetail.data, emptyGroup],
   )
   const isLocked = Boolean(versionDetail.data?.isLocked)
   const executionCount = versionDetail.data?.executionCount ?? 0
@@ -607,6 +611,10 @@ export function SimulationStudioPage() {
         simulationDesc: payload.simulationDesc,
       }),
     onSuccess: (version) => {
+      queryClient.invalidateQueries({ queryKey: ['group-simulations'] })
+      queryClient.invalidateQueries({
+        queryKey: ['group-simulation', version.groupSimulationId],
+      })
       queryClient.invalidateQueries({
         queryKey: ['simulation-versions', selectedGroupSimulation?.groupSimulationId],
       })
@@ -643,6 +651,10 @@ export function SimulationStudioPage() {
     mutationFn: (packageToImport: WorkflowPackage) =>
       importSimulation(simulationId!, packageToImport),
     onSuccess: (version) => {
+      queryClient.invalidateQueries({ queryKey: ['group-simulations'] })
+      queryClient.invalidateQueries({
+        queryKey: ['group-simulation', version.groupSimulationId],
+      })
       queryClient.invalidateQueries({
         queryKey: ['simulation-versions', selectedGroupSimulation?.groupSimulationId],
       })
@@ -745,6 +757,11 @@ export function SimulationStudioPage() {
   const removeSimulation = useMutation({
     mutationFn: deleteSimulation,
     onSuccess: (_result, deletedVersionId) => {
+      queryClient.removeQueries({
+        queryKey: ['group-simulation', selectedGroupSimulation?.groupSimulationId],
+        exact: true,
+      })
+      queryClient.invalidateQueries({ queryKey: ['group-simulations'] })
       if (simulationId === deletedVersionId) {
         navigate('/studio')
       }
@@ -1101,6 +1118,7 @@ export function SimulationStudioPage() {
   // previous version's graph and inspector from leaking across version switches.
   useEffect(() => {
     setSimulationId(urlSimulationId ?? null)
+    if (urlSimulationId) setMasterDialogOpen(false)
     setSelectedNodeId(null)
     setSelectedEdgeId(null)
     setSelectedExecutionId(null)
@@ -1734,7 +1752,7 @@ export function SimulationStudioPage() {
     }
   }
 
-  if (versionDetail.isPending) {
+  if (!emptyGroup && versionDetail.isPending) {
     return (
       <PageFrame mode="workbench" edgeToEdge viewport="fill" className="grid place-items-center">
         <LoadingState variant="canvas" />
@@ -1742,7 +1760,7 @@ export function SimulationStudioPage() {
     )
   }
 
-  if (versionDetail.isError) {
+  if (!emptyGroup && versionDetail.isError) {
     return (
       <PageFrame mode="workbench" edgeToEdge viewport="fill" className="grid place-items-center">
         <div className="bg-card max-w-sm rounded-lg border border-slate-200 p-6 text-center">
@@ -1798,6 +1816,20 @@ export function SimulationStudioPage() {
             <span className="min-w-0 truncate text-xs font-semibold text-slate-700">
               {selectedGroupSimulation?.groupSimulationName ?? 'Loading…'}
             </span>
+            {versionDetail.data && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-7 shrink-0 gap-1 px-2 text-slate-600"
+                aria-label="Edit master simulation"
+                title={isLocked ? lockedMessage : 'Edit master simulation'}
+                disabled={isLocked}
+                onClick={() => setMasterDialogOpen(true)}
+              >
+                <Pencil className="h-3.5 w-3.5" /> Edit
+              </Button>
+            )}
           </div>
 
           <div className="hidden min-w-0 items-center gap-2.5 border-l border-slate-200 pl-3 sm:flex">
@@ -1842,7 +1874,7 @@ export function SimulationStudioPage() {
 
         {/* Right Header Actions */}
         <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
-          {selectedGroupSimulation && (
+          {selectedGroupSimulation && simulationId && (
             <div className="mr-1 hidden items-center gap-1 rounded-md border border-slate-200 bg-slate-50 p-0.5 md:flex">
               <select
                 className="h-6 cursor-pointer bg-transparent px-2 text-[11px] font-medium text-slate-700 focus:outline-none"
@@ -2070,6 +2102,21 @@ export function SimulationStudioPage() {
 
         {/* Center Canvas Area */}
         <section className="studio-canvas-area relative flex min-h-0 min-w-0 flex-1 flex-col bg-[var(--color-canvas)]">
+          {emptyGroup && !simulationId && (
+            <div className="absolute inset-0 z-10 grid place-items-center p-6">
+              <div className="bg-card max-w-sm rounded-lg border border-slate-200 p-6 text-center">
+                <Workflow className="text-brand mx-auto h-8 w-8" />
+                <h2 className="mt-3 text-base font-semibold">Create your master simulation</h2>
+                <p className="mt-2 text-sm text-slate-500">
+                  Add the simulation details to start building a workflow for{' '}
+                  {emptyGroup.groupSimulationName}.
+                </p>
+                <Button type="button" className="mt-4" onClick={() => setMasterDialogOpen(true)}>
+                  <Plus className="h-4 w-4" /> Create master simulation
+                </Button>
+              </div>
+            </div>
+          )}
           {/* Graph Validation Floating Drawer */}
           {validationRequested && (
             <div
@@ -2569,6 +2616,16 @@ export function SimulationStudioPage() {
       </div>
 
       {/* Auto Layout Confirmation */}
+      {selectedGroupSimulation && (
+        <MasterSimulationDialog
+          key={versionDetail.data?.simulationId ?? selectedGroupSimulation.groupSimulationId}
+          open={masterDialogOpen}
+          onOpenChange={setMasterDialogOpen}
+          groupSimulationId={selectedGroupSimulation.groupSimulationId}
+          simulation={versionDetail.data}
+          onCreated={(created) => navigate(`/studio/${created.simulationId}`, { replace: true })}
+        />
+      )}
       <Dialog open={autoLayoutConfirmOpen} onOpenChange={setAutoLayoutConfirmOpen}>
         <DialogContent className="gap-5 p-5 sm:max-w-sm">
           <div className="flex items-start gap-3">

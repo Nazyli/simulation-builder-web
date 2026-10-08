@@ -49,6 +49,11 @@ const SimulationStudioPage = lazy(() =>
     default: module.SimulationStudioPage,
   })),
 )
+const GroupSimulationStudioPage = lazy(() =>
+  import('../../features/simulation_studio/group-simulation-studio-page').then((module) => ({
+    default: module.GroupSimulationStudioPage,
+  })),
+)
 const SimulationListPage = lazy(() =>
   import('../../features/simulation_studio/simulation-list-page').then((module) => ({
     default: module.SimulationListPage,
@@ -113,6 +118,10 @@ export function AppRoutes() {
         <Suspense fallback={<RouteFallback />}>
           <Routes>
             <Route path="/studio" element={<SimulationListPage />} />
+            <Route
+              path="/studio/groups/:groupSimulationId"
+              element={<GroupSimulationStudioPage />}
+            />
             <Route path="/studio/:simulationId" element={<SimulationStudioPage />} />
             <Route path="/simulation" element={<SimulationEntryPage />} />
             <Route path="/simulation/:participantId" element={<SimulationRunLayout />}>
