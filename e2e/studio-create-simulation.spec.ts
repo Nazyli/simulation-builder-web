@@ -40,7 +40,7 @@ test('creates a simulation through the real API and opens it in Studio', async (
   expect(group.groupSimulationName).toBe(groupName)
   expect(group.groupSimulationId).toBeTruthy()
 
-  await expect(page).toHaveURL(new RegExp(`/studio/groups/${group.groupSimulationId}$`))
+  await expect(page).toHaveURL(new RegExp(`/studio/${group.groupSimulationId}$`))
   const masterForm = page.getByRole('dialog', { name: 'Create master simulation' })
   await expect(masterForm).toBeVisible()
   await masterForm.getByLabel('Name', { exact: true }).fill(simulationName)
@@ -54,7 +54,9 @@ test('creates a simulation through the real API and opens it in Studio', async (
   expect(simulation.groupSimulationId).toBe(group.groupSimulationId)
   expect(simulation.simulationId).toBeTruthy()
 
-  await expect(page).toHaveURL(new RegExp(`/studio/${simulation.simulationId}$`))
+  await expect(page).toHaveURL(
+    new RegExp(`/studio/${group.groupSimulationId}\\?simulation=${simulation.simulationId}$`),
+  )
   await expect(
     page.locator('.studio-top-header').getByText(groupName, { exact: true }),
   ).toBeVisible()

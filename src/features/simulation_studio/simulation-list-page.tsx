@@ -33,6 +33,7 @@ import {
 import { ErrorState } from '../../shared/components/async-state'
 import type { GroupSimulation, Simulation } from '../../shared/types/simulation'
 import { filterSimulationGroups } from './simulation-list-logic'
+import { studioUrl } from './studio-route'
 
 function apiErrorMessage(error: unknown): string {
   if (error instanceof ApiError) {
@@ -78,7 +79,7 @@ export function SimulationListPage() {
       ])
       queryClient.invalidateQueries({ queryKey: ['group-simulations'] })
       setFormGroup(null)
-      navigate(`/studio/groups/${group.groupSimulationId}`)
+      navigate(studioUrl(group.groupSimulationId))
     },
     onError: (error) => toast.error(apiErrorMessage(error)),
   })
@@ -114,11 +115,11 @@ export function SimulationListPage() {
   function openGroup(group: GroupSimulation) {
     const simulations = group.simulations ?? []
     if (simulations.length === 0) {
-      navigate(`/studio/groups/${group.groupSimulationId}`)
+      navigate(studioUrl(group.groupSimulationId))
       return
     }
     if (simulations.length === 1) {
-      navigate(`/studio/${simulations[0].simulationId}`)
+      navigate(studioUrl(group.groupSimulationId, simulations[0].simulationId))
       return
     }
     setPickerGroup(group)
@@ -322,7 +323,9 @@ export function SimulationListPage() {
                 key={simulation.simulationId}
                 type="button"
                 className={`flex w-full items-center justify-between rounded-md border p-3 text-left transition-all ${simulation.simulationId === pickerBest?.simulationId ? 'border-ring bg-accent' : 'bg-card border-slate-200 hover:border-slate-300'}`}
-                onClick={() => navigate(`/studio/${simulation.simulationId}`)}
+                onClick={() =>
+                  navigate(studioUrl(simulation.groupSimulationId, simulation.simulationId))
+                }
               >
                 <span className="flex items-center gap-2 text-sm font-semibold text-slate-800">
                   {simulation.simulationName}

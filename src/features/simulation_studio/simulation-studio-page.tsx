@@ -58,7 +58,7 @@ import {
   type ChangeEvent,
   type DragEvent,
 } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import dagre from 'dagre'
 import { ApiError } from '../../shared/api/client'
@@ -113,6 +113,7 @@ import { projectWorkflowEdges } from './visual-groups/visual-group-projection'
 import { NodeAutosaveQueue, type NodeAutosaveStatus } from './node-autosave'
 import { WorkflowPackageDialog } from './workflow-package-dialog'
 import { MasterSimulationDialog } from './master-simulation-dialog'
+import { studioUrl } from './studio-route'
 import { deriveNodeSummary } from '../../shared/utils/node-summary'
 import {
   buildNodePaletteGroups,
@@ -364,14 +365,19 @@ function apiErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : 'Unknown error.'
 }
 
-export function SimulationStudioPage({ emptyGroup }: { emptyGroup?: GroupSimulation } = {}) {
+export function SimulationStudioPage({
+  group,
+  selectedSimulationId: urlSimulationId,
+}: {
+  group: GroupSimulation
+  selectedSimulationId?: string
+}) {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
-  const { simulationId: urlSimulationId } = useParams<{ simulationId: string }>()
 
   // State management
   const [simulationId, setSimulationId] = useState<string | null>(null)
-  const [masterDialogOpen, setMasterDialogOpen] = useState(Boolean(emptyGroup))
+  const [masterDialogOpen, setMasterDialogOpen] = useState(!urlSimulationId)
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null)
   const [selectedExecutionId, setSelectedExecutionId] = useState<string | null>(null)
@@ -564,16 +570,7 @@ export function SimulationStudioPage({ emptyGroup }: { emptyGroup?: GroupSimulat
     enabled: Boolean(urlSimulationId),
     retry: false,
   })
-  const selectedGroupSimulation = useMemo(
-    () =>
-      versionDetail.data
-        ? {
-            groupSimulationId: versionDetail.data.groupSimulationId,
-            groupSimulationName: versionDetail.data.groupSimulationName,
-          }
-        : (emptyGroup ?? null),
-    [versionDetail.data, emptyGroup],
-  )
+  const selectedGroupSimulation = group
   const isLocked = Boolean(versionDetail.data?.isLocked)
   const executionCount = versionDetail.data?.executionCount ?? 0
   const lockedMessage =
@@ -610,9 +607,9 @@ export function SimulationStudioPage({ emptyGroup }: { emptyGroup?: GroupSimulat
         simulationName: payload.simulationName,
         simulationDesc: payload.simulationDesc,
       }),
-    onSuccess: (version) => {
+    onSuccess: async (version) => {
       queryClient.invalidateQueries({ queryKey: ['group-simulations'] })
-      queryClient.invalidateQueries({
+      await queryClient.invalidateQueries({
         queryKey: ['group-simulation', version.groupSimulationId],
       })
       queryClient.invalidateQueries({
@@ -623,7 +620,7 @@ export function SimulationStudioPage({ emptyGroup }: { emptyGroup?: GroupSimulat
       queryClient.invalidateQueries({ queryKey: ['master', 'prompts'] })
       queryClient.invalidateQueries({ queryKey: ['master', 'emails'] })
       queryClient.invalidateQueries({ queryKey: ['master', 'email'] })
-      navigate(`/studio/${version.simulationId}`)
+      navigate(studioUrl(version.groupSimulationId, version.simulationId))
       setDuplicateOpen(false)
       toast.success(`Duplicated to "${version.simulationName}".`)
     },
@@ -650,9 +647,9 @@ export function SimulationStudioPage({ emptyGroup }: { emptyGroup?: GroupSimulat
   const importWorkflow = useMutation({
     mutationFn: (packageToImport: WorkflowPackage) =>
       importSimulation(simulationId!, packageToImport),
-    onSuccess: (version) => {
+    onSuccess: async (version) => {
       queryClient.invalidateQueries({ queryKey: ['group-simulations'] })
-      queryClient.invalidateQueries({
+      await queryClient.invalidateQueries({
         queryKey: ['group-simulation', version.groupSimulationId],
       })
       queryClient.invalidateQueries({
@@ -667,7 +664,7 @@ export function SimulationStudioPage({ emptyGroup }: { emptyGroup?: GroupSimulat
       setImportDialogOpen(false)
       setWorkflowPackage(null)
       setWorkflowPackageFileName(null)
-      navigate(`/studio/${version.simulationId}`)
+      navigate(studioUrl(version.groupSimulationId, version.simulationId))
       toast.success(`Imported as "${version.simulationName}".`)
     },
     onError: (error) => toast.error(apiErrorMessage(error)),
@@ -763,7 +760,7 @@ export function SimulationStudioPage({ emptyGroup }: { emptyGroup?: GroupSimulat
       })
       queryClient.invalidateQueries({ queryKey: ['group-simulations'] })
       if (simulationId === deletedVersionId) {
-        navigate('/studio')
+        navigate(studioUrl(group.groupSimulationId))
       }
       queryClient.invalidateQueries({
         queryKey: ['simulation-versions', selectedGroupSimulation?.groupSimulationId],
@@ -1114,11 +1111,11 @@ export function SimulationStudioPage({ emptyGroup }: { emptyGroup?: GroupSimulat
   // Keep stable refs in sync with latest values
   persistNodeRef.current = enqueueNodeSave
 
-  // The URL version param drives the builder; resetting selections keeps the
+  // The URL simulation query drives the builder; resetting selections keeps the
   // previous version's graph and inspector from leaking across version switches.
   useEffect(() => {
     setSimulationId(urlSimulationId ?? null)
-    if (urlSimulationId) setMasterDialogOpen(false)
+    setMasterDialogOpen(!urlSimulationId)
     setSelectedNodeId(null)
     setSelectedEdgeId(null)
     setSelectedExecutionId(null)
@@ -1752,7 +1749,7 @@ export function SimulationStudioPage({ emptyGroup }: { emptyGroup?: GroupSimulat
     }
   }
 
-  if (!emptyGroup && versionDetail.isPending) {
+  if (urlSimulationId && versionDetail.isPending) {
     return (
       <PageFrame mode="workbench" edgeToEdge viewport="fill" className="grid place-items-center">
         <LoadingState variant="canvas" />
@@ -1760,7 +1757,7 @@ export function SimulationStudioPage({ emptyGroup }: { emptyGroup?: GroupSimulat
     )
   }
 
-  if (!emptyGroup && versionDetail.isError) {
+  if (urlSimulationId && versionDetail.isError) {
     return (
       <PageFrame mode="workbench" edgeToEdge viewport="fill" className="grid place-items-center">
         <div className="bg-card max-w-sm rounded-lg border border-slate-200 p-6 text-center">
@@ -1880,7 +1877,8 @@ export function SimulationStudioPage({ emptyGroup }: { emptyGroup?: GroupSimulat
                 className="h-6 cursor-pointer bg-transparent px-2 text-[11px] font-medium text-slate-700 focus:outline-none"
                 value={simulationId ?? ''}
                 onChange={(event) => {
-                  if (event.target.value) navigate(`/studio/${event.target.value}`)
+                  if (event.target.value)
+                    navigate(studioUrl(group.groupSimulationId, event.target.value))
                 }}
               >
                 <option value="" className="bg-card">
@@ -2102,14 +2100,14 @@ export function SimulationStudioPage({ emptyGroup }: { emptyGroup?: GroupSimulat
 
         {/* Center Canvas Area */}
         <section className="studio-canvas-area relative flex min-h-0 min-w-0 flex-1 flex-col bg-[var(--color-canvas)]">
-          {emptyGroup && !simulationId && (
+          {!urlSimulationId && (
             <div className="absolute inset-0 z-10 grid place-items-center p-6">
               <div className="bg-card max-w-sm rounded-lg border border-slate-200 p-6 text-center">
                 <Workflow className="text-brand mx-auto h-8 w-8" />
                 <h2 className="mt-3 text-base font-semibold">Create your master simulation</h2>
                 <p className="mt-2 text-sm text-slate-500">
                   Add the simulation details to start building a workflow for{' '}
-                  {emptyGroup.groupSimulationName}.
+                  {group.groupSimulationName}.
                 </p>
                 <Button type="button" className="mt-4" onClick={() => setMasterDialogOpen(true)}>
                   <Plus className="h-4 w-4" /> Create master simulation
@@ -2547,7 +2545,9 @@ export function SimulationStudioPage({ emptyGroup }: { emptyGroup?: GroupSimulat
                               ? 'bg-accent border-[#C6D2DF]'
                               : 'bg-card border-slate-200 hover:border-slate-300'
                           }`}
-                          onClick={() => navigate(`/studio/${version.simulationId}`)}
+                          onClick={() =>
+                            navigate(studioUrl(group.groupSimulationId, version.simulationId))
+                          }
                         >
                           <div className="flex min-w-0 items-center justify-between gap-2">
                             <span className="flex min-w-0 items-center gap-1.5 text-xs font-semibold text-slate-800">
@@ -2623,7 +2623,9 @@ export function SimulationStudioPage({ emptyGroup }: { emptyGroup?: GroupSimulat
           onOpenChange={setMasterDialogOpen}
           groupSimulationId={selectedGroupSimulation.groupSimulationId}
           simulation={versionDetail.data}
-          onCreated={(created) => navigate(`/studio/${created.simulationId}`, { replace: true })}
+          onCreated={(created) =>
+            navigate(studioUrl(created.groupSimulationId, created.simulationId), { replace: true })
+          }
         />
       )}
       <Dialog open={autoLayoutConfirmOpen} onOpenChange={setAutoLayoutConfirmOpen}>

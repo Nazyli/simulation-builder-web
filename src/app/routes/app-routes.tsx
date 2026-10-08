@@ -44,14 +44,14 @@ const SimulationRunLayout = lazy(() =>
     default: module.SimulationRunLayout,
   })),
 )
-const SimulationStudioPage = lazy(() =>
-  import('../../features/simulation_studio/simulation-studio-page').then((module) => ({
-    default: module.SimulationStudioPage,
-  })),
-)
 const GroupSimulationStudioPage = lazy(() =>
   import('../../features/simulation_studio/group-simulation-studio-page').then((module) => ({
     default: module.GroupSimulationStudioPage,
+  })),
+)
+const LegacyGroupSimulationStudioRedirect = lazy(() =>
+  import('../../features/simulation_studio/group-simulation-studio-page').then((module) => ({
+    default: module.LegacyGroupSimulationStudioRedirect,
   })),
 )
 const SimulationListPage = lazy(() =>
@@ -120,9 +120,9 @@ export function AppRoutes() {
             <Route path="/studio" element={<SimulationListPage />} />
             <Route
               path="/studio/groups/:groupSimulationId"
-              element={<GroupSimulationStudioPage />}
+              element={<LegacyGroupSimulationStudioRedirect />}
             />
-            <Route path="/studio/:simulationId" element={<SimulationStudioPage />} />
+            <Route path="/studio/:groupSimulationId" element={<GroupSimulationStudioPage />} />
             <Route path="/simulation" element={<SimulationEntryPage />} />
             <Route path="/simulation/:participantId" element={<SimulationRunLayout />}>
               <Route index element={<SimulationHomePage />} />

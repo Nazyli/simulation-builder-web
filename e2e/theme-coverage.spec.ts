@@ -133,6 +133,12 @@ async function mockWorkflow(page: Page) {
         },
       ]
     else if (path.endsWith('/theme-simulation')) data = simulation
+    else if (path.endsWith('/group-simulations/theme-group'))
+      data = {
+        groupSimulationId: simulation.groupSimulationId,
+        groupSimulationName: simulation.groupSimulationName,
+        simulations: [simulation],
+      }
     else if (path.endsWith('/theme-group/simulations')) data = [simulation]
     else if (path.endsWith('/master-data/actors'))
       data = {
@@ -217,7 +223,7 @@ test('Studio palette accent follows the theme and table Flow/Edit actions stay n
   await chooseTheme(page, 'Teal')
   await expect(openBuilder).not.toHaveCSS('color', originalBuilder)
   await page.screenshot({ path: '../outputs/theme-studio-list-teal.png' })
-  await page.goto('/studio/theme-simulation')
+  await page.goto('/studio/theme-group?simulation=theme-simulation')
   const paletteIcon = page.locator('.studio-left-sidebar h2 svg').first()
   await expect(paletteIcon).toBeVisible()
   const original = await paletteIcon.evaluate((element) => getComputedStyle(element).color)

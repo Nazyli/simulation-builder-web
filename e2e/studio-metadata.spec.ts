@@ -1,6 +1,12 @@
 import { expect, test, type Page } from '@playwright/test'
 
-async function mockStudio(page: Page, options = { hasMaster: false, locked: false }) {
+async function mockStudio(
+  page: Page,
+  options: { hasMaster: boolean; locked: boolean; multiple?: boolean } = {
+    hasMaster: false,
+    locked: false,
+  },
+) {
   const state = {
     group: {
       groupSimulationId: 'SIM-001',
@@ -24,7 +30,24 @@ async function mockStudio(page: Page, options = { hasMaster: false, locked: fals
     failUpdate: false,
     masterPosts: 0,
     groupFetchDelay: 0,
+    groupDetailDelay: 0,
+    primaryDeleted: false,
+    secondaryExists: Boolean(options.multiple),
+    detailRequests: [] as string[],
   }
+  const secondSimulation = {
+    ...state.simulation,
+    simulationId: 'SIM-001-VER-0002',
+    versionName: 2,
+    simulationName: 'Second flow',
+  }
+  const simulations = () =>
+    state.hasMaster
+      ? [
+          ...(state.primaryDeleted ? [] : [state.simulation]),
+          ...(state.secondaryExists ? [secondSimulation] : []),
+        ]
+      : []
   await page.route('**/api/v1/**', async (route) => {
     const path = new URL(route.request().url()).pathname.replace('/api/v1', '')
     const method = route.request().method()
@@ -39,12 +62,12 @@ async function mockStudio(page: Page, options = { hasMaster: false, locked: fals
       } else {
         if (state.groupFetchDelay)
           await new Promise((resolve) => setTimeout(resolve, state.groupFetchDelay))
-        data = state.hasGroup
-          ? [{ ...state.group, simulations: state.hasMaster ? [state.simulation] : [] }]
-          : []
+        data = state.hasGroup ? [{ ...state.group, simulations: simulations() }] : []
       }
     } else if (path === '/admin/studio/group-simulations/SIM-001') {
-      data = { ...state.group, simulations: state.hasMaster ? [state.simulation] : [] }
+      if (state.groupDetailDelay)
+        await new Promise((resolve) => setTimeout(resolve, state.groupDetailDelay))
+      data = { ...state.group, simulations: simulations() }
     } else if (path === '/admin/studio/group-simulations/SIM-001/simulations') {
       if (method === 'POST') {
         state.masterPosts++
@@ -52,16 +75,27 @@ async function mockStudio(page: Page, options = { hasMaster: false, locked: fals
         else {
           state.simulation = { ...state.simulation, ...route.request().postDataJSON() }
           state.hasMaster = true
+          state.primaryDeleted = false
           data = state.simulation
           status = 201
         }
-      } else data = state.hasMaster ? [state.simulation] : []
-    } else if (path === '/admin/studio/simulations/SIM-001-VER-0001') {
+      } else data = simulations()
+    } else if (/^\/admin\/studio\/simulations\/[^/]+$/.test(path)) {
+      state.detailRequests.push(path)
       if (method === 'PUT') {
         if (state.failUpdate) status = 422
         else state.simulation = { ...state.simulation, ...route.request().postDataJSON() }
       }
-      data = { ...state.simulation, groupSimulationName: state.group.groupSimulationName }
+      if (method === 'DELETE') state.primaryDeleted = true
+      data = {
+        ...(path.endsWith('/SIM-001-VER-0002') ? secondSimulation : state.simulation),
+        groupSimulationName: state.group.groupSimulationName,
+      }
+    } else if (path.endsWith('/duplicate')) {
+      state.secondaryExists = true
+      secondSimulation.simulationName = route.request().postDataJSON().simulationName
+      data = secondSimulation
+      status = 201
     } else if (path.endsWith('/graph')) data = { nodes: [], edges: [], visualGroups: [] }
     else if (path.endsWith('/node-catalog')) data = { categories: [], paletteGroups: [], nodes: [] }
     else if (path.includes('/history/executions')) data = { content: [], totalElements: 0 }
@@ -90,7 +124,7 @@ test('group creation opens Studio before the master is created, then metadata ca
   await groupForm.getByLabel('Description').fill('Group description')
   state.groupFetchDelay = 1000
   await groupForm.getByRole('button', { name: 'Create simulation', exact: true }).click()
-  await expect(page).toHaveURL(/\/studio\/groups\/SIM-001$/)
+  await expect(page).toHaveURL(/\/studio\/SIM-001$/)
   await expect(page.getByText('Simulation group not found.')).toHaveCount(0)
   const masterForm = page.getByRole('dialog', { name: 'Create master simulation' })
   await expect(masterForm).toBeVisible()
@@ -105,7 +139,7 @@ test('group creation opens Studio before the master is created, then metadata ca
   await expect(masterForm.getByLabel('Name', { exact: true })).toHaveValue('Main flow')
   state.failCreate = false
   await masterForm.getByRole('button', { name: 'Create master simulation', exact: true }).click()
-  await expect(page).toHaveURL(/\/studio\/SIM-001-VER-0001$/)
+  await expect(page).toHaveURL(/\/studio\/SIM-001\?simulation=SIM-001-VER-0001$/)
   await expect(masterForm).not.toBeVisible()
   await page.getByRole('button', { name: 'Edit master simulation', exact: true }).click()
   const editForm = page.getByRole('dialog', { name: 'Edit master simulation' })
@@ -160,8 +194,89 @@ test('empty group can cancel, reopen, and reload the master form on mobile', asy
 
 test('used master keeps metadata editing locked', async ({ page }) => {
   await mockStudio(page, { hasMaster: true, locked: true })
-  await page.goto('/studio/SIM-001-VER-0001')
+  await page.goto('/studio/SIM-001?simulation=SIM-001-VER-0001')
   await expect(
     page.getByRole('button', { name: 'Edit master simulation', exact: true }),
   ).toBeDisabled()
+})
+
+test('master selection survives reload and browser history within the group route', async ({
+  page,
+}) => {
+  await mockStudio(page, { hasMaster: true, locked: false, multiple: true })
+  await page.goto('/studio/SIM-001?simulation=SIM-001-VER-0001')
+  const picker = page.locator('.studio-top-header').getByRole('combobox')
+  await expect(picker).toHaveValue('SIM-001-VER-0001')
+  await picker.selectOption('SIM-001-VER-0002')
+  await expect(page).toHaveURL(/\/studio\/SIM-001\?simulation=SIM-001-VER-0002$/)
+  await page.reload()
+  await expect(picker).toHaveValue('SIM-001-VER-0002')
+  await page.goBack()
+  await expect(picker).toHaveValue('SIM-001-VER-0001')
+  await page.goForward()
+  await expect(picker).toHaveValue('SIM-001-VER-0002')
+})
+
+test('group URL without a query selects the first master and normalizes the legacy group path', async ({
+  page,
+}) => {
+  await mockStudio(page, { hasMaster: true, locked: false, multiple: true })
+  await page.goto('/studio/SIM-001')
+  await expect(page).toHaveURL(/\/studio\/SIM-001\?simulation=SIM-001-VER-0001$/)
+  await expect(page.locator('.studio-top-header').getByRole('combobox')).toHaveValue(
+    'SIM-001-VER-0001',
+  )
+  await page.goto('/studio/groups/SIM-001')
+  await expect(page).toHaveURL(/\/studio\/SIM-001\?simulation=SIM-001-VER-0001$/)
+})
+
+test('a master outside the selected group cannot open its builder', async ({ page }) => {
+  const state = await mockStudio(page, { hasMaster: true, locked: false })
+  await page.goto('/studio/SIM-001?simulation=SIM-999-VER-0001')
+  await expect(
+    page.getByText(
+      'The selected simulation does not belong to this group or is no longer available.',
+    ),
+  ).toBeVisible()
+  expect(state.detailRequests).toHaveLength(0)
+  await expect(page.getByRole('button', { name: 'Edit master simulation' })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Open simulation group' }).click()
+  await expect(page).toHaveURL(/\/studio\/SIM-001\?simulation=SIM-001-VER-0001$/)
+})
+
+test('duplicating a master waits for group membership before opening its query', async ({
+  page,
+}) => {
+  const state = await mockStudio(page, { hasMaster: true, locked: false })
+  await page.goto('/studio/SIM-001?simulation=SIM-001-VER-0001')
+  await page.getByRole('button', { name: 'Workflow actions' }).click()
+  await page.getByRole('button', { name: 'Duplicate', exact: true }).click()
+  const form = page.getByRole('dialog', { name: 'Duplicate simulation', exact: true })
+  await form.getByLabel(/Simulation name/).fill('Copy flow')
+  state.groupDetailDelay = 500
+  await form.getByRole('button', { name: 'Duplicate', exact: true }).click()
+  await expect(page).toHaveURL(/\/studio\/SIM-001\?simulation=SIM-001-VER-0002$/)
+  await expect(page.locator('.studio-top-header').getByRole('combobox')).toHaveValue(
+    'SIM-001-VER-0002',
+  )
+  await expect(
+    page.getByText(
+      'The selected simulation does not belong to this group or is no longer available.',
+    ),
+  ).toHaveCount(0)
+})
+
+test('deleting the last selected master stays in the group and opens onboarding', async ({
+  page,
+}) => {
+  await mockStudio(page, { hasMaster: true, locked: false })
+  await page.goto('/studio/SIM-001?simulation=SIM-001-VER-0001')
+  await page.getByRole('button', { name: 'Versions', exact: true }).click()
+  await page.getByRole('button', { name: 'Delete version', exact: true }).click()
+  await page
+    .getByRole('dialog', { name: 'Delete simulation version?' })
+    .getByRole('button', { name: 'Delete version', exact: true })
+    .click()
+  await expect(page).toHaveURL(/\/studio\/SIM-001$/)
+  await expect(page.getByRole('dialog', { name: 'Create master simulation' })).toBeVisible()
 })
