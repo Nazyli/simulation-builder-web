@@ -35,6 +35,7 @@ export function DocumentEditor({
   onCancel: () => void
 }) {
   const [activeEditor, setActiveEditor] = useState<Editor | null>(null)
+  const editorRef = useRef<Editor | null>(null)
   const [activePage, setActivePage] = useState(1)
   const [pageCount, setPageCount] = useState(1)
   const initialHtml = useRef('')
@@ -42,23 +43,29 @@ export function DocumentEditor({
   const [zoom, setZoom] = useState('fit')
   const isDirty = isDocumentDraftDirty(draft, savedDraft)
   const locked = disabled || isSaving || isPreparingSave
-  const saveDisabled = locked || !isDirty || !canSaveDocumentEditor(draft, isSaving)
+  const saveDisabled =
+    locked || !activeEditor || !isDirty || !canSaveDocumentEditor(draft, isSaving)
   async function save() {
     setIsPreparingSave(true)
     // PaginationPlus applies layout in RAF; freeze edits and let it finish before
     // deriving the persisted page fragments, including rapid Ctrl/Cmd+S presses.
-    await new Promise<void>((resolve) =>
-      requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
-    )
-    onSave(
-      activeEditor && activeEditor.getHTML() !== initialHtml.current
-        ? { ...draft, contents: serializePaginatedDocument(activeEditor) }
-        : draft,
-    )
-    setIsPreparingSave(false)
+    try {
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      )
+      const editor = editorRef.current
+      if (!editor || editor.isDestroyed) return
+      onSave(
+        editor.getHTML() !== initialHtml.current
+          ? { ...draft, contents: serializePaginatedDocument(editor) }
+          : draft,
+      )
+    } finally {
+      setIsPreparingSave(false)
+    }
   }
   function goToPage(page: number) {
-    if (!activeEditor) return
+    if (!activeEditor || activeEditor.isDestroyed) return
     const pos = documentPageStarts(activeEditor)[page - 1] ?? 0
     activeEditor.chain().focus().setTextSelection(Math.max(1, pos)).scrollIntoView().run()
     setActivePage(page)
@@ -156,7 +163,8 @@ export function DocumentEditor({
               contents={draft.contents}
               disabled={locked}
               onActivate={(editor) => {
-                initialHtml.current = editor.getHTML()
+                editorRef.current = editor
+                initialHtml.current = editor?.getHTML() ?? ''
                 setActiveEditor(editor)
               }}
               onLayout={(count, active) => {

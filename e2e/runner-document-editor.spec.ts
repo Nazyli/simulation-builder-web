@@ -1,6 +1,13 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Page, type Locator } from '@playwright/test'
 import { readFileSync } from 'node:fs'
 import { basename } from 'node:path'
+
+async function replaceDocumentText(content: Locator, text: string) {
+  // Rich text editors own their selection; focus before selecting, as a user does.
+  await content.click()
+  await content.press('ControlOrMeta+a')
+  await content.page().keyboard.insertText(text)
+}
 
 async function mockDocuments(
   page: Page,
@@ -102,6 +109,26 @@ async function mockDocuments(
   }
 }
 
+test('saving uses the mounted editor through create and edit in StrictMode', async ({ page }) => {
+  const errors: string[] = []
+  page.on('pageerror', (error) => errors.push(error.message))
+  const { writes } = await mockDocuments(page)
+  await page.getByRole('button', { name: 'New', exact: true }).click()
+  await page.getByRole('textbox', { name: 'Document name' }).fill('Save regression')
+  const content = page.getByRole('textbox', { name: 'Document content', exact: true })
+  await replaceDocumentText(content, 'First saved content')
+  await page.getByRole('button', { name: 'Create document' }).click()
+  await expect.poll(() => writes.length).toBe(1)
+  expect(writes[0].contents).toEqual([{ page: 1, content: '<p>First saved content</p>' }])
+  await page.getByRole('button', { name: 'Edit document', exact: true }).click()
+  await replaceDocumentText(content, 'Updated saved content')
+  await page.getByRole('button', { name: 'Save changes' }).click()
+  await expect.poll(() => writes.length).toBe(2)
+  expect(writes[1].contents).toEqual([{ page: 1, content: '<p>Updated saved content</p>' }])
+  await expect(page.getByRole('button', { name: 'Edit document', exact: true })).toBeVisible()
+  expect(errors).toEqual([])
+})
+
 test('keyboard formatting persists through save and reopening without dirtying on load', async ({
   page,
 }) => {
@@ -110,7 +137,7 @@ test('keyboard formatting persists through save and reopening without dirtying o
   await page.getByRole('button', { name: 'Edit document', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Save changes' })).toBeDisabled()
   const sheet = page.getByRole('textbox', { name: 'Document content', exact: true })
-  await sheet.fill('Formatted notes')
+  await replaceDocumentText(sheet, 'Formatted notes')
   await sheet.press('ControlOrMeta+a')
   await page.getByRole('button', { name: 'Bold', exact: true }).focus()
   await page.keyboard.press('Enter')
@@ -138,7 +165,7 @@ test('long paragraphs create pages automatically, deletion reflows, and undo res
     'A continuous paragraph keeps its text and formatting while flowing to the next page. '.repeat(
       120,
     )
-  await content.fill(words)
+  await replaceDocumentText(content, words)
   await expect(
     page
       .getByRole('navigation', { name: 'Document pages' })
@@ -231,7 +258,7 @@ test('formatting undo and failed saves keep the continuous draft', async ({ page
   await page.getByRole('button', { name: 'New', exact: true }).click()
   await page.getByRole('textbox', { name: 'Document name' }).fill('New notes')
   const first = page.getByRole('textbox', { name: 'Document content', exact: true })
-  await first.fill('First page')
+  await replaceDocumentText(first, 'First page')
   await first.press('ControlOrMeta+a')
   await page.getByRole('button', { name: 'Bold', exact: true }).click()
   await page.getByRole('button', { name: 'Undo', exact: true }).click()
@@ -249,7 +276,7 @@ test('link form rejects unsafe URLs and applies a safe link to the selected text
   await mockDocuments(page)
   await page.getByRole('button', { name: 'New', exact: true }).click()
   const sheet = page.getByRole('textbox', { name: 'Document content', exact: true })
-  await sheet.fill('Read more')
+  await replaceDocumentText(sheet, 'Read more')
   await sheet.press('ControlOrMeta+a')
   await page.getByRole('button', { name: 'Insert link', exact: true }).click()
   await page.getByRole('textbox', { name: 'Link URL' }).fill('javascript:alert(1)')
@@ -367,7 +394,7 @@ for (const viewport of [
     await page.getByRole('button', { name: 'New', exact: true }).click()
     await page.getByRole('textbox', { name: 'Document name' }).fill('Quarterly project review')
     const sheet = page.getByRole('textbox', { name: 'Document content', exact: true })
-    await sheet.fill('Project overview')
+    await replaceDocumentText(sheet, 'Project overview')
     await page.getByRole('combobox', { name: 'Paragraph style' }).selectOption('1')
     await sheet.press('End')
     await sheet.press('Enter')

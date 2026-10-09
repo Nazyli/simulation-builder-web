@@ -18,7 +18,7 @@ export function DocumentTiptapPage({
   contents: DocumentEditorPageDraft[]
   disabled: boolean
   onChange: (contents: DocumentEditorPageDraft[]) => void
-  onActivate: (editor: Editor) => void
+  onActivate: (editor: Editor | null) => void
   onLayout: (pages: number, active: number) => void
 }) {
   const callbacks = useRef({ onChange, onActivate, onLayout })
@@ -28,6 +28,8 @@ export function DocumentTiptapPage({
   const changed = useRef(false)
   const frame = useRef(0)
   const editor = useEditor({
+    // Creating editors during render also creates discarded instances in StrictMode.
+    immediatelyRender: false,
     extensions: documentEditorExtensions(),
     content: joinDocumentPages(initial.current),
     editable: !disabled,
@@ -40,10 +42,6 @@ export function DocumentTiptapPage({
         'aria-multiline': 'true',
       },
     },
-    onCreate: ({ editor }) => {
-      initialHtml.current = editor.getHTML()
-      callbacks.current.onActivate(editor)
-    },
     onUpdate: ({ editor }) => {
       changed.current = true
       // Publish immediately so Save and the leave guard see the very first edit.
@@ -54,6 +52,12 @@ export function DocumentTiptapPage({
       )
     },
   })
+  useEffect(() => {
+    if (!editor || editor.isDestroyed) return
+    initialHtml.current = editor.getHTML()
+    callbacks.current.onActivate(editor)
+    return () => callbacks.current.onActivate(null)
+  }, [editor])
   useEffect(() => {
     editor?.setEditable(!disabled, false)
   }, [editor, disabled])
