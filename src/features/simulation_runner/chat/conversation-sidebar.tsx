@@ -1,17 +1,8 @@
 import { MessageSquare, Plus, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
 import { inputClass } from '../../../shared/form-classes'
-import { getAllMasterActors } from '../../../shared/api/master-data'
+import { ActorPickerSheet } from '../components/actor-picker-sheet'
 import type { ChatActor } from './types'
 
 interface ConversationSidebarProps {
@@ -29,7 +20,6 @@ export function ConversationSidebar({
 }: ConversationSidebarProps) {
   const [search, setSearch] = useState('')
   const [open, setOpen] = useState(false)
-  const [dialogSearch, setDialogSearch] = useState('')
 
   const filteredActors = useMemo(() => {
     const query = search.trim().toLowerCase()
@@ -40,38 +30,11 @@ export function ConversationSidebar({
       : actors
   }, [actors, search])
 
-  const actorIdsInSidebar = useMemo(() => new Set(actors.map((a) => a.actorId)), [actors])
-
-  const masterQuery = useQuery({
-    queryKey: ['master', 'actors', 'all'],
-    queryFn: getAllMasterActors,
-    enabled: open,
-  })
-
-  const availableActors = useMemo(() => {
-    const list = masterQuery.data ?? []
-    return list.filter((item) => !actorIdsInSidebar.has(item.actorId))
-  }, [masterQuery.data, actorIdsInSidebar])
-
-  const filteredMaster = useMemo(() => {
-    const query = dialogSearch.trim().toLowerCase()
-    if (!query) return availableActors
-    return availableActors.filter((item) =>
-      `${item.actorName} ${item.actorId}`.toLowerCase().includes(query),
-    )
-  }, [availableActors, dialogSearch])
-
   function handlePick(actorId: string, actorName: string) {
     const optimistic: ChatActor = { actorId, actorName, unreadCount: 0 }
     setOpen(false)
-    setDialogSearch('')
     if (onStartNewChat) onStartNewChat(optimistic)
     else onSelect(optimistic.actorId)
-  }
-
-  function handleOpenChange(next: boolean) {
-    setOpen(next)
-    if (!next) setDialogSearch('')
   }
 
   return (
@@ -171,72 +134,13 @@ export function ConversationSidebar({
         )}
       </aside>
 
-      <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="flex max-h-[min(560px,85vh)] flex-col p-0 sm:max-w-md">
-          <DialogHeader className="px-6 pt-6 pb-0">
-            <DialogTitle>New Chat</DialogTitle>
-            <DialogDescription>Pilih actor untuk memulai percakapan baru.</DialogDescription>
-          </DialogHeader>
-          <div className="px-6">
-            <label className="relative block">
-              <Search className="absolute top-2.5 left-3 h-3.5 w-3.5 text-slate-400" />
-              <Input
-                value={dialogSearch}
-                onChange={(e) => setDialogSearch(e.target.value)}
-                placeholder="Search actor or ID"
-                className="pl-8"
-              />
-            </label>
-          </div>
-          <div className="min-h-[240px] flex-1 overflow-y-auto px-2 pb-4">
-            {masterQuery.isLoading ? (
-              <div className="flex flex-col items-center gap-2 px-6 py-10 text-center">
-                <p className="text-xs text-slate-400">Loading actors…</p>
-              </div>
-            ) : availableActors.length === 0 ? (
-              <div className="flex flex-col items-center gap-2 px-6 py-10 text-center">
-                <MessageSquare size={18} className="text-slate-300" />
-                <p className="text-xs text-slate-400">No actors available</p>
-                <p className="text-xs text-slate-400">All actors already have conversations.</p>
-              </div>
-            ) : filteredMaster.length === 0 ? (
-              <div className="flex flex-col items-center gap-2 px-6 py-10 text-center">
-                <MessageSquare size={18} className="text-slate-300" />
-                <p className="text-xs text-slate-400">No matching actors</p>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-1 px-2">
-                {filteredMaster.map((item) => (
-                  <button
-                    key={item.actorId}
-                    type="button"
-                    onClick={() => handlePick(item.actorId, item.actorName)}
-                    className="focus-visible:ring-ring flex items-center gap-3 rounded-md px-3 py-2.5 text-left hover:bg-slate-50 focus-visible:ring-2 focus-visible:outline-none"
-                  >
-                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-slate-100 text-xs font-bold text-slate-500">
-                      {item.actorName.slice(0, 1).toUpperCase()}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="flex items-baseline justify-between gap-2">
-                        <span className="truncate text-sm font-semibold text-slate-700">
-                          {item.actorName}
-                        </span>
-                        <span className="text-brand bg-secondary/30 shrink-0 rounded-sm px-1.5 text-xs font-semibold">
-                          {item.actorId}
-                        </span>
-                      </span>
-                      <span className="truncate text-xs text-slate-500">{item.actorId}</span>
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
-            {masterQuery.isError ? (
-              <p className="px-6 pt-2 text-xs text-red-500">Failed to load actors.</p>
-            ) : null}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <ActorPickerSheet
+        open={open}
+        onOpenChange={setOpen}
+        confirmLabel="Add to chat"
+        excludedActorIds={actors.map((actor) => actor.actorId)}
+        onSelect={(actor) => handlePick(actor.actorId, actor.actorName)}
+      />
     </>
   )
 }

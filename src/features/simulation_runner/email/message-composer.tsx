@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { FileText, Paperclip, Send, X } from 'lucide-react'
 
 import type { AttachmentSelection } from './attachment-picker-dialog'
-import { MasterPickerDialog } from '../../simulation_studio/pickers/master-picker-dialog'
+import { ActorPickerSheet } from '../components/actor-picker-sheet'
 import { formatReplySubject } from './utils'
 
 interface MessageComposerProps {
@@ -127,16 +127,12 @@ export function MessageComposer({
           </button>
         </div>
       </div>
-      <MasterPickerDialog
+      <ActorPickerSheet
         open={actorPickerOpen}
         onOpenChange={setActorPickerOpen}
-        title="Pick actor"
-        resource="actors"
-        endpoint="/admin/master-data/actors"
-        displayFields={['actorId', 'actorName', 'actorEmail']}
-        valueField="actorId"
-        selected={recipient}
-        onSelect={(record) => setRecipient(String(record.actorId ?? ''))}
+        confirmLabel="Use recipient"
+        selectedActorId={recipient}
+        onSelect={(actor) => setRecipient(actor.actorId)}
       />
     </form>
   )
