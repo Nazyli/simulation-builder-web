@@ -43,18 +43,21 @@ function SheetContent({
   children,
   side = 'right',
   showCloseButton = true,
+  density = 'default',
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Content> & {
   side?: 'top' | 'right' | 'bottom' | 'left'
   showCloseButton?: boolean
+  density?: 'default' | 'compact'
 }) {
   return (
     <SheetPortal>
       <SheetOverlay />
       <SheetPrimitive.Content
         data-slot="sheet-content"
+        data-density={density}
         className={cn(
-          'bg-background data-[state=closed]:animate-out data-[state=open]:animate-in fixed z-50 flex flex-col gap-4 shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500',
+          'group/sheet bg-background data-[state=closed]:animate-out data-[state=open]:animate-in fixed z-50 flex flex-col gap-4 shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500',
           side === 'right' &&
             'data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right inset-y-0 right-0 h-full w-3/4 border-l sm:max-w-sm',
           side === 'left' &&
@@ -63,14 +66,21 @@ function SheetContent({
             'data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top inset-x-0 top-0 h-auto border-b',
           side === 'bottom' &&
             'data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom inset-x-0 bottom-0 h-auto border-t',
+          density === 'compact' &&
+            'w-full max-w-[320px] gap-0 text-xs motion-reduce:animate-none motion-reduce:transition-none sm:max-w-[320px]',
           className,
         )}
         {...props}
       >
         {children}
         {showCloseButton && (
-          <SheetPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-secondary absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none">
-            <XIcon className="size-4" />
+          <SheetPrimitive.Close
+            className={cn(
+              'ring-offset-background focus:ring-ring data-[state=open]:bg-secondary absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none',
+              density === 'compact' && 'top-2.5 right-2.5 grid size-6 place-items-center',
+            )}
+          >
+            <XIcon className={density === 'compact' ? 'size-3.5' : 'size-4'} />
             <span className="sr-only">Close</span>
           </SheetPrimitive.Close>
         )}
@@ -83,7 +93,10 @@ function SheetHeader({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot="sheet-header"
-      className={cn('flex flex-col gap-1.5 p-4', className)}
+      className={cn(
+        'flex flex-col gap-1.5 p-4 group-data-[density=compact]/sheet:gap-0.5 group-data-[density=compact]/sheet:px-3 group-data-[density=compact]/sheet:py-2.5 group-data-[density=compact]/sheet:pr-9',
+        className,
+      )}
       {...props}
     />
   )
@@ -93,7 +106,10 @@ function SheetFooter({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot="sheet-footer"
-      className={cn('mt-auto flex flex-col gap-2 p-4', className)}
+      className={cn(
+        'mt-auto flex flex-col gap-2 p-4 group-data-[density=compact]/sheet:gap-1.5 group-data-[density=compact]/sheet:px-3 group-data-[density=compact]/sheet:py-2',
+        className,
+      )}
       {...props}
     />
   )
@@ -103,7 +119,10 @@ function SheetTitle({ className, ...props }: React.ComponentProps<typeof SheetPr
   return (
     <SheetPrimitive.Title
       data-slot="sheet-title"
-      className={cn('text-foreground font-semibold', className)}
+      className={cn(
+        'text-foreground font-semibold group-data-[density=compact]/sheet:text-[13px] group-data-[density=compact]/sheet:leading-5',
+        className,
+      )}
       {...props}
     />
   )
@@ -116,7 +135,10 @@ function SheetDescription({
   return (
     <SheetPrimitive.Description
       data-slot="sheet-description"
-      className={cn('text-muted-foreground text-sm', className)}
+      className={cn(
+        'text-muted-foreground text-sm group-data-[density=compact]/sheet:text-[11px] group-data-[density=compact]/sheet:leading-4',
+        className,
+      )}
       {...props}
     />
   )
