@@ -54,7 +54,7 @@ export function DocumentPreviewDialog({
               <section key={index}>
                 <article className="document-paper min-h-[720px] p-6 text-sm leading-7 sm:p-10">
                   {isHtmlContent(page) ? (
-                    <SafeHtml html={page} />
+                    <SafeHtml html={page} className="document-page-content" />
                   ) : (
                     <div className="whitespace-pre-wrap">{page}</div>
                   )}

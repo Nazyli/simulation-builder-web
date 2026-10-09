@@ -1,5 +1,11 @@
 import type { DocumentWriteInput, RuntimeSimulationDocument } from '../../../shared/api/documents'
-import { sanitizeHtml } from '../../../shared/html'
+import { isHtmlContent, sanitizeHtml } from '../../../shared/html'
+
+export function toTiptapDocumentContent(value: string): string {
+  if (!value || isHtmlContent(value)) return value
+  const escaped = value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  return `<p>${escaped.replace(/\r\n?|\n/g, '<br>')}</p>`
+}
 
 export interface DocumentEditorPageDraft {
   page: number
@@ -57,7 +63,11 @@ export function appendDocumentDraftPage(draft: DocumentEditorDraft): DocumentEdi
 
 export function normalizeEditorHtml(value: string): string {
   const trimmed = value.trim()
-  if (!trimmed || /^<(?:br|div><br\s*\/?>|p><br\s*\/?>)\s*\/?>(?:<\/div>|<\/p>)?$/i.test(trimmed)) {
+  if (
+    !trimmed ||
+    /^<p>\s*<\/p>$/i.test(trimmed) ||
+    /^<(?:br|div><br\s*\/?>|p><br\s*\/?>)\s*\/?>(?:<\/div>|<\/p>)?$/i.test(trimmed)
+  ) {
     return ''
   }
   if (typeof DOMParser === 'undefined') return trimmed

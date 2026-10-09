@@ -173,7 +173,7 @@ export function DocumentChannelPage() {
     setEditorState((current) => ({ ...current, draft, error: null }))
   }
 
-  function handleSaveEditor() {
+  function handleSaveEditor(currentDraft?: DocumentEditorDraft) {
     if (!editorDraft || editorState.mode === 'read') return
     if (!participantId.trim()) {
       setEditorState((current) =>
@@ -184,7 +184,7 @@ export function DocumentChannelPage() {
     saveMutation.mutate({
       mode: editorState.mode,
       documentId: editorDraft.participantDocId,
-      input: serializeDocumentDraft(editorDraft),
+      input: serializeDocumentDraft(currentDraft ?? editorDraft),
     })
   }
 

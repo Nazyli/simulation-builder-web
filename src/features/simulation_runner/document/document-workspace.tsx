@@ -42,9 +42,11 @@ export function DocumentWorkspace({
 
   return (
     <div className="bg-card flex min-h-[480px] min-w-0 flex-1 flex-col overflow-hidden rounded-lg border border-slate-200">
-      <div className="flex h-full min-h-0 flex-col lg:flex-row">
+      <div className="flex h-full min-h-0 flex-1 flex-col lg:flex-row">
         {/* Sidebar list */}
-        <aside className="bg-card flex min-w-0 shrink-0 flex-col border-b border-slate-200 lg:w-[340px] lg:border-r lg:border-b-0">
+        <aside
+          className={`${editor ? 'hidden' : 'flex'} bg-card min-w-0 shrink-0 flex-col border-b border-slate-200 lg:w-[340px] lg:border-r lg:border-b-0`}
+        >
           <div className="flex items-center justify-between px-3 pt-3 pb-2">
             <p className="text-[10px] font-bold tracking-[0.12em] text-slate-400 uppercase">
               Documents

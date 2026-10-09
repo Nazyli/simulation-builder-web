@@ -1,32 +1,17 @@
-import {
-  Bold,
-  Heading3,
-  Italic,
-  Link2,
-  List,
-  ListOrdered,
-  Plus,
-  Redo2,
-  Save,
-  Underline,
-  Undo2,
-  X,
-} from 'lucide-react'
-import { useEffect, useRef, type MouseEvent } from 'react'
-
+import { useState, useRef } from 'react'
+import type { Editor } from '@tiptap/react'
+import { ArrowLeft, Check, FileText, Save } from 'lucide-react'
 import { Button } from '../../../components/ui/button'
-import { inputClass } from '../../../shared/form-classes'
-import {
-  isDocumentDraftDirty,
-  appendDocumentDraftPage,
-  updateDraftPage,
-  type DocumentEditorDraft,
-} from './document-editor-logic'
+import { isDocumentDraftDirty, type DocumentEditorDraft } from './document-editor-logic'
 import {
   canSaveDocumentEditor,
   editorSaveStatus,
   updateEditorName,
 } from './document-editor-ui-logic'
+import { DocumentEditorToolbar } from './document-editor-toolbar'
+import { DocumentTiptapPage } from './document-tiptap-page'
+import { documentPageStarts, serializePaginatedDocument } from './document-pagination'
+import './document-editor.css'
 
 export function DocumentEditor({
   draft,
@@ -46,251 +31,165 @@ export function DocumentEditor({
   isSaving?: boolean
   error?: string | null
   onChange: (draft: DocumentEditorDraft) => void
-  onSave: () => void
+  onSave: (draft?: DocumentEditorDraft) => void
   onCancel: () => void
 }) {
-  const editorRefs = useRef<Record<number, HTMLDivElement | null>>({})
-  const activeEditorRef = useRef<HTMLDivElement | null>(null)
-  const pageToFocusRef = useRef<number | null>(null)
+  const [activeEditor, setActiveEditor] = useState<Editor | null>(null)
+  const [activePage, setActivePage] = useState(1)
+  const [pageCount, setPageCount] = useState(1)
+  const initialHtml = useRef('')
+  const [isPreparingSave, setIsPreparingSave] = useState(false)
+  const [zoom, setZoom] = useState('fit')
   const isDirty = isDocumentDraftDirty(draft, savedDraft)
-  const saveDisabled = disabled || isSaving || !isDirty || !canSaveDocumentEditor(draft, isSaving)
-
-  useEffect(() => {
-    for (const page of draft.contents) {
-      const editor = editorRefs.current[page.page]
-      if (editor && editor.innerHTML !== page.content) editor.innerHTML = page.content
-    }
-    const pageToFocus = pageToFocusRef.current
-    if (pageToFocus !== null && editorRefs.current[pageToFocus]) {
-      editorRefs.current[pageToFocus]?.focus()
-      pageToFocusRef.current = null
-    }
-  }, [draft])
-
-  function applyCommand(command: string, value?: string) {
-    if (disabled || isSaving || !activeEditorRef.current) return
-    activeEditorRef.current.focus()
-    document.execCommand(command, false, value)
-    const page = Number(activeEditorRef.current.dataset.page)
-    onChange(updateDraftPage(draft, page, activeEditorRef.current.innerHTML))
+  const locked = disabled || isSaving || isPreparingSave
+  const saveDisabled = locked || !isDirty || !canSaveDocumentEditor(draft, isSaving)
+  async function save() {
+    setIsPreparingSave(true)
+    // PaginationPlus applies layout in RAF; freeze edits and let it finish before
+    // deriving the persisted page fragments, including rapid Ctrl/Cmd+S presses.
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+    )
+    onSave(
+      activeEditor && activeEditor.getHTML() !== initialHtml.current
+        ? { ...draft, contents: serializePaginatedDocument(activeEditor) }
+        : draft,
+    )
+    setIsPreparingSave(false)
   }
-
-  function handleLinkMouseDown(event: MouseEvent<HTMLButtonElement>) {
-    event.preventDefault()
-    if (disabled || isSaving) return
-    const url = window.prompt('URL')
-    if (url?.trim()) applyCommand('createLink', url.trim())
+  function goToPage(page: number) {
+    if (!activeEditor) return
+    const pos = documentPageStarts(activeEditor)[page - 1] ?? 0
+    activeEditor.chain().focus().setTextSelection(Math.max(1, pos)).scrollIntoView().run()
+    setActivePage(page)
   }
-
-  function handlePageInput(page: number, content: string) {
-    onChange(updateDraftPage(draft, page, content))
-  }
-
-  function handleAddPage() {
-    if (disabled || isSaving) return
-    const nextDraft = appendDocumentDraftPage(draft)
-    pageToFocusRef.current = nextDraft.contents.at(-1)?.page ?? null
-    onChange(nextDraft)
-  }
-
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-[var(--color-canvas)]">
-      <div className="bg-card border-b border-slate-200 px-4 py-3">
-        <div className="flex flex-wrap items-end gap-3">
-          <label className="min-w-0 flex-1">
-            <span className="mb-1 block text-[10px] font-bold tracking-[0.12em] text-slate-400 uppercase">
-              Document name
-            </span>
-            <input
-              className={`${inputClass} !h-9 !rounded-md text-sm`}
-              value={draft.documentName}
-              disabled={disabled || isSaving}
-              onChange={(event) => onChange(updateEditorName(draft, event.target.value))}
-              placeholder="Untitled document"
-              aria-label="Document name"
-            />
-          </label>
-          <div className="flex items-center gap-2">
-            <span
-              className={`text-xs ${error ? 'text-rose-600' : isDirty ? 'text-amber-700' : 'text-slate-500'}`}
-              role={error ? 'alert' : 'status'}
-            >
-              {editorSaveStatus({ isSaving, isDirty, error })}
-            </span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              disabled={disabled || isSaving}
-              onClick={onCancel}
-            >
-              <X size={14} />
-              Cancel
-            </Button>
-            <Button type="button" size="sm" disabled={saveDisabled} onClick={onSave}>
-              <Save size={14} />
-              {mode === 'create' ? 'Create document' : 'Save changes'}
-            </Button>
-          </div>
-        </div>
-
-        <div className="mt-3 flex flex-wrap items-center gap-1 rounded-lg border border-slate-200 bg-slate-50/80 p-1">
-          <ToolbarButton
-            label="Bold"
-            onMouseDown={(event) => {
-              event.preventDefault()
-              applyCommand('bold')
-            }}
-          >
-            <Bold size={14} />
-          </ToolbarButton>
-          <ToolbarButton
-            label="Italic"
-            onMouseDown={(event) => {
-              event.preventDefault()
-              applyCommand('italic')
-            }}
-          >
-            <Italic size={14} />
-          </ToolbarButton>
-          <ToolbarButton
-            label="Underline"
-            onMouseDown={(event) => {
-              event.preventDefault()
-              applyCommand('underline')
-            }}
-          >
-            <Underline size={14} />
-          </ToolbarButton>
-          <ToolbarButton
-            label="Heading"
-            onMouseDown={(event) => {
-              event.preventDefault()
-              applyCommand('formatBlock', 'h2')
-            }}
-          >
-            <Heading3 size={14} />
-          </ToolbarButton>
-          <ToolbarButton
-            label="Bulleted list"
-            onMouseDown={(event) => {
-              event.preventDefault()
-              applyCommand('insertUnorderedList')
-            }}
-          >
-            <List size={14} />
-          </ToolbarButton>
-          <ToolbarButton
-            label="Numbered list"
-            onMouseDown={(event) => {
-              event.preventDefault()
-              applyCommand('insertOrderedList')
-            }}
-          >
-            <ListOrdered size={14} />
-          </ToolbarButton>
-          <ToolbarButton label="Add link" onMouseDown={handleLinkMouseDown}>
-            <Link2 size={14} />
-          </ToolbarButton>
-          <span className="mx-1 h-4 w-px bg-slate-200" aria-hidden="true" />
-          <ToolbarButton
-            label="Undo"
-            onMouseDown={(event) => {
-              event.preventDefault()
-              applyCommand('undo')
-            }}
-          >
-            <Undo2 size={14} />
-          </ToolbarButton>
-          <ToolbarButton
-            label="Redo"
-            onMouseDown={(event) => {
-              event.preventDefault()
-              applyCommand('redo')
-            }}
-          >
-            <Redo2 size={14} />
-          </ToolbarButton>
-        </div>
-      </div>
-
-      <div className="min-h-0 flex-1 overflow-y-auto px-3 py-5 sm:px-6">
-        <div className="mx-auto flex max-w-[760px] flex-col gap-5">
-          {draft.contents.map((page) => (
-            <section key={page.page} aria-labelledby={`document-page-${page.page}`}>
-              <div className="mb-2 flex items-center justify-between px-1">
-                <h2
-                  id={`document-page-${page.page}`}
-                  className="text-[10px] font-bold tracking-[0.12em] text-slate-400 uppercase"
-                >
-                  Page {page.page}
-                </h2>
-                <span className="text-[11px] text-slate-400">HTML document page</span>
-              </div>
-              <div
-                ref={(element) => {
-                  editorRefs.current[page.page] = element
-                }}
-                data-page={page.page}
-                role="textbox"
-                aria-label={`Page ${page.page} content`}
-                aria-multiline="true"
-                contentEditable={!disabled && !isSaving}
-                suppressContentEditableWarning
-                data-placeholder="Start writing…"
-                className="document-paper focus-visible:border-ring focus-visible:ring-ring/20 min-h-[480px] rounded-md border border-slate-200 px-6 py-7 text-[13px] leading-7 shadow-sm outline-none empty:before:text-slate-400 empty:before:content-[attr(data-placeholder)] focus-visible:ring-3 sm:min-h-[620px] sm:px-10 sm:py-10"
-                onFocus={(event) => {
-                  activeEditorRef.current = event.currentTarget
-                }}
-                onInput={(event) => handlePageInput(page.page, event.currentTarget.innerHTML)}
-              />
-            </section>
-          ))}
-          <div className="flex flex-col items-center gap-2 py-1">
-            <div className="flex w-full items-center gap-3" aria-hidden="true">
-              <span className="h-px flex-1 border-t border-dashed border-slate-300" />
-              <span className="text-[10px] font-semibold tracking-[0.12em] text-slate-400 uppercase">
-                End of document
-              </span>
-              <span className="h-px flex-1 border-t border-dashed border-slate-300" />
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              className="bg-card min-h-11 rounded-md border-dashed border-slate-300 px-4 text-xs font-semibold text-indigo-700 shadow-none hover:border-indigo-300 hover:bg-indigo-50"
-              disabled={disabled || isSaving}
-              aria-label="Add page"
-              onClick={handleAddPage}
-            >
-              <Plus size={15} />
-              Add page
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function ToolbarButton({
-  label,
-  onMouseDown,
-  children,
-}: {
-  label: string
-  onMouseDown: (event: MouseEvent<HTMLButtonElement>) => void
-  children: React.ReactNode
-}) {
-  return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="icon-sm"
-      aria-label={label}
-      title={label}
-      onMouseDown={onMouseDown}
+    <div
+      className="document-editor flex min-h-0 min-w-0 flex-1 flex-col bg-[var(--color-canvas)]"
+      onKeyDown={(event) => {
+        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
+          event.preventDefault()
+          if (!saveDisabled) save()
+        }
+      }}
     >
-      {children}
-    </Button>
+      <header className="border-border bg-card flex shrink-0 flex-wrap items-center gap-3 border-b px-3 py-3 sm:px-5">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label="Cancel editing"
+          title="Back to documents"
+          disabled={locked}
+          onClick={onCancel}
+          className="size-10"
+        >
+          <ArrowLeft />
+        </Button>
+        <FileText className="text-brand hidden size-7 shrink-0 sm:block" aria-hidden="true" />
+        <div className="min-w-0 flex-1 basis-36">
+          <label htmlFor="runner-document-name" className="sr-only">
+            Document name
+          </label>
+          <input
+            id="runner-document-name"
+            value={draft.documentName}
+            onChange={(event) => onChange(updateEditorName(draft, event.target.value))}
+            disabled={locked}
+            maxLength={255}
+            placeholder="Untitled document"
+            className="text-foreground placeholder:text-muted-foreground hover:border-border focus-visible:border-ring focus-visible:ring-ring h-8 w-full rounded border border-transparent bg-transparent px-1 text-base font-medium focus-visible:ring-2 focus-visible:outline-none"
+          />
+          <div
+            className="text-muted-foreground mt-1 flex items-center gap-1.5 px-1 text-xs"
+            role="status"
+            aria-live="polite"
+          >
+            {!isDirty && mode === 'edit' ? <Check size={12} aria-hidden="true" /> : null}
+            <span>
+              {mode === 'create' && !isDirty
+                ? 'New document'
+                : editorSaveStatus({ isSaving, isDirty, error: null })}
+            </span>
+          </div>
+        </div>
+        <Button type="button" disabled={saveDisabled} onClick={save} className="h-10 gap-2 px-4">
+          <Save size={15} />
+          {isSaving ? 'Saving…' : mode === 'create' ? 'Create document' : 'Save changes'}
+        </Button>
+      </header>
+      <DocumentEditorToolbar editor={activeEditor} disabled={locked} />
+      {error ? (
+        <p
+          role="alert"
+          className="border-destructive/20 bg-destructive/10 text-destructive shrink-0 border-b px-5 py-2 text-sm"
+        >
+          {error}
+        </p>
+      ) : null}
+      <div className="flex min-h-0 flex-1 overflow-hidden">
+        <nav
+          aria-label="Document pages"
+          className="border-border bg-card/50 hidden w-40 shrink-0 overflow-y-auto border-r px-3 py-5 xl:block"
+        >
+          <p className="text-muted-foreground mb-3 px-2 text-xs font-medium">Pages</p>
+          {Array.from({ length: pageCount }, (_, index) => ({ page: index + 1 })).map((page) => (
+            <button
+              key={page.page}
+              type="button"
+              disabled={locked}
+              aria-current={activePage === page.page ? 'page' : undefined}
+              onClick={() => goToPage(page.page)}
+              className={`focus-visible:ring-ring mb-1 flex min-h-10 w-full items-center gap-2 rounded px-2 text-left text-xs focus-visible:ring-2 focus-visible:outline-none disabled:opacity-50 ${activePage === page.page ? 'bg-accent text-accent-foreground font-medium' : 'text-muted-foreground hover:bg-muted'}`}
+            >
+              <FileText size={14} />
+              Page {page.page}
+            </button>
+          ))}
+        </nav>
+        <div className="document-editor-scroll min-h-0 min-w-0 flex-1 overflow-auto px-3 py-6 sm:px-6">
+          <div
+            className="document-editor-pages document-paper mx-auto w-[794px]"
+            style={{ zoom: zoom === 'fit' ? undefined : Number(zoom) }}
+          >
+            <DocumentTiptapPage
+              contents={draft.contents}
+              disabled={locked}
+              onActivate={(editor) => {
+                initialHtml.current = editor.getHTML()
+                setActiveEditor(editor)
+              }}
+              onLayout={(count, active) => {
+                setPageCount(count)
+                setActivePage(active)
+              }}
+              onChange={(contents) => onChange({ ...draft, contents })}
+            />
+          </div>
+        </div>
+      </div>
+      <footer className="border-border bg-card text-muted-foreground flex shrink-0 items-center justify-between border-t px-5 py-2 text-xs">
+        <span>
+          Page {activePage} of {pageCount}
+        </span>
+        <span className="hidden sm:inline">
+          Save to keep changes<span className="hidden sm:inline"> · Ctrl / ⌘ + S</span>
+        </span>
+        <label className="flex items-center gap-2">
+          <span>Zoom</span>
+          <select
+            aria-label="Document zoom"
+            value={zoom}
+            onChange={(event) => setZoom(event.target.value)}
+            className="bg-card focus-visible:ring-ring min-h-8 rounded px-1 focus-visible:ring-2 focus-visible:outline-none"
+          >
+            <option value="fit">Fit</option>
+            <option value="0.75">75%</option>
+            <option value="1">100%</option>
+            <option value="1.25">125%</option>
+          </select>
+        </label>
+      </footer>
+    </div>
   )
 }

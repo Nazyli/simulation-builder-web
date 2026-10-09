@@ -1,5 +1,15 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
+import { toTiptapDocumentContent } from '../src/features/simulation_runner/document/document-editor-logic.ts'
+
+test('plain text pages retain line breaks and literal angle brackets when loaded into Tiptap', () => {
+  assert.equal(
+    toTiptapDocumentContent('One < two & three\nNext line'),
+    '<p>One &lt; two &amp; three<br>Next line</p>',
+  )
+  assert.equal(toTiptapDocumentContent('<h2>Title</h2><p>Body</p>'), '<h2>Title</h2><p>Body</p>')
+  assert.equal(toTiptapDocumentContent(''), '')
+})
 
 import {
   createEmptyDocumentDraft,
@@ -17,6 +27,14 @@ test('creates a new document draft with one empty page', () => {
     documentName: '',
     contents: [{ page: 1, content: '' }],
   })
+})
+
+test('normalizes the empty Tiptap paragraph while retaining empty table structure', () => {
+  assert.equal(normalizeEditorHtml('<p></p>'), '')
+  assert.equal(
+    normalizeEditorHtml('<table><tbody><tr><td><p></p></td></tr></tbody></table>'),
+    '<table><tbody><tr><td><p></p></td></tr></tbody></table>',
+  )
 })
 
 test('maps runtime content rows into separate ordered editor pages', () => {
