@@ -52,7 +52,7 @@ export function SimulationEntryPage() {
       client.invalidateQueries({ queryKey: ['notification-activity', normalizedParticipantId] })
       navigate(`/simulation/${encodeURIComponent(normalizedParticipantId)}`)
       const count = result.runs.length
-      toast.success(`${count} simulation${count === 1 ? '' : 's'} ready.`)
+      toast.success(`${count} simulation${count === 1 ? '' : 's'} opened.`)
     },
     onError: () => toast.error('Unable to start or resume the selected simulations.'),
   })

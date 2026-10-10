@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom'
 import { PageHeader } from '../../components/layout/page-header'
 import { channelNavigation, channelPath } from './simulation-channels'
 import { useSimulationRun } from './simulation-run-context-core'
+import { useParticipantRuns } from './use-participant-runs'
 
 export function SimulationHomePage() {
   const { participantId, unreadCounts } = useSimulationRun()
+  const { runs } = useParticipantRuns(participantId)
 
   return (
     <div className="flex h-full min-w-0 flex-col gap-4">
@@ -18,6 +20,16 @@ export function SimulationHomePage() {
           </span>
         }
       />
+      {runs.some((run) => run.status === 'running') && (
+        <p role="status" className="text-sm text-slate-600">
+          Simulation is processing. Messages will appear when ready.
+        </p>
+      )}
+      {runs.some((run) => run.status === 'failed') && (
+        <p role="alert" className="text-destructive text-sm">
+          A simulation failed. Contact the simulation administrator for help.
+        </p>
+      )}
       <section className="grid min-w-0 gap-2 sm:grid-cols-2 xl:grid-cols-4">
         {channelNavigation.map(({ channel, label, description, icon: Icon }) => {
           const unread = unreadCounts[channel] ?? 0

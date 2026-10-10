@@ -47,7 +47,7 @@ export function SimulationRunProvider({
     const streamParticipantId = participantId.trim()
     if (!streamParticipantId) return
     const events = new EventSource(eventsUrl(streamParticipantId))
-    const refreshRunner = (event: Event) => {
+    const invalidateRunner = () => {
       void client.invalidateQueries({ queryKey: ['notification-activity', streamParticipantId] })
       void client.invalidateQueries({ queryKey: ['participant-executions', streamParticipantId] })
       void client.invalidateQueries({ queryKey: ['chat-simulations'] })
@@ -58,6 +58,9 @@ export function SimulationRunProvider({
       void client.invalidateQueries({ queryKey: ['email-thread-messages'] })
       void client.invalidateQueries({ queryKey: ['runner-documents', streamParticipantId] })
       void client.invalidateQueries({ queryKey: ['documents', streamParticipantId] })
+    }
+    const refreshRunner = (event: Event) => {
+      invalidateRunner()
       if (!(event instanceof MessageEvent)) return
       try {
         const payload = JSON.parse(event.data) as {
@@ -94,13 +97,12 @@ export function SimulationRunProvider({
     }
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
-        void client.invalidateQueries({ queryKey: ['notification-activity', streamParticipantId] })
+        invalidateRunner()
       }
     }
     events.addEventListener('notification', refreshRunner)
-    events.onerror = () => {
-      void client.invalidateQueries({ queryKey: ['notification-activity', streamParticipantId] })
-    }
+    events.addEventListener('open', invalidateRunner)
+    events.onerror = invalidateRunner
     document.addEventListener('visibilitychange', handleVisibility)
     return () => {
       document.removeEventListener('visibilitychange', handleVisibility)
