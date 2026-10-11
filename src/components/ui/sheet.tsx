@@ -67,7 +67,10 @@ function SheetContent({
           side === 'bottom' &&
             'data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom inset-x-0 bottom-0 h-auto border-t',
           density === 'compact' &&
-            'w-full max-w-[320px] gap-0 text-xs motion-reduce:animate-none motion-reduce:transition-none sm:max-w-[320px]',
+            'w-[calc(100%-1rem)] max-w-[320px] gap-0 rounded-xl border text-xs duration-200 ease-out data-[state=closed]:duration-150 data-[state=open]:duration-200 motion-reduce:animate-none motion-reduce:transition-none sm:max-w-[320px]',
+          density === 'compact' && (side === 'right' || side === 'left') && 'inset-y-2 h-auto',
+          density === 'compact' && side === 'right' && 'right-2',
+          density === 'compact' && side === 'left' && 'left-2',
           className,
         )}
         {...props}
@@ -77,7 +80,8 @@ function SheetContent({
           <SheetPrimitive.Close
             className={cn(
               'ring-offset-background focus:ring-ring data-[state=open]:bg-secondary absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none',
-              density === 'compact' && 'top-2.5 right-2.5 grid size-6 place-items-center',
+              density === 'compact' &&
+                'hover:bg-muted top-2 right-2 grid size-8 place-items-center rounded-md',
             )}
           >
             <XIcon className={density === 'compact' ? 'size-3.5' : 'size-4'} />
@@ -94,7 +98,7 @@ function SheetHeader({ className, ...props }: React.ComponentProps<'div'>) {
     <div
       data-slot="sheet-header"
       className={cn(
-        'flex flex-col gap-1.5 p-4 group-data-[density=compact]/sheet:gap-0.5 group-data-[density=compact]/sheet:px-3 group-data-[density=compact]/sheet:py-2.5 group-data-[density=compact]/sheet:pr-9',
+        'flex flex-col gap-1.5 p-4 group-data-[density=compact]/sheet:shrink-0 group-data-[density=compact]/sheet:gap-1 group-data-[density=compact]/sheet:px-3 group-data-[density=compact]/sheet:py-3 group-data-[density=compact]/sheet:pr-12',
         className,
       )}
       {...props}
@@ -107,7 +111,7 @@ function SheetFooter({ className, ...props }: React.ComponentProps<'div'>) {
     <div
       data-slot="sheet-footer"
       className={cn(
-        'mt-auto flex flex-col gap-2 p-4 group-data-[density=compact]/sheet:gap-1.5 group-data-[density=compact]/sheet:px-3 group-data-[density=compact]/sheet:py-2',
+        'mt-auto flex flex-col gap-2 p-4 group-data-[density=compact]/sheet:shrink-0 group-data-[density=compact]/sheet:gap-2 group-data-[density=compact]/sheet:px-3 group-data-[density=compact]/sheet:py-3',
         className,
       )}
       {...props}

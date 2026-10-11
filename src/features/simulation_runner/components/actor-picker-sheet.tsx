@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Loader2, Mail, Search } from 'lucide-react'
+import { Loader2, Search } from 'lucide-react'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -112,7 +112,7 @@ function ActorPickerContent({
   }
   return (
     <>
-      <div className="flex items-center gap-1.5 px-3 py-2">
+      <div className="flex shrink-0 items-center gap-2 px-3 pt-3 pb-2">
         <div className="relative min-w-0 flex-1">
           <Search
             aria-hidden="true"
@@ -126,7 +126,7 @@ function ActorPickerContent({
               setSearch(event.target.value)
               setSelection(null)
             }}
-            className="h-8 pl-8 text-xs md:text-xs"
+            className="bg-muted/50 h-9 rounded-lg pl-8 text-xs md:text-xs"
           />
         </div>
         <Select
@@ -137,7 +137,10 @@ function ActorPickerContent({
           }}
           disabled={groupsQuery.isPending || groupsQuery.isError}
         >
-          <SelectTrigger aria-label="Contact group" className="h-8 w-[92px] shrink-0 text-xs">
+          <SelectTrigger
+            aria-label="Contact group"
+            className="bg-muted/50 h-9 w-[92px] shrink-0 rounded-lg text-xs"
+          >
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="[&_[data-slot=select-item]]:text-xs">
@@ -152,7 +155,10 @@ function ActorPickerContent({
           </SelectContent>
         </Select>
       </div>
-      <div className="bg-canvas min-h-0 flex-1 overflow-y-auto px-3 py-1.5" aria-busy={updating}>
+      <div
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-2"
+        aria-busy={updating}
+      >
         {failed ? (
           <div role="alert" className="space-y-2 py-6 text-center">
             <p className="text-xs">Unable to load contacts.</p>
@@ -184,10 +190,18 @@ function ActorPickerContent({
             <p className="text-muted-foreground text-[11px]">Try another search or group.</p>
           </div>
         ) : (
-          <div className="space-y-2" role="group" aria-label="Choose a contact">
+          <div className="space-y-4" role="group" aria-label="Choose a contact">
             {groupedContacts.map(({ group, label: heading, actors }) => (
               <section key={JSON.stringify(group)}>
-                <h3 className="text-muted-foreground mb-1 text-[11px] font-semibold">{heading}</h3>
+                <h3 className="text-muted-foreground mb-1.5 flex items-center justify-between px-2 text-[11px] font-semibold">
+                  {heading}
+                  <span
+                    className="font-normal tabular-nums"
+                    aria-label={`${actors.length} contacts`}
+                  >
+                    {actors.length}
+                  </span>
+                </h3>
                 <div className="space-y-0.5">
                   {actors.map((actor) => {
                     const name = actor.actorName || actor.actorEmail || actor.actorId
@@ -201,11 +215,11 @@ function ActorPickerContent({
                     return (
                       <label
                         key={actor.actorId}
-                        className={`border-border has-[:focus-visible]:ring-ring flex min-h-9 cursor-pointer items-center gap-1.5 rounded-md border px-2 py-1 transition-colors has-[:focus-visible]:ring-2 ${selection === actor.actorId ? 'border-primary bg-accent text-accent-foreground' : 'bg-card text-card-foreground hover:bg-accent/50'}`}
+                        className={`has-[:focus-visible]:ring-ring flex min-h-11 cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-inset motion-reduce:transition-none ${selection === actor.actorId ? 'bg-accent text-accent-foreground' : 'text-card-foreground hover:bg-muted'}`}
                       >
                         <span
                           aria-hidden="true"
-                          className="bg-secondary/40 text-accent-foreground grid size-6 shrink-0 place-items-center rounded-full text-[11px] font-semibold"
+                          className="bg-muted text-muted-foreground grid size-6 shrink-0 place-items-center rounded-full text-[11px] font-semibold"
                         >
                           {initials}
                         </span>
@@ -224,8 +238,7 @@ function ActorPickerContent({
                             ) : null}
                           </span>
                           {actor.actorEmail ? (
-                            <span className="text-muted-foreground flex items-start gap-1 text-[11px] leading-4 break-all">
-                              <Mail aria-hidden="true" className="mt-0.5 size-3 shrink-0" />
+                            <span className="text-muted-foreground block text-[11px] leading-4 break-all">
                               {actor.actorEmail}
                             </span>
                           ) : null}
@@ -248,9 +261,14 @@ function ActorPickerContent({
         )}
       </div>
       <SheetFooter className="border-border border-t">
+        <p className="text-muted-foreground truncate text-[11px]" role="status">
+          {selected
+            ? `Selected: ${selected.actorName || selected.actorEmail || selected.actorId}`
+            : 'Select a contact to continue.'}
+        </p>
         <Button
           type="button"
-          className="h-8 text-xs sm:h-7"
+          className="h-9 rounded-lg text-xs"
           onClick={confirm}
           disabled={!selected || updating || failed}
         >

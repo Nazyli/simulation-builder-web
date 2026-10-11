@@ -5,6 +5,7 @@ import {
   DEFAULT_THEME,
   normalizeTheme,
   saveTheme,
+  type ThemeBaseColors,
   type ThemeColors,
 } from './theme'
 import { ThemeContext } from './use-theme'
@@ -21,7 +22,7 @@ export function ThemeProvider({
     setPersisted(saveTheme(browserThemeStorage(), colors))
   }, [colors])
 
-  function setColors(next: ThemeColors) {
+  function setColors(next: ThemeBaseColors) {
     const normalized = normalizeTheme(next)
     if (normalized) updateColors(normalized)
   }

@@ -6,10 +6,16 @@ import {
   SheetContent,
   SheetDescription,
   SheetHeader,
+  SheetFooter,
   SheetTitle,
   SheetTrigger,
 } from '../../components/ui/sheet'
-import { THEME_COLOR_KEYS, THEME_PRESETS, type ThemeColors } from './theme'
+import {
+  THEME_EDITABLE_COLOR_KEYS,
+  THEME_PRESETS,
+  type ThemeBaseColors,
+  type ThemeColors,
+} from './theme'
 import { useTheme } from './use-theme'
 
 const labels: Record<keyof ThemeColors, { title: string; description: string }> = {
@@ -19,7 +25,7 @@ const labels: Record<keyof ThemeColors, { title: string; description: string }> 
   surface: { title: 'Surface', description: 'Panels, tables, and dialogs' },
 }
 
-function ColorField({ colorKey }: { colorKey: keyof ThemeColors }) {
+function ColorField({ colorKey }: { colorKey: keyof ThemeBaseColors }) {
   const { colors, setColors } = useTheme()
   const id = useId()
   const [hex, setHex] = useState(colors[colorKey])
@@ -39,25 +45,25 @@ function ColorField({ colorKey }: { colorKey: keyof ThemeColors }) {
   }
 
   return (
-    <div className="space-y-1">
-      <div className="flex min-w-0 items-center justify-between gap-2">
-        <div className="min-w-0">
-          <label htmlFor={`${id}-hex`} className="text-foreground text-xs font-medium">
+    <div className="space-y-1.5">
+      <div className="flex min-w-0 items-center gap-2.5">
+        <input
+          type="color"
+          value={colors[colorKey]}
+          aria-label={`${title} color`}
+          aria-describedby={`${id}-description`}
+          onChange={(event) => update(event.target.value)}
+          className="border-border bg-card focus-visible:ring-ring size-10 shrink-0 cursor-pointer rounded-lg border p-1 focus-visible:ring-2 focus-visible:ring-offset-2"
+        />
+        <div className="min-w-0 flex-1">
+          <label htmlFor={`${id}-hex`} className="text-foreground text-xs font-semibold">
             {title}
           </label>
-          <p id={`${id}-description`} className="sr-only">
+          <p id={`${id}-description`} className="text-muted-foreground text-[11px] leading-4">
             {description}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
-          <input
-            type="color"
-            value={colors[colorKey]}
-            aria-label={`${title} color`}
-            aria-describedby={`${id}-description`}
-            onChange={(event) => update(event.target.value)}
-            className="border-input bg-card size-7 cursor-pointer rounded border p-0.5"
-          />
           <input
             id={`${id}-hex`}
             value={hex}
@@ -73,7 +79,7 @@ function ColorField({ colorKey }: { colorKey: keyof ThemeColors }) {
             aria-describedby={invalid ? `${id}-error` : `${id}-description`}
             spellCheck={false}
             maxLength={7}
-            className="border-input bg-card text-card-foreground focus-visible:border-ring focus-visible:ring-ring/30 h-7 w-20 rounded border px-1.5 text-xs outline-none focus-visible:ring-2"
+            className="border-input bg-card text-card-foreground focus-visible:border-ring focus-visible:ring-ring/30 h-8 w-20 rounded-md border px-2 text-xs outline-none focus-visible:ring-2"
           />
         </div>
       </div>
@@ -90,7 +96,7 @@ export function ThemePanel() {
   const { colors, setColors, reset, persisted } = useTheme()
   const radioName = useId()
   const selected = THEME_PRESETS.find((preset) =>
-    THEME_COLOR_KEYS.every((key) => preset.colors[key] === colors[key]),
+    THEME_EDITABLE_COLOR_KEYS.every((key) => preset.colors[key] === colors[key]),
   )?.name
 
   return (
@@ -108,31 +114,55 @@ export function ThemePanel() {
       </SheetTrigger>
       <SheetContent
         density="compact"
-        className="bg-card text-card-foreground overflow-y-auto"
+        className="bg-card text-card-foreground"
         aria-label="Customize theme"
       >
         <SheetHeader className="border-border border-b">
           <SheetTitle>Customize theme</SheetTitle>
-          <SheetDescription>
-            Pick a palette or adjust four colors. Changes apply live.
-          </SheetDescription>
+          <SheetDescription>Two colors, one cohesive palette. Changes apply live.</SheetDescription>
         </SheetHeader>
-        <div className="space-y-3 p-3">
-          <fieldset className="space-y-1.5">
-            <legend className="mb-0.5 text-xs font-semibold">
+        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain p-3">
+          <section aria-labelledby={`${radioName}-custom`} className="space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <h2 id={`${radioName}-custom`} className="text-xs font-semibold">
+                Your colors
+              </h2>
+              <span className="text-muted-foreground text-[11px]">{selected ?? 'Custom'}</span>
+            </div>
+            {THEME_EDITABLE_COLOR_KEYS.map((key) => (
+              <ColorField key={key} colorKey={key} />
+            ))}
+            <div className="bg-muted/50 space-y-2 rounded-lg p-2.5">
+              <p className="text-muted-foreground text-[11px] leading-4">
+                Secondary and background follow your colors automatically.
+              </p>
+              <dl className="flex flex-wrap gap-x-4 gap-y-2" aria-label="Automatic colors">
+                {(['secondary', 'background'] as const).map((key) => (
+                  <div key={key} className="flex items-center gap-1.5">
+                    <span
+                      aria-hidden="true"
+                      style={{ backgroundColor: colors[key] }}
+                      className="border-border size-3.5 rounded-full border"
+                    />
+                    <dt className="text-muted-foreground text-[11px]">{labels[key].title}</dt>
+                    <dd className="sr-only">{colors[key]}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          </section>
+          <fieldset className="space-y-1">
+            <legend className="mb-2 text-xs font-semibold">
               Presets
               <span className="text-muted-foreground ml-1.5 text-[11px] font-normal">
                 {THEME_PRESETS.length} palettes
               </span>
             </legend>
-            <p className="text-muted-foreground mb-1.5 text-[11px]">
-              Primary · Secondary · Background · Surface
-            </p>
-            <div className="max-h-[min(40dvh,20rem)] space-y-1 overflow-y-auto overscroll-contain p-0.5">
+            <div className="grid grid-cols-2 gap-1">
               {THEME_PRESETS.map((preset) => (
                 <label
                   key={preset.name}
-                  className="border-border hover:bg-muted has-[:checked]:border-ring has-[:checked]:bg-accent has-[:checked]:text-accent-foreground has-[:focus-visible]:outline-ring flex min-h-8 cursor-pointer items-center gap-2 rounded-md border px-2 py-1 transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2"
+                  className="hover:bg-muted has-[:checked]:bg-accent has-[:checked]:text-accent-foreground has-[:focus-visible]:outline-ring flex min-h-10 cursor-pointer items-center gap-1.5 rounded-lg px-2 py-1.5 transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 motion-reduce:transition-none"
                 >
                   <input
                     type="radio"
@@ -142,14 +172,16 @@ export function ThemePanel() {
                     onChange={() => setColors({ ...preset.colors })}
                     className="size-3 shrink-0 accent-[var(--primary)]"
                   />
-                  <span className="min-w-0 flex-1 text-xs font-medium">{preset.name}</span>
-                  <span className="flex shrink-0 gap-1" aria-hidden="true">
-                    {THEME_COLOR_KEYS.map((key) => (
+                  <span className="min-w-0 flex-1 text-xs leading-4 font-medium">
+                    {preset.name}
+                  </span>
+                  <span className="flex shrink-0 -space-x-1" aria-hidden="true">
+                    {THEME_EDITABLE_COLOR_KEYS.map((key) => (
                       <span
                         key={key}
                         title={`${labels[key].title}: ${preset.colors[key]}`}
                         style={{ backgroundColor: preset.colors[key] }}
-                        className="size-3.5 rounded-full border border-slate-300"
+                        className="border-border size-3.5 rounded-full border"
                       />
                     ))}
                   </span>
@@ -157,32 +189,18 @@ export function ThemePanel() {
               ))}
             </div>
           </fieldset>
-          <section
-            aria-labelledby={`${radioName}-custom`}
-            className="border-border space-y-2 border-t pt-3"
-          >
-            <div className="flex items-center justify-between gap-2">
-              <h2 id={`${radioName}-custom`} className="text-xs font-semibold">
-                Your colors
-              </h2>
-              {!selected && <span className="text-muted-foreground text-[11px]">Custom</span>}
-            </div>
-            {THEME_COLOR_KEYS.map((key) => (
-              <ColorField key={key} colorKey={key} />
-            ))}
-          </section>
-          <div className="border-border space-y-1.5 border-t pt-3">
-            <Button variant="outline" onClick={reset} className="h-8 w-full gap-1.5 text-xs">
-              <RotateCcw aria-hidden="true" className="size-3.5" />
-              Reset to default
-            </Button>
-            <p className="text-muted-foreground text-[11px] leading-4" role="status">
-              {persisted
-                ? 'Saved in this browser. Text and interaction colors adapt automatically.'
-                : 'Changes apply now, but this browser cannot save your theme.'}
-            </p>
-          </div>
         </div>
+        <SheetFooter className="border-border border-t">
+          <Button variant="outline" onClick={reset} className="h-8 w-full gap-1.5 text-xs">
+            <RotateCcw aria-hidden="true" className="size-3.5" />
+            Reset to default
+          </Button>
+          <p className="text-muted-foreground text-[11px] leading-4" role="status">
+            {persisted
+              ? 'Saved in this browser.'
+              : 'Changes apply now, but this browser cannot save your theme.'}
+          </p>
+        </SheetFooter>
       </SheetContent>
     </Sheet>
   )

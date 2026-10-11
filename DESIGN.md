@@ -3,9 +3,9 @@ name: Simulation Builder Frontend
 description: Restrained, production-grade workflow tooling for building and operating simulations.
 colors:
   primary: '#9929EA'
-  secondary: '#DBABFF'
+  secondary: '#D8AEF7'
   brand-accent-fill: '#9929EA'
-  canvas: '#F6F8FB'
+  canvas: '#FAF5FE'
   surface: '#FFFFFF'
   text-primary: '#172033'
   text-secondary: '#64748B'
@@ -114,27 +114,42 @@ The palette combines a cool near-white canvas, white working surfaces, slate tex
 
 ### Theme customization
 
-The shared header's Theme button opens a scrollable panel with twenty-one preset rows,
-each showing Primary, Secondary, Background, and Surface as four circular swatches.
-Default is always first and retains `#9929EA`, `#DBABFF`, `#F6F8FB`, and `#FFFFFF`.
+The shared header's Theme button opens a compact drawer with two editable colors:
+Primary and Surface. Controls appear first, followed by a read-only preview of
+the automatic Secondary and Background colors and twenty-one presets in two columns.
+Each preset shows only its Primary and Surface swatches. Default is always first
+and retains primary `#9929EA` and surface `#FFFFFF`.
 Other presets are Ocean, Teal, Indigo, Emerald, Rose, Slate, Amber, Orange, Coral,
 Ruby, Pink, Sky, Mint, Olive, Sand, Coffee, Midnight, Charcoal, Forest Night,
 and Material Palenight.
 Palettes use ui-ux-pro-max catalog colors and variants adapted for this dashboard.
-Material Palenight maps the purple, cyan, background, and second background from
+Material Palenight uses the purple and second background from
 the [Material Theme palette](https://material-theme.com/docs/reference/color-palette/)
-to `#C792EA`, `#89DDFF`, `#292D3E`, and `#34324A`, respectively.
-The preset list scrolls within a bounded area to keep the custom controls accessible.
-Four labeled color pickers and hex fields apply
-changes live; Reset to default restores all four colors.
+as primary `#C792EA` and surface `#34324A`.
+Secondary mixes primary toward surface (62% on light surfaces, 30% on dark).
+The light canvas blends 4.5% primary into surface. The dark canvas darkens surface
+22% then blends 3.5% primary; relative surface luminance below 0.179 selects dark.
+All presets and custom colors follow this same rule so each palette stays in one
+color family. Text and interaction contrast are resolved separately.
+The center scrolls while header and footer remain visible. Changes apply live;
+Reset to default restores the base colors and regenerates their companions.
 
 The theme module in `src/shared/theme/` validates and stores a versioned palette
-in `simulation-builder.theme.v1` localStorage. Startup applies it before rendering.
+in `simulation-builder.theme.v1` localStorage with version 2 containing only the
+base colors. Version 1 preferences retain Primary and Surface and regenerate
+the supporting colors. Startup applies it before rendering.
 Denied storage does not prevent live changes. Foregrounds, selected states,
 hover/focus treatments, and neutrals adapt from the palette. UI panels use
 `bg-card`; page and workspace backgrounds use `--color-canvas`. Status and action
 colors, backend catalog node/port/edge colors, and embedded content retain their
 domain meanings. Theme preferences are local to the browser.
+
+Theme and Actor share a compact drawer with a maximum width of 320 px, 8 px
+viewport insets, rounded corners, consistent 12 px content insets, 13 px titles,
+and short transitions that respect reduced motion. Preset rows and contact rows
+use quiet hover fills and a clear selected tint instead of individual borders.
+Actor keeps the search and group filter together, groups contacts with readable
+labels/counts, and shows the current selection above its confirmation button.
 
 AI usage charts and calendar intensities derive from the current primary,
 secondary, and surface; graph path highlights derive against the canvas.

@@ -142,7 +142,7 @@ for (const viewport of [
       fullPage: true,
     })
     const bounds = await panel.boundingBox()
-    expect(bounds!.x + bounds!.width).toBeCloseTo(viewport.width, 0)
+    expect(bounds!.x + bounds!.width).toBeCloseTo(viewport.width - 8, 0)
     expect(bounds!.width).toBeLessThanOrEqual(viewport.width)
     await panel.getByRole('button', { name: 'Add to chat', exact: true }).click()
     await expect(panel).not.toBeVisible()

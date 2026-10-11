@@ -1,9 +1,9 @@
 import { createContext, useContext } from 'react'
-import type { ThemeColors } from './theme'
+import type { ThemeBaseColors, ThemeColors } from './theme'
 
 export interface ThemeContextValue {
   colors: ThemeColors
-  setColors: (colors: ThemeColors) => void
+  setColors: (colors: ThemeBaseColors) => void
   reset: () => void
   persisted: boolean
 }

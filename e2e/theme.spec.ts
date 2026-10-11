@@ -1,8 +1,7 @@
 import { expect, test } from '@playwright/test'
+import { DEFAULT_THEME, THEME_PRESETS, normalizeTheme } from '../src/shared/theme/theme'
 
-test('four colors apply live, survive reload, and reset to the original palette', async ({
-  page,
-}) => {
+test('two base colors apply their palette live, survive reload, and reset', async ({ page }) => {
   await page.goto('/settings')
   const trigger = page.getByRole('button', { name: 'Customize theme' })
   await trigger.click()
@@ -12,27 +11,33 @@ test('four colors apply live, survive reload, and reset to the original palette'
   await expect(presets).toHaveCount(21)
   await expect(presets.first()).toHaveAccessibleName('Default theme')
   await expect(presets.first()).toBeChecked()
+  await expect(panel.getByRole('textbox', { name: /hex$/ })).toHaveCount(2)
+  await expect(panel.locator('input[type="color"]')).toHaveCount(2)
+  await expect(panel.getByLabel('Secondary hex')).toHaveCount(0)
+  await expect(panel.getByLabel('Background hex')).toHaveCount(0)
   await panel.getByRole('radio', { name: 'Forest Night theme' }).check()
   await expect(panel).toHaveCSS('background-color', 'rgb(16, 61, 50)')
-  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(6, 44, 36)')
+  await expect(page.locator('html')).toHaveCSS(
+    '--color-canvas',
+    THEME_PRESETS.find((p) => p.name === 'Forest Night')!.colors.background,
+  )
   await panel.getByRole('radio', { name: 'Material Palenight theme' }).check()
   await expect(panel).toHaveCSS('background-color', 'rgb(52, 50, 74)')
-  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(41, 45, 62)')
+  const palenight = THEME_PRESETS.find((p) => p.name === 'Material Palenight')!.colors
+  await expect(page.locator('html')).toHaveCSS('--color-canvas', palenight.background)
   await expect(panel.getByRole('textbox', { name: 'Primary hex' })).toHaveValue('#C792EA')
-  await expect(panel.getByRole('textbox', { name: 'Secondary hex' })).toHaveValue('#89DDFF')
+  await expect(page.locator('html')).toHaveCSS('--secondary', palenight.secondary)
   await page.reload()
   await trigger.click()
   await expect(panel.getByRole('radio', { name: 'Material Palenight theme' })).toBeChecked()
   await expect(panel).toHaveCSS('background-color', 'rgb(52, 50, 74)')
-  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(41, 45, 62)')
+  await expect(page.locator('html')).toHaveCSS('--color-canvas', palenight.background)
   await panel.getByRole('radio', { name: 'Ocean theme' }).check()
-  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(248, 250, 252)')
+  await expect(page.locator('html')).toHaveCSS('--color-canvas', THEME_PRESETS[1].colors.background)
   await expect(panel.getByRole('textbox', { name: 'Primary hex' })).toHaveValue('#2563EB')
 
   for (const [name, value] of [
     ['Primary', '#FFFF00'],
-    ['Secondary', '#223344'],
-    ['Background', '#E8EEF5'],
     ['Surface', '#FFF8E7'],
   ]) {
     await panel.getByRole('textbox', { name: `${name} hex` }).fill(value)
@@ -41,18 +46,21 @@ test('four colors apply live, survive reload, and reset to the original palette'
     )
   }
   await expect(panel.getByText('Custom', { exact: true })).toBeVisible()
-  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(232, 238, 245)')
+  const custom = normalizeTheme({ primary: '#FFFF00', surface: '#FFF8E7' })!
+  await expect(page.locator('html')).toHaveCSS('--color-canvas', custom.background)
+  await expect(page.locator('html')).toHaveCSS('--secondary', custom.secondary)
+  await expect(panel.getByRole('definition')).toHaveText([custom.secondary, custom.background])
   await expect(panel).toHaveCSS('background-color', 'rgb(255, 248, 231)')
   await expect(panel).toHaveCSS('color', 'rgb(23, 32, 51)')
   await page.keyboard.press('Escape')
   await expect(trigger).toBeFocused()
   await page.reload()
-  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(232, 238, 245)')
+  await expect(page.locator('html')).toHaveCSS('--color-canvas', custom.background)
   await page.getByRole('button', { name: 'Customize theme' }).click()
   await expect(panel.getByRole('textbox', { name: 'Primary hex' })).toHaveValue('#FFFF00')
   await panel.getByRole('button', { name: 'Reset to default' }).click()
   await expect(panel.getByRole('radio', { name: 'Default theme' })).toBeChecked()
-  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(246, 248, 251)')
+  await expect(page.locator('html')).toHaveCSS('--color-canvas', DEFAULT_THEME.background)
   await expect(panel).toHaveCSS('background-color', 'rgb(255, 255, 255)')
 })
 
@@ -99,11 +107,13 @@ test('invalid stored data and hex input cannot break the page', async ({ page })
   await expect(input).toHaveValue('#9929EA')
 })
 
-test('a dark canvas with a light surface keeps the page heading readable', async ({ page }) => {
+test('a dark surface derives a dark canvas and keeps the page heading readable', async ({
+  page,
+}) => {
   await page.goto('/settings')
   await page.getByRole('button', { name: 'Customize theme' }).click()
   const panel = page.getByRole('dialog', { name: 'Customize theme' })
-  await panel.getByRole('textbox', { name: 'Background hex' }).fill('#111827')
+  await panel.getByRole('textbox', { name: 'Surface hex' }).fill('#111827')
   await page.keyboard.press('Escape')
   await expect(page.getByRole('heading', { name: 'Settings', exact: true })).toHaveCSS(
     'color',

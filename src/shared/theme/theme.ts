@@ -5,99 +5,99 @@ export interface ThemeColors {
   surface: string
 }
 
+export type ThemeBaseColors = Pick<ThemeColors, 'primary' | 'surface'>
+export const THEME_EDITABLE_COLOR_KEYS = ['primary', 'surface'] as const
 export const THEME_COLOR_KEYS = ['primary', 'secondary', 'background', 'surface'] as const
 export const THEME_STORAGE_KEY = 'simulation-builder.theme.v1'
 
-export const DEFAULT_THEME: Readonly<ThemeColors> = {
+export const DEFAULT_THEME: Readonly<ThemeColors> = resolveTheme({
   primary: '#9929EA',
-  secondary: '#DBABFF',
-  background: '#F6F8FB',
   surface: '#FFFFFF',
-}
+})
 
 export const THEME_PRESETS = [
   { name: 'Default', colors: DEFAULT_THEME },
   {
     name: 'Ocean',
-    colors: { primary: '#2563EB', secondary: '#3B82F6', background: '#F8FAFC', surface: '#FFFFFF' },
+    colors: { primary: '#2563EB', surface: '#FFFFFF' },
   },
   {
     name: 'Teal',
-    colors: { primary: '#0D9488', secondary: '#14B8A6', background: '#F0FDFA', surface: '#FFFFFF' },
+    colors: { primary: '#0D9488', surface: '#FFFFFF' },
   },
   {
     name: 'Indigo',
-    colors: { primary: '#6366F1', secondary: '#818CF8', background: '#F5F3FF', surface: '#FFFFFF' },
+    colors: { primary: '#6366F1', surface: '#FFFFFF' },
   },
   {
     name: 'Emerald',
-    colors: { primary: '#059669', secondary: '#10B981', background: '#ECFDF5', surface: '#FFFFFF' },
+    colors: { primary: '#059669', surface: '#FFFFFF' },
   },
   {
     name: 'Rose',
-    colors: { primary: '#E11D48', secondary: '#FB7185', background: '#FFF1F2', surface: '#FFFFFF' },
+    colors: { primary: '#E11D48', surface: '#FFFFFF' },
   },
   {
     name: 'Slate',
-    colors: { primary: '#334155', secondary: '#475569', background: '#F8FAFC', surface: '#FFFFFF' },
+    colors: { primary: '#334155', surface: '#FFFFFF' },
   },
   {
     name: 'Amber',
-    colors: { primary: '#D97706', secondary: '#F59E0B', background: '#FFFBEB', surface: '#FFFFFF' },
+    colors: { primary: '#D97706', surface: '#FFFFFF' },
   },
   {
     name: 'Orange',
-    colors: { primary: '#EA580C', secondary: '#FB923C', background: '#FFF7ED', surface: '#FFFFFF' },
+    colors: { primary: '#EA580C', surface: '#FFFFFF' },
   },
   {
     name: 'Coral',
-    colors: { primary: '#E76F51', secondary: '#F4A261', background: '#FFF5F0', surface: '#FFFCFA' },
+    colors: { primary: '#E76F51', surface: '#FFFCFA' },
   },
   {
     name: 'Ruby',
-    colors: { primary: '#B91C1C', secondary: '#EF4444', background: '#FEF2F2', surface: '#FFFFFF' },
+    colors: { primary: '#B91C1C', surface: '#FFFFFF' },
   },
   {
     name: 'Pink',
-    colors: { primary: '#EC4899', secondary: '#F472B6', background: '#FDF2F8', surface: '#FFFFFF' },
+    colors: { primary: '#EC4899', surface: '#FFFFFF' },
   },
   {
     name: 'Sky',
-    colors: { primary: '#0284C7', secondary: '#38BDF8', background: '#F0F9FF', surface: '#FFFFFF' },
+    colors: { primary: '#0284C7', surface: '#FFFFFF' },
   },
   {
     name: 'Mint',
-    colors: { primary: '#0F766E', secondary: '#5EEAD4', background: '#F0FDFA', surface: '#F7FFFC' },
+    colors: { primary: '#0F766E', surface: '#F7FFFC' },
   },
   {
     name: 'Olive',
-    colors: { primary: '#4D7C0F', secondary: '#A3E635', background: '#F7FEE7', surface: '#FFFFF5' },
+    colors: { primary: '#4D7C0F', surface: '#FFFFF5' },
   },
   {
     name: 'Sand',
-    colors: { primary: '#A16207', secondary: '#D6B77C', background: '#FAF7F0', surface: '#FFFDF7' },
+    colors: { primary: '#A16207', surface: '#FFFDF7' },
   },
   {
     name: 'Coffee',
-    colors: { primary: '#92400E', secondary: '#B45309', background: '#FEF3C7', surface: '#FFFBEB' },
+    colors: { primary: '#92400E', surface: '#FFFBEB' },
   },
   {
     name: 'Midnight',
-    colors: { primary: '#60A5FA', secondary: '#38BDF8', background: '#0F172A', surface: '#1E293B' },
+    colors: { primary: '#60A5FA', surface: '#1E293B' },
   },
   {
     name: 'Charcoal',
-    colors: { primary: '#FBBF24', secondary: '#F59E0B', background: '#18181B', surface: '#27272A' },
+    colors: { primary: '#FBBF24', surface: '#27272A' },
   },
   {
     name: 'Forest Night',
-    colors: { primary: '#34D399', secondary: '#2DD4BF', background: '#062C24', surface: '#103D32' },
+    colors: { primary: '#34D399', surface: '#103D32' },
   },
   {
     name: 'Material Palenight',
-    colors: { primary: '#C792EA', secondary: '#89DDFF', background: '#292D3E', surface: '#34324A' },
+    colors: { primary: '#C792EA', surface: '#34324A' },
   },
-] satisfies Array<{ name: string; colors: Readonly<ThemeColors> }>
+].map((preset) => ({ ...preset, colors: resolveTheme(preset.colors) }))
 
 type ThemeStorage = Pick<Storage, 'getItem' | 'setItem'>
 
@@ -120,31 +120,34 @@ export function normalizeTheme(value: unknown): ThemeColors | null {
   if (!value || typeof value !== 'object') return null
   const colors = value as Record<string, unknown>
   if (
-    !THEME_COLOR_KEYS.every(
+    !THEME_EDITABLE_COLOR_KEYS.every(
       (key) => typeof colors[key] === 'string' && /^#[\da-f]{6}$/i.test(colors[key] as string),
     )
   )
     return null
-  return Object.fromEntries(
-    THEME_COLOR_KEYS.map((key) => [key, (colors[key] as string).toUpperCase()]),
-  ) as unknown as ThemeColors
+  return resolveTheme({
+    primary: (colors.primary as string).toUpperCase(),
+    surface: (colors.surface as string).toUpperCase(),
+  })
 }
 
 export function readTheme(storage: Pick<ThemeStorage, 'getItem'> | null): ThemeColors {
   try {
     const saved = JSON.parse(storage?.getItem(THEME_STORAGE_KEY) ?? 'null')
-    if (saved?.version === 1) return normalizeTheme(saved.colors) ?? { ...DEFAULT_THEME }
+    if (saved?.version === 1 || saved?.version === 2)
+      return normalizeTheme(saved.colors) ?? { ...DEFAULT_THEME }
   } catch {
     /* Invalid data or denied storage uses the original palette. */
   }
   return { ...DEFAULT_THEME }
 }
 
-export function saveTheme(storage: ThemeStorage | null, colors: ThemeColors): boolean {
+export function saveTheme(storage: ThemeStorage | null, colors: ThemeBaseColors): boolean {
   const normalized = normalizeTheme(colors)
   if (!storage || !normalized) return false
   try {
-    storage.setItem(THEME_STORAGE_KEY, JSON.stringify({ version: 1, colors: normalized }))
+    const { primary, surface } = normalized
+    storage.setItem(THEME_STORAGE_KEY, JSON.stringify({ version: 2, colors: { primary, surface } }))
     return true
   } catch {
     return false
@@ -194,6 +197,20 @@ function mix(base: string, target: string, fraction: number): string {
     )
     .join('')
     .toUpperCase()}`
+}
+
+// One color family: a softer brand companion and a subtly tinted page canvas.
+// Dark surfaces use a deeper canvas so panels retain their visual separation.
+function resolveTheme({ primary, surface }: ThemeBaseColors): ThemeColors {
+  const dark = luminance(surface) < 0.179
+  return {
+    primary,
+    surface,
+    secondary: mix(primary, surface, dark ? 0.3 : 0.62),
+    background: dark
+      ? mix(mix(surface, '#000000', 0.22), primary, 0.035)
+      : mix(surface, primary, 0.045),
+  }
 }
 
 function contrastingColor(color: string, background: string, minimum: number): string {

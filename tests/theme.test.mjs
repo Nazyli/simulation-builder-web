@@ -2,15 +2,12 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 
 const theme = await import('../src/shared/theme/theme.ts')
-const defaults = {
-  primary: '#9929EA',
-  secondary: '#DBABFF',
-  background: '#F6F8FB',
-  surface: '#FFFFFF',
-}
+const defaults = theme.DEFAULT_THEME
 
-test('Default is first and preserves the original four colors', () => {
+test('Default is first and preserves the original primary and surface', () => {
   assert.deepEqual(theme.THEME_PRESETS?.[0]?.colors, defaults)
+  assert.equal(defaults.primary, '#9929EA')
+  assert.equal(defaults.surface, '#FFFFFF')
   assert.equal(theme.THEME_PRESETS?.[0]?.name, 'Default')
   assert.equal(theme.THEME_PRESETS?.length, 21)
 })
@@ -26,7 +23,7 @@ test('theme foregrounds remain readable for every preset and extreme custom colo
       background: '#FFFFFF',
       surface: '#111827',
     },
-  ]) {
+  ].map((colors) => theme.normalizeTheme(colors))) {
     const tokens = theme.deriveThemeTokens(colors)
     for (const [background, foreground] of [
       [colors.primary, tokens['--primary-foreground']],
@@ -50,13 +47,17 @@ test('saved themes round trip and normalize hex without accepting malformed colo
   }
   const colors = { ...defaults, primary: '#2563eb' }
   assert.equal(theme.saveTheme(storage, colors), true)
-  assert.deepEqual(theme.readTheme(storage), { ...colors, primary: '#2563EB' })
+  assert.deepEqual(theme.readTheme(storage), theme.normalizeTheme(colors))
+  assert.deepEqual(JSON.parse(stored), {
+    version: 2,
+    colors: { primary: '#2563EB', surface: '#FFFFFF' },
+  })
   for (const invalid of [
     '{',
     'null',
     '{}',
     JSON.stringify({ version: 1, colors: { ...defaults, surface: 'red' } }),
-    JSON.stringify({ version: 2, colors: defaults }),
+    JSON.stringify({ version: 3, colors: defaults }),
   ]) {
     stored = invalid
     assert.deepEqual(theme.readTheme(storage), defaults)
@@ -106,7 +107,7 @@ test('applying then resetting a palette restores canvas and surface independentl
   assert.equal(properties.get('--primary'), '#2563EB')
   theme.applyTheme(style, defaults)
   assert.equal(properties.get('--primary'), '#9929EA')
-  assert.equal(properties.get('--color-canvas'), '#F6F8FB')
+  assert.equal(properties.get('--color-canvas'), defaults.background)
   assert.equal(properties.get('--color-surface'), '#FFFFFF')
   assert.equal(properties.get('--accent'), '#F5E7FF')
 })
@@ -114,7 +115,9 @@ test('applying then resetting a palette restores canvas and surface independentl
 test('chart and activity palettes follow live theme colors with readable contrast', () => {
   const teal = theme.THEME_PRESETS.find((preset) => preset.name === 'Teal').colors
   const original = theme.deriveThemeTokens(defaults)
-  for (const colors of [teal, { ...teal, surface: '#111827', background: '#000000' }]) {
+  for (const colors of [teal, { ...teal, surface: '#111827' }].map((colors) =>
+    theme.normalizeTheme(colors),
+  )) {
     const tokens = theme.deriveThemeTokens(colors)
     for (const key of ['input', 'output', 'total', 'category-four', 'category-five']) {
       const color = tokens[`--color-chart-${key}`]
@@ -130,5 +133,40 @@ test('chart and activity palettes follow live theme colors with readable contras
     assert.ok(theme.contrastRatio(tokens['--color-graph-accent'], colors.background) >= 3)
     assert.notEqual(tokens['--color-chart-input'], original['--color-chart-input'])
     assert.notEqual(tokens['--color-chart-output'], original['--color-chart-output'])
+  }
+})
+
+test('only primary and surface determine a palette, including legacy saved themes', () => {
+  const base = { primary: '#2563eb', surface: '#ffffff' }
+  const resolved = theme.normalizeTheme(base)
+  assert.ok(resolved)
+  assert.equal(resolved.primary, '#2563EB')
+  assert.equal(resolved.surface, '#FFFFFF')
+  assert.notEqual(resolved.secondary, resolved.primary)
+  assert.notEqual(resolved.background, resolved.surface)
+  const legacy = { ...base, secondary: '#FF0000', background: '#00FF00' }
+  assert.deepEqual(theme.normalizeTheme(legacy), resolved)
+  assert.deepEqual(
+    theme.readTheme({ getItem: () => JSON.stringify({ version: 1, colors: legacy }) }),
+    resolved,
+  )
+  for (const colors of [{ primary: 'red', surface: '#FFFFFF' }, { primary: '#2563EB' }]) {
+    assert.equal(theme.normalizeTheme(colors), null)
+  }
+})
+
+test('changing either base color regenerates the supporting colors and dark canvas', () => {
+  const light = theme.normalizeTheme({ primary: '#9929EA', surface: '#FFFFFF' })
+  const teal = theme.normalizeTheme({ primary: '#0D9488', surface: '#FFFFFF' })
+  const dark = theme.normalizeTheme({ primary: '#9929EA', surface: '#34324A' })
+  for (const palette of [teal, dark]) {
+    assert.notEqual(palette.secondary, light.secondary)
+    assert.notEqual(palette.background, light.background)
+  }
+  assert.ok(
+    theme.contrastRatio(dark.background, '#FFFFFF') > theme.contrastRatio(dark.surface, '#FFFFFF'),
+  )
+  for (const preset of theme.THEME_PRESETS) {
+    assert.deepEqual(theme.normalizeTheme(preset.colors), preset.colors)
   }
 })
