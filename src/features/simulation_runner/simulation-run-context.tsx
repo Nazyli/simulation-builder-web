@@ -10,7 +10,7 @@ import {
   type ParticipantChatBatchResponse,
   type ChatSimulationItem,
 } from '../../shared/api/chat'
-import { eventsUrl } from '../../shared/api/client'
+import { subscribeRunnerEvents, type RunnerEvent } from '../../shared/api/runner-events'
 import {
   markEmailThreadAsRead,
   sendParticipantEmail,
@@ -37,7 +37,6 @@ export function SimulationRunProvider({
     queryKey: ['notification-activity', participantId],
     queryFn: () => getNotificationActivity(participantId),
     enabled: Boolean(participantId.trim()),
-    refetchInterval: 30_000,
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,
   })
@@ -46,7 +45,6 @@ export function SimulationRunProvider({
   useEffect(() => {
     const streamParticipantId = participantId.trim()
     if (!streamParticipantId) return
-    const events = new EventSource(eventsUrl(streamParticipantId))
     const invalidateRunner = () => {
       void client.invalidateQueries({ queryKey: ['notification-activity', streamParticipantId] })
       void client.invalidateQueries({ queryKey: ['participant-executions', streamParticipantId] })
@@ -59,40 +57,15 @@ export function SimulationRunProvider({
       void client.invalidateQueries({ queryKey: ['runner-documents', streamParticipantId] })
       void client.invalidateQueries({ queryKey: ['documents', streamParticipantId] })
     }
-    const refreshRunner = (event: Event) => {
+    const refreshRunner = (payload: RunnerEvent) => {
       invalidateRunner()
-      if (!(event instanceof MessageEvent)) return
-      try {
-        const payload = JSON.parse(event.data) as {
-          type?: string
-          message?: {
-            sender_type?: string
-            sender_id?: string
-            content?: string
-            subject?: string
-            is_read?: boolean
-          }
-        }
-        if (
-          payload.type === 'chat_message' &&
-          payload.message?.sender_type === 'actor' &&
-          payload.message.is_read === false
-        ) {
-          toast.info(`New message from ${payload.message.sender_id ?? 'actor'}`, {
-            description: payload.message.content,
-          })
-        }
-        if (
-          payload.type === 'email_message' &&
-          payload.message?.sender_type === 'actor' &&
-          payload.message.is_read === false
-        ) {
-          toast.info(`New email from ${payload.message.sender_id ?? 'actor'}`, {
-            description: payload.message.subject ?? payload.message.content,
-          })
-        }
-      } catch {
-        // Ignore malformed SSE payloads while still refreshing server state.
+      if (payload.type === 'chat_message') {
+        toast.info(`New message from ${payload.activityChat.actorIdChat ?? 'actor'}`, {
+          description: payload.activityChat.content ?? undefined,
+        })
+      }
+      if (payload.type === 'email_message') {
+        toast.info('New email', { description: payload.activityEmail.subject ?? undefined })
       }
     }
     const handleVisibility = () => {
@@ -100,13 +73,15 @@ export function SimulationRunProvider({
         invalidateRunner()
       }
     }
-    events.addEventListener('notification', refreshRunner)
-    events.addEventListener('open', invalidateRunner)
-    events.onerror = invalidateRunner
+    const unsubscribe = subscribeRunnerEvents(streamParticipantId, {
+      notification: refreshRunner,
+      open: invalidateRunner,
+      error: invalidateRunner,
+    })
     document.addEventListener('visibilitychange', handleVisibility)
     return () => {
       document.removeEventListener('visibilitychange', handleVisibility)
-      events.close()
+      unsubscribe()
     }
   }, [client, participantId])
 

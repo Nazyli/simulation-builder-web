@@ -8,7 +8,7 @@ import {
   type ChatMessage as ApiChatMessage,
   type ChatSimulationItem,
 } from '../../shared/api/chat'
-import { eventsUrl } from '../../shared/api/client'
+import { subscribeRunnerEvents, type RunnerEvent } from '../../shared/api/runner-events'
 import { ChatWorkspace } from './chat/chat-workspace'
 import { ChatBatchBuffer, sendChatTimerMs } from './chat/chat-batch-buffer'
 import type { ChatBubbleInput } from './chat/chat-batch-buffer'
@@ -28,7 +28,9 @@ export function ChatChannelPage() {
   const lastBubbleTimestampRef = useRef(0)
   const batchBufferRef = useRef<ChatBatchBuffer | null>(null)
   if (!batchBufferRef.current) {
-    batchBufferRef.current = new ChatBatchBuffer(sendChatTimerMs, (contents) => flushBatchRef.current(contents))
+    batchBufferRef.current = new ChatBatchBuffer(sendChatTimerMs, (contents) =>
+      flushBatchRef.current(contents),
+    )
   }
   const flushQueuedBubbles = () => batchBufferRef.current?.flush()
 
@@ -58,14 +60,18 @@ export function ChatChannelPage() {
     if (isMountedRef.current && pendingIdSet.size) {
       setLocalMessages((messages) =>
         messages.map((message) =>
-          pendingIdSet.has(message.messageId ?? '') ? { ...message, deliveryStatus: 'sending' } : message,
+          pendingIdSet.has(message.messageId ?? '')
+            ? { ...message, deliveryStatus: 'sending' }
+            : message,
         ),
       )
     }
     void sendChatRef
       .current({ ...pendingTarget, contents })
       .then((response) => {
-        contents.forEach((content) => pendingMessageIdsByTimestampRef.current.delete(content.timestamp))
+        contents.forEach((content) =>
+          pendingMessageIdsByTimestampRef.current.delete(content.timestamp),
+        )
         if (!isMountedRef.current) return
         const persistedMessages = response.messages.map(toChatMessage)
         setLocalMessages((messages) => [
@@ -74,9 +80,13 @@ export function ChatChannelPage() {
         ])
       })
       .catch(() => {
-        contents.forEach((content) => pendingMessageIdsByTimestampRef.current.delete(content.timestamp))
+        contents.forEach((content) =>
+          pendingMessageIdsByTimestampRef.current.delete(content.timestamp),
+        )
         if (!isMountedRef.current) return
-        setLocalMessages((messages) => messages.filter((message) => !pendingIdSet.has(message.messageId ?? '')))
+        setLocalMessages((messages) =>
+          messages.filter((message) => !pendingIdSet.has(message.messageId ?? '')),
+        )
       })
     pendingTargetRef.current = null
   }
@@ -161,49 +171,31 @@ export function ChatChannelPage() {
   useEffect(() => {
     const pid = participantId.trim()
     if (!pid || !selectedActor || !effectiveSelected) return
-    const events = new EventSource(eventsUrl(pid))
-    const handleNotification = (event: Event) => {
-      if (!(event instanceof MessageEvent)) return
-      try {
-        const payload = JSON.parse(event.data) as {
-          type?: string
-          message?: {
-            senderType?: string
-            senderId?: string
-            simulationId?: string
-            isRead?: boolean
-          }
-        }
-        if (
-          payload.type === 'chat_message' &&
-          payload.message?.senderType === 'actor' &&
-          payload.message.isRead === false &&
-          payload.message.senderId === selectedActor &&
-          payload.message.simulationId === effectiveSelected
-        ) {
-          setReadPendingActors((prev) => {
-            if (prev.has(selectedActor)) return prev
-            const next = new Set(prev)
-            next.add(selectedActor)
-            return next
-          })
-          void markChatReadRef
-            .current(effectiveSelected, selectedActor)
-            .catch(() => undefined)
-            .finally(() =>
-              setReadPendingActors((prev) => {
-                const next = new Set(prev)
-                next.delete(selectedActor)
-                return next
-              }),
-            )
-        }
-      } catch {
-        // Ignore malformed SSE payloads.
+    const handleNotification = (payload: RunnerEvent) => {
+      if (
+        payload.type === 'chat_message' &&
+        payload.activityChat.actorIdChat === selectedActor &&
+        payload.activityChat.simulationId === effectiveSelected
+      ) {
+        setReadPendingActors((prev) => {
+          if (prev.has(selectedActor)) return prev
+          const next = new Set(prev)
+          next.add(selectedActor)
+          return next
+        })
+        void markChatReadRef
+          .current(effectiveSelected, selectedActor)
+          .catch(() => undefined)
+          .finally(() =>
+            setReadPendingActors((prev) => {
+              const next = new Set(prev)
+              next.delete(selectedActor)
+              return next
+            }),
+          )
       }
     }
-    events.addEventListener('notification', handleNotification)
-    return () => events.close()
+    return subscribeRunnerEvents(pid, { notification: handleNotification })
   }, [participantId, selectedActor, effectiveSelected])
 
   const chatQuery = useQuery({
@@ -226,7 +218,9 @@ export function ChatChannelPage() {
   useEffect(() => {
     const persistedIds = new Set((chatQuery.data ?? []).map((message) => message.participantChatId))
     if (!persistedIds.size) return
-    setLocalMessages((messages) => messages.filter((message) => !persistedIds.has(message.messageId ?? '')))
+    setLocalMessages((messages) =>
+      messages.filter((message) => !persistedIds.has(message.messageId ?? '')),
+    )
   }, [chatQuery.data])
 
   useEffect(() => {
