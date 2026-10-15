@@ -26,10 +26,10 @@ export interface ChatConversation {
 
 export interface ChatSimulation {
   simulationId: string
-  groupSimulationName: string
-  simulationName: string | null
-  status: string
+  simulationName: string
+  channelName: string
   unreadCount: number
+  lastModifiedDate: string | null
 }
 
 export interface ChatActor {

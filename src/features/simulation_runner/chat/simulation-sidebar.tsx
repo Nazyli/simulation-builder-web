@@ -1,5 +1,4 @@
 import { Layers } from 'lucide-react'
-import { StatusBadge } from '../../../shared/components/status-badge'
 import type { ChatSimulation } from './types'
 
 interface SimulationSidebarProps {
@@ -33,15 +32,10 @@ export function SimulationSidebar({
           >
             <span className="min-w-0 flex-1">
               <span className="flex items-center justify-between gap-2">
-                <span className="truncate text-sm font-semibold">
-                  {simulation.groupSimulationName}
-                </span>
-                <StatusBadge status={simulation.status} />
+                <span className="truncate text-sm font-semibold">{simulation.simulationName}</span>
               </span>
               <span className="flex items-center justify-between gap-2">
-                <span className="truncate text-xs text-slate-500">
-                  {simulation.simulationName ?? 'Unknown version'}
-                </span>
+                <span className="truncate text-xs text-slate-500">{simulation.channelName}</span>
                 {simulation.unreadCount > 0 && (
                   <span
                     aria-label={`${simulation.unreadCount} unread message${simulation.unreadCount === 1 ? '' : 's'}`}

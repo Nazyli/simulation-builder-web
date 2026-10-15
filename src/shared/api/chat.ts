@@ -17,10 +17,10 @@ export interface ChatMessage {
 
 export interface ChatSimulationItem {
   simulationId: string
-  groupSimulationName: string
-  simulationName: string | null
-  status: string
+  simulationName: string
+  channelName: string
   unreadCount: number
+  lastModifiedDate: string | null
 }
 
 export interface ChatActorItem {
@@ -46,7 +46,7 @@ export interface ParticipantChatBatchResponse {
 
 export const getChatSimulations = (participantId: string) =>
   apiClient<ChatSimulationItem[]>(
-    `/web/chat/master_group_simulations?participantId=${encodeURIComponent(participantId)}`,
+    `/admin/runner/chat/simulations?participantId=${encodeURIComponent(participantId)}`,
   )
 export const getChatActors = (participantId: string, simulationId: string) =>
   apiClient<ChatActorItem[]>(

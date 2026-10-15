@@ -93,10 +93,10 @@ export function ChatChannelPage() {
 
   const toChatSimulation = (item: ChatSimulationItem): ChatSimulation => ({
     simulationId: item.simulationId,
-    groupSimulationName: item.groupSimulationName,
     simulationName: item.simulationName,
-    status: item.status,
+    channelName: item.channelName,
     unreadCount: item.unreadCount,
+    lastModifiedDate: item.lastModifiedDate,
   })
 
   const toChatActor = (item: ChatActorItem): ChatActor => ({
@@ -110,17 +110,11 @@ export function ChatChannelPage() {
     queryFn: () => getChatSimulations(participantId),
     enabled: Boolean(participantId.trim()),
   })
-  const simulations = (simulationsQuery.data ?? []).map(toChatSimulation).sort((a, b) => {
-    const rank = (status: string) => (status === 'waiting' ? 0 : status === 'running' ? 1 : 2)
-    return rank(a.status) - rank(b.status)
-  })
+  // Backend returns summaries sorted by unread count descending; keep that order.
+  const simulations = (simulationsQuery.data ?? []).map(toChatSimulation)
 
   const [selectedSimulation, setSelectedSimulation] = useState<string | null>(null)
-  const effectiveSelected =
-    selectedSimulation ??
-    simulations.find((s) => s.status === 'waiting' || s.status === 'running')?.simulationId ??
-    simulations[0]?.simulationId ??
-    null
+  const effectiveSelected = selectedSimulation ?? simulations[0]?.simulationId ?? null
 
   const actorsQuery = useQuery({
     queryKey: ['chat-actors', participantId, effectiveSelected],
@@ -246,10 +240,10 @@ export function ChatChannelPage() {
     }
   }, [effectiveSelected, selectedActor])
 
+  // The summary contract carries no execution status; the backend replies 422
+  // when a message targets a simulation with no active wait.
   const selectedRun = simulations.find((s) => s.simulationId === effectiveSelected)
-  const canReply = Boolean(
-    selectedRun && (selectedRun.status === 'waiting' || selectedRun.status === 'running'),
-  )
+  const canReply = Boolean(selectedRun)
   const disabled = isChatPending || !canReply
 
   function submit(event: FormEvent<HTMLFormElement>) {
