@@ -50,11 +50,11 @@ export const getChatSimulations = (participantId: string) =>
   )
 export const getChatActors = (participantId: string, simulationId: string) =>
   apiClient<ChatActorItem[]>(
-    `/web/chat/actors?participantId=${encodeURIComponent(participantId)}&simulationId=${encodeURIComponent(simulationId)}`,
+    `/admin/runner/chat/actors?participantId=${encodeURIComponent(participantId)}&simulationId=${encodeURIComponent(simulationId)}`,
   )
 export const getChatMessages = (participantId: string, simulationId: string, actorId: string) =>
   apiClient<ChatMessage[]>(
-    `/web/chat/messages?participantId=${encodeURIComponent(participantId)}&simulationId=${encodeURIComponent(simulationId)}&actorId=${encodeURIComponent(actorId)}`,
+    `/admin/runner/chat/messages?participantId=${encodeURIComponent(participantId)}&simulationId=${encodeURIComponent(simulationId)}&actorId=${encodeURIComponent(actorId)}`,
   )
 export const sendParticipantChat = (
   participantId: string,
@@ -63,7 +63,7 @@ export const sendParticipantChat = (
   simulationId: string,
 ) =>
   apiClient<ParticipantChatBatchResponse>(
-    `/web/chat?participantId=${encodeURIComponent(participantId)}`,
+    `/admin/runner/chat?participantId=${encodeURIComponent(participantId)}`,
     {
       method: 'POST',
       body: JSON.stringify({ actorId, contents, simulationId }),
@@ -71,6 +71,6 @@ export const sendParticipantChat = (
   )
 export const markChatMessageRead = (participantId: string, simulationId: string, actorId: string) =>
   apiClient<ChatMarkAsReadResult>(
-    `/web/chat/mark-as-read?participantId=${encodeURIComponent(participantId)}&simulationId=${encodeURIComponent(simulationId)}&actorId=${encodeURIComponent(actorId)}`,
+    `/admin/runner/chat/mark-as-read?participantId=${encodeURIComponent(participantId)}&simulationId=${encodeURIComponent(simulationId)}&actorId=${encodeURIComponent(actorId)}`,
     { method: 'POST' },
   )

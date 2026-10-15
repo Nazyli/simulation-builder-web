@@ -44,14 +44,6 @@ export interface EmailMessage {
   attachments: RuntimeEmailAttachment[]
 }
 
-interface EmailSimulationItem {
-  simulationId: string
-  groupSimulationName: string
-  simulationName: string | null
-  status: string
-  unreadCount: number
-}
-
 export interface EmailInboxThreadItem {
   rootId: string
   latestMessageId: string
@@ -80,15 +72,10 @@ export interface ParticipantEmailAttachmentInput {
   contents: ParticipantEmailAttachmentContentInput[]
 }
 
-export const getEmailSimulations = (participantId: string) =>
-  apiClient<EmailSimulationItem[]>(
-    `/web/email/master_group_simulations?participantId=${encodeURIComponent(participantId)}`,
-  )
-
 export const getEmailInbox = (participantId: string, simulationId?: string) => {
   const params = new URLSearchParams({ participantId })
   if (simulationId) params.set('simulationId', simulationId)
-  return apiClient<EmailInboxThreadItem[]>(`/web/email/inbox?${params.toString()}`)
+  return apiClient<EmailInboxThreadItem[]>(`/admin/runner/email/inbox?${params.toString()}`)
 }
 
 export const getEmailThreadMessages = (
@@ -97,7 +84,7 @@ export const getEmailThreadMessages = (
   rootId: string,
 ) =>
   apiClient<EmailMessage[]>(
-    `/web/email/thread-messages?participantId=${encodeURIComponent(participantId)}&simulationId=${encodeURIComponent(simulationId)}&rootId=${encodeURIComponent(rootId)}`,
+    `/admin/runner/email/thread-messages?participantId=${encodeURIComponent(participantId)}&simulationId=${encodeURIComponent(simulationId)}&rootId=${encodeURIComponent(rootId)}`,
   )
 
 export const sendParticipantEmail = (
@@ -112,20 +99,23 @@ export const sendParticipantEmail = (
   replyToEmailId?: string,
   attachments?: ParticipantEmailAttachmentInput[],
 ) =>
-  apiClient<EmailMessage>(`/web/email?participantId=${encodeURIComponent(participantId)}`, {
-    method: 'POST',
-    body: JSON.stringify({
-      partnerId,
-      subject,
-      content,
-      simulationId,
-      to: to ?? [],
-      cc: cc ?? [],
-      ...(parentEmailId ? { parentEmailId } : {}),
-      ...(replyToEmailId ? { replyToEmailId } : {}),
-      ...(attachments?.length ? { attachments } : {}),
-    }),
-  })
+  apiClient<EmailMessage>(
+    `/admin/runner/email?participantId=${encodeURIComponent(participantId)}`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        partnerId,
+        subject,
+        content,
+        simulationId,
+        to: to ?? [],
+        cc: cc ?? [],
+        ...(parentEmailId ? { parentEmailId } : {}),
+        ...(replyToEmailId ? { replyToEmailId } : {}),
+        ...(attachments?.length ? { attachments } : {}),
+      }),
+    },
+  )
 
 export const markEmailThreadAsRead = (
   participantId: string,
@@ -133,7 +123,7 @@ export const markEmailThreadAsRead = (
   rootId: string,
 ) =>
   apiClient<EmailMarkAsReadResult>(
-    `/web/email/mark-thread-read?participantId=${encodeURIComponent(participantId)}&simulationId=${encodeURIComponent(simulationId)}&rootId=${encodeURIComponent(rootId)}`,
+    `/admin/runner/email/mark-thread-read?participantId=${encodeURIComponent(participantId)}&simulationId=${encodeURIComponent(simulationId)}&rootId=${encodeURIComponent(rootId)}`,
     { method: 'POST' },
   )
 
@@ -149,7 +139,7 @@ export const markEmailAttachmentOpened = (
     participantEmailId,
   })
   return apiClient<RuntimeEmailAttachment>(
-    `/web/email/attachments/${encodeURIComponent(attachmentId)}/opened?${params.toString()}`,
+    `/admin/runner/email/attachments/${encodeURIComponent(attachmentId)}/opened?${params.toString()}`,
     { method: 'POST' },
   )
 }

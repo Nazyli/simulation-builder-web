@@ -30,7 +30,7 @@ test('runner batch sends the participant profile alongside simulation ids', asyn
     participantActorId: 'actor-1',
   })
 
-  assert.equal(request.path, '/web/executions/batch')
+  assert.equal(request.path, '/admin/runner/executions/batch')
   assert.equal(request.method, 'POST')
   assert.deepEqual(request.body, {
     participantId: 'participant-1',

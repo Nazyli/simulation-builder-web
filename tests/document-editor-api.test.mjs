@@ -18,7 +18,7 @@ test('createDocument posts camelCase document pages to the participant endpoint'
     contents: [{ page: 1, content: '<p>One</p>' }],
   })
 
-  assert.equal(request.path, '/web/documents?participantId=participant%201')
+  assert.equal(request.path, '/admin/runner/documents?participantId=participant%201')
   assert.equal(request.init.method, 'POST')
   assert.deepEqual(JSON.parse(request.init.body), {
     documentName: 'Guide',
@@ -44,7 +44,7 @@ test('updateDocument puts the full page set for the selected runtime document', 
     ],
   })
 
-  assert.equal(request.path, '/web/documents/document%2F2?participantId=participant%2F1')
+  assert.equal(request.path, '/admin/runner/documents/document%2F2?participantId=participant%2F1')
   assert.equal(request.init.method, 'PUT')
   assert.deepEqual(JSON.parse(request.init.body).contents, [
     { page: 1, content: '<p>One</p>' },

@@ -20,5 +20,5 @@ export interface NotificationActivity {
 
 export const getNotificationActivity = (participantId: string) =>
   apiClient<NotificationActivity>(
-    `/web/notifications/activity?participantId=${encodeURIComponent(participantId)}`,
+    `/admin/runner/notifications/activity?participantId=${encodeURIComponent(participantId)}`,
   )

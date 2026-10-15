@@ -18,7 +18,7 @@ export interface RunnerActorFilters {
 
 export const getRunnerActorGroups = (search = '', signal?: AbortSignal) => {
   const params = new URLSearchParams({ ...RUNNER_ACTOR_SCOPE, search })
-  return apiClient<(string | null)[]>(`/web/actors/groups?${params}`, { signal })
+  return apiClient<(string | null)[]>(`/admin/runner/actors/groups?${params}`, { signal })
 }
 
 export const getRunnerActors = (filters: RunnerActorFilters = {}, signal?: AbortSignal) => {
@@ -26,5 +26,5 @@ export const getRunnerActors = (filters: RunnerActorFilters = {}, signal?: Abort
   if (filters.actorGroupPosition !== undefined) {
     params.set('actorGroupPosition', filters.actorGroupPosition)
   }
-  return apiClient<RunnerActor[]>(`/web/actors?${params}`, { signal })
+  return apiClient<RunnerActor[]>(`/admin/runner/actors?${params}`, { signal })
 }

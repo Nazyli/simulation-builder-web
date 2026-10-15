@@ -37,19 +37,19 @@ export interface CallParticipantEndResult {
 
 export function getCallConnection(participantId: string) {
   return apiClient<CallConnection>(
-    `/web/agent-call/connection?participantId=${encodeURIComponent(participantId)}`,
+    `/admin/runner/agent-call/connection?participantId=${encodeURIComponent(participantId)}`,
   )
 }
 
-export function getCallRoomConnection(roomName: string) {
+export function getCallRoomConnection(roomName: string, participantId: string) {
   return apiClient<CallConnection>(
-    `/web/agent-call/room-connection?roomName=${encodeURIComponent(roomName)}`,
+    `/admin/runner/agent-call/room-connection?roomName=${encodeURIComponent(roomName)}&participantId=${encodeURIComponent(participantId)}`,
   )
 }
 
 export function getCallHistory(participantCallSessionId: string, participantId: string) {
   return apiClient<CallMessage[]>(
-    `/web/agent-call/participant-call-sessions/${encodeURIComponent(participantCallSessionId)}/history?participantId=${encodeURIComponent(participantId)}`,
+    `/admin/runner/agent-call/participant-call-sessions/${encodeURIComponent(participantCallSessionId)}/history?participantId=${encodeURIComponent(participantId)}`,
   )
 }
 
@@ -60,7 +60,7 @@ export function requestParticipantEnd(
   occurredAt: string,
 ) {
   return apiClient<CallParticipantEndResult>(
-    `/web/agent-call/participant-call-sessions/${encodeURIComponent(participantCallSessionId)}/participant-end`,
+    `/admin/runner/agent-call/participant-call-sessions/${encodeURIComponent(participantCallSessionId)}/participant-end?participantId=${encodeURIComponent(participantId)}`,
     {
       method: 'POST',
       body: JSON.stringify({

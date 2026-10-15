@@ -41,10 +41,12 @@ export function ExecutionDetailPage() {
     enabled: Boolean(id),
   })
 
+  const detail = history.data?.content.find((item) => item.executionId === id)
+
   const nodeExecutions = useQuery({
     queryKey: ['history-node-executions', id],
-    queryFn: () => getNodeExecutions(id!),
-    enabled: Boolean(id),
+    queryFn: () => getNodeExecutions(id!, detail!.participantId),
+    enabled: Boolean(id) && Boolean(detail),
   })
 
   // Auto-refresh node executions with countdown timer
@@ -101,7 +103,7 @@ export function ExecutionDetailPage() {
     )
   }
 
-  const data = history.data?.content.find((item) => item.executionId === id)
+  const data = detail
   if (!data) {
     return (
       <ExecutionDetailState>
@@ -251,6 +253,7 @@ export function ExecutionDetailPage() {
           <ParticipantFlowCanvas
             simulationId={data.simulationId}
             executionId={data.executionId}
+            participantId={data.participantId}
             currentState={data.currentNodeId}
           />
         </TabsContent>

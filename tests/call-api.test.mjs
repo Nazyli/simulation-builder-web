@@ -35,7 +35,7 @@ test('requests the active call connection for a participant', async () => {
 
   const details = await getCallConnection('participant-1')
 
-  assert.equal(requests[0].path, '/web/agent-call/connection?participantId=participant-1')
+  assert.equal(requests[0].path, '/admin/runner/agent-call/connection?participantId=participant-1')
   assert.equal(details.callSessionId, 'call-session-1')
   assert.equal(details.roomName, 'room_call-session-1')
 })
@@ -54,7 +54,7 @@ test('loads call history by session and participant', async () => {
 
   assert.equal(
     requests[0].path,
-    '/web/agent-call/participant-call-sessions/call-session-1/history?participantId=participant-1',
+    '/admin/runner/agent-call/participant-call-sessions/call-session-1/history?participantId=participant-1',
   )
 })
 
@@ -91,7 +91,7 @@ test('posts a stable participant end request', async () => {
 
   assert.equal(
     requests[0].path,
-    '/web/agent-call/participant-call-sessions/call-session-1/participant-end',
+    '/admin/runner/agent-call/participant-call-sessions/call-session-1/participant-end?participantId=participant-1',
   )
   assert.equal(requests[0].method, 'POST')
   assert.deepEqual(requests[0].body, {
@@ -119,8 +119,11 @@ test('resolves the room connection for the agent-ready flow', async () => {
     }
   }
 
-  const result = await getCallRoomConnection('room_call-session-1')
+  const result = await getCallRoomConnection('room_call-session-1', 'participant-1')
 
-  assert.equal(requests[0].path, '/web/agent-call/room-connection?roomName=room_call-session-1')
+  assert.equal(
+    requests[0].path,
+    '/admin/runner/agent-call/room-connection?roomName=room_call-session-1&participantId=participant-1',
+  )
   assert.equal(result.status, 'active')
 })

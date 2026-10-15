@@ -65,7 +65,8 @@ export function ParticipantHistoryPage() {
     }
   }, [history.data, history.isPlaceholderData, page])
   const removeExecution = useMutation({
-    mutationFn: deleteExecution,
+    mutationFn: ({ executionId, participantId }: { executionId: string; participantId: string }) =>
+      deleteExecution(executionId, participantId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['participant-history'] })
       setDeleteTarget(null)
@@ -280,7 +281,11 @@ export function ParticipantHistoryPage() {
               variant="destructive"
               disabled={removeExecution.isPending}
               onClick={() =>
-                deleteTarget && removeExecution.mutate(deleteTarget.execution.executionId)
+                deleteTarget &&
+                removeExecution.mutate({
+                  executionId: deleteTarget.execution.executionId,
+                  participantId: deleteTarget.execution.participantId,
+                })
               }
               className="border-0 bg-red-600 text-white hover:bg-red-700"
             >

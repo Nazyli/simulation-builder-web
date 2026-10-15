@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { getRunnerActorGroups, getRunnerActors } from '../src/shared/api/runner-actors.ts'
 
-test('Runner contacts use the web API with frontend design and level scope', async () => {
+test('Runner contacts use the admin runner playground API with frontend design and level scope', async () => {
   const original = globalThis.fetch
   const requests = []
   const contacts = [{ actorId: 'client', actorName: 'Client', actorGroupPosition: 'Client' }]
@@ -16,7 +16,7 @@ test('Runner contacts use the web API with frontend design and level scope', asy
       contacts,
     )
     const { url } = requests[0]
-    assert.equal(url.pathname, '/web/actors')
+    assert.equal(url.pathname, '/admin/runner/actors')
     assert.equal(url.searchParams.get('designId'), 'ambj-01')
     assert.equal(url.searchParams.get('levelId'), '3')
     assert.equal(url.searchParams.get('search'), '%_ / &')
@@ -40,7 +40,7 @@ test('Runner group query uses the same scope and propagates cancellation', async
   }
   try {
     assert.deepEqual(await getRunnerActorGroups('cli', controller.signal), [null, '', 'Client'])
-    assert.equal(requested.url.pathname, '/web/actors/groups')
+    assert.equal(requested.url.pathname, '/admin/runner/actors/groups')
     assert.equal(requested.url.searchParams.get('designId'), 'ambj-01')
     assert.equal(requested.url.searchParams.get('levelId'), '3')
     assert.equal(requested.url.searchParams.get('search'), 'cli')

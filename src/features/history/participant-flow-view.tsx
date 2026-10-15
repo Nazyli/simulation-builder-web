@@ -199,10 +199,12 @@ function dagLayout(
 export function ParticipantFlowCanvas({
   simulationId,
   executionId,
+  participantId,
   currentState,
 }: {
   simulationId: string
   executionId: string
+  participantId: string
   currentState: string | null
 }) {
   const graph = useQuery({
@@ -216,7 +218,7 @@ export function ParticipantFlowCanvas({
   })
   const nodeExecutions = useQuery({
     queryKey: ['node-executions', executionId],
-    queryFn: () => getNodeExecutions(executionId),
+    queryFn: () => getNodeExecutions(executionId, participantId),
     enabled: Boolean(executionId),
   })
 

@@ -63,7 +63,7 @@ export function CallMeetingRoomPage() {
       return
     }
     let active = true
-    getCallRoomConnection(roomId)
+    getCallRoomConnection(roomId, participantId)
       .then((resolved) => {
         if (active) dispatch({ type: 'connection-resolved', connection: resolved })
       })
@@ -98,7 +98,7 @@ export function CallMeetingRoomPage() {
     let active = true
     const poll = setInterval(() => {
       if (!active) return
-      getCallRoomConnection(roomId)
+      getCallRoomConnection(roomId, participantId)
         .then((resolved) => {
           if (active) dispatch({ type: 'connection-resolved', connection: resolved })
         })

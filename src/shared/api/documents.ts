@@ -35,18 +35,18 @@ export interface RuntimeSimulationDocument {
 
 export const getDocuments = (participantId: string) =>
   apiClient<RuntimeSimulationDocument[]>(
-    `/web/documents?participantId=${encodeURIComponent(participantId)}`,
+    `/admin/runner/documents?participantId=${encodeURIComponent(participantId)}`,
   )
 
 export const openDocument = (participantId: string, documentId: string) =>
   apiClient<RuntimeSimulationDocument>(
-    `/web/documents/${encodeURIComponent(documentId)}/open?participantId=${encodeURIComponent(participantId)}`,
+    `/admin/runner/documents/${encodeURIComponent(documentId)}/open?participantId=${encodeURIComponent(participantId)}`,
     { method: 'POST' },
   )
 
 export const createDocument = (participantId: string, input: DocumentWriteInput) =>
   apiClient<RuntimeSimulationDocument>(
-    `/web/documents?participantId=${encodeURIComponent(participantId)}`,
+    `/admin/runner/documents?participantId=${encodeURIComponent(participantId)}`,
     { method: 'POST', body: JSON.stringify(input) },
   )
 
@@ -56,6 +56,6 @@ export const updateDocument = (
   input: DocumentWriteInput,
 ) =>
   apiClient<RuntimeSimulationDocument>(
-    `/web/documents/${encodeURIComponent(documentId)}?participantId=${encodeURIComponent(participantId)}`,
+    `/admin/runner/documents/${encodeURIComponent(documentId)}?participantId=${encodeURIComponent(participantId)}`,
     { method: 'PUT', body: JSON.stringify(input) },
   )

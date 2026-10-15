@@ -382,6 +382,18 @@ export function SimulationStudioPage({
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null)
   const [selectedExecutionId, setSelectedExecutionId] = useState<string | null>(null)
   const [deleteExecutionTarget, setDeleteExecutionTarget] = useState<string | null>(null)
+  // Studio is admin context without a participant. The admin runner playground mirror
+  // requires a non-empty participantId query on execution routes but ignores it for
+  // simulation-wide list/delete/timeline reads, so reuse the selected (or any cached)
+  // run's participant and fall back to a sentinel the backend accepts and ignores.
+  const studioExecutionParticipantId = (executionId: string | null) => {
+    const runs = queryClient.getQueryData<Execution[]>(['executions', simulationId]) ?? []
+    return (
+      runs.find((run) => run.executionId === executionId)?.participantId ??
+      runs.find((run) => run.participantId)?.participantId ??
+      'studio'
+    )
+  }
   const [deleteSimulationTarget, setdeleteSimulationTarget] = useState<string | null>(null)
   const [duplicateOpen, setDuplicateOpen] = useState(false)
   const [duplicateSourceId, setDuplicateSourceId] = useState<string | null>(null)
@@ -588,12 +600,13 @@ export function SimulationStudioPage({
   })
   const executions = useQuery({
     queryKey: ['executions', simulationId],
-    queryFn: () => getExecutions(simulationId!),
+    queryFn: () => getExecutions(simulationId!, studioExecutionParticipantId(selectedExecutionId)),
     enabled: Boolean(simulationId) && versionDetail.isSuccess,
   })
   const executionTimeline = useQuery({
     queryKey: ['execution-node-executions', selectedExecutionId],
-    queryFn: () => getExecutionTrace(selectedExecutionId!),
+    queryFn: () =>
+      getExecutionTrace(selectedExecutionId!, studioExecutionParticipantId(selectedExecutionId)),
     enabled: Boolean(selectedExecutionId),
   })
 
@@ -743,7 +756,8 @@ export function SimulationStudioPage({
     onError: (error) => toast.error(apiErrorMessage(error)),
   })
   const removeExecution = useMutation({
-    mutationFn: deleteExecution,
+    mutationFn: (executionId: string) =>
+      deleteExecution(executionId, studioExecutionParticipantId(executionId)),
     onSuccess: (_result, executionId) => {
       if (selectedExecutionId === executionId) setSelectedExecutionId(null)
       queryClient.invalidateQueries({ queryKey: ['executions', simulationId] })
