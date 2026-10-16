@@ -46,39 +46,46 @@ export function SimulationRunProvider({
   useEffect(() => {
     const streamParticipantId = participantId.trim()
     if (!streamParticipantId) return
-    const invalidateRunner = () => {
-      void client.invalidateQueries({ queryKey: ['notification-activity', streamParticipantId] })
-      void client.invalidateQueries({ queryKey: ['participant-executions', streamParticipantId] })
-      void client.invalidateQueries({ queryKey: ['chat-simulations'] })
+    const pid = streamParticipantId
+    const invalidateStaleRunner = () => {
+      void client.invalidateQueries({ queryKey: ['notification-activity', pid] })
+      void client.invalidateQueries({ queryKey: ['participant-executions', pid] })
       void client.invalidateQueries({ queryKey: ['chat-list'] })
-      void client.invalidateQueries({ queryKey: ['chat-actors'] })
       void client.invalidateQueries({ queryKey: ['chat-messages'] })
       void client.invalidateQueries({ queryKey: ['email-inbox'] })
-      void client.invalidateQueries({ queryKey: ['email-messages'] })
       void client.invalidateQueries({ queryKey: ['email-thread-messages'] })
-      void client.invalidateQueries({ queryKey: ['runner-documents', streamParticipantId] })
-      void client.invalidateQueries({ queryKey: ['documents', streamParticipantId] })
     }
     const refreshRunner = (payload: RunnerEvent) => {
-      invalidateRunner()
       if (payload.type === 'chat_message') {
+        void client.invalidateQueries({ queryKey: ['notification-activity', pid] })
+        void client.invalidateQueries({ queryKey: ['participant-executions', pid] })
+        void client.invalidateQueries({ queryKey: ['chat-simulations'] })
+        void client.invalidateQueries({ queryKey: ['chat-list'] })
+        void client.invalidateQueries({ queryKey: ['chat-messages'] })
         toast.info(`New message from ${payload.activityChat.actorIdChat ?? 'actor'}`, {
           description: payload.activityChat.content ?? undefined,
         })
+        return
       }
       if (payload.type === 'email_message') {
+        void client.invalidateQueries({ queryKey: ['notification-activity', pid] })
+        void client.invalidateQueries({ queryKey: ['participant-executions', pid] })
+        void client.invalidateQueries({ queryKey: ['email-inbox'] })
+        void client.invalidateQueries({ queryKey: ['email-thread-messages'] })
         toast.info('New email', { description: payload.activityEmail.subject ?? undefined })
+        return
       }
+      void client.invalidateQueries({ queryKey: ['notification-activity', pid] })
     }
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
-        invalidateRunner()
+        invalidateStaleRunner()
       }
     }
     const unsubscribe = subscribeRunnerEvents(streamParticipantId, {
       notification: refreshRunner,
-      open: invalidateRunner,
-      error: invalidateRunner,
+      open: invalidateStaleRunner,
+      error: invalidateStaleRunner,
     })
     document.addEventListener('visibilitychange', handleVisibility)
     return () => {
@@ -98,12 +105,11 @@ export function SimulationRunProvider({
       contents: BatchChatContentRequest[]
     }) => sendParticipantChat(participantId.trim(), target, contents, simulationId),
     onSuccess: () => {
-      client.invalidateQueries({ queryKey: ['chat-messages'] })
+      client.invalidateQueries({ queryKey: ['notification-activity', participantId.trim()] })
+      client.invalidateQueries({ queryKey: ['participant-executions', participantId.trim()] })
       client.invalidateQueries({ queryKey: ['chat-simulations'] })
       client.invalidateQueries({ queryKey: ['chat-list'] })
-      client.invalidateQueries({ queryKey: ['chat-actors'] })
-      client.invalidateQueries({ queryKey: ['participant-executions', participantId.trim()] })
-      client.invalidateQueries({ queryKey: ['notification-activity', participantId.trim()] })
+      client.invalidateQueries({ queryKey: ['chat-messages'] })
     },
     onError: () => toast.error('Reply was rejected. Check the requested actor and simulation.'),
   })
@@ -173,14 +179,8 @@ export function SimulationRunProvider({
           : activity,
       )
       client.invalidateQueries({ queryKey: ['notification-activity', pid] })
-      client.invalidateQueries({ queryKey: ['participant-executions', pid] })
-      client.invalidateQueries({ queryKey: ['chat-simulations', pid] })
-      client.invalidateQueries({ queryKey: ['chat-list', pid, simulationId] })
-      client.invalidateQueries({ queryKey: ['chat-actors', pid, simulationId] })
-      client.invalidateQueries({ queryKey: ['chat-list'] })
-      client.invalidateQueries({ queryKey: ['chat-actors'] })
       client.invalidateQueries({ queryKey: ['chat-simulations'] })
-      client.invalidateQueries({ queryKey: ['chat-messages', pid, simulationId, actorId] })
+      client.invalidateQueries({ queryKey: ['chat-list'] })
       client.invalidateQueries({ queryKey: ['chat-messages'] })
     },
   })
@@ -216,11 +216,10 @@ export function SimulationRunProvider({
         attachments,
       ),
     onSuccess: () => {
-      client.invalidateQueries({ queryKey: ['email-messages'] })
+      client.invalidateQueries({ queryKey: ['notification-activity', participantId.trim()] })
+      client.invalidateQueries({ queryKey: ['participant-executions', participantId.trim()] })
       client.invalidateQueries({ queryKey: ['email-inbox'] })
       client.invalidateQueries({ queryKey: ['email-thread-messages'] })
-      client.invalidateQueries({ queryKey: ['participant-executions', participantId.trim()] })
-      client.invalidateQueries({ queryKey: ['notification-activity', participantId.trim()] })
     },
     onError: () => toast.error('Email was rejected. Check the requested contact and simulation.'),
   })
@@ -245,7 +244,6 @@ export function SimulationRunProvider({
       })
       client.invalidateQueries({ queryKey: ['notification-activity', pid] })
       client.invalidateQueries({ queryKey: ['email-inbox', pid] })
-      client.invalidateQueries({ queryKey: ['participant-executions', pid] })
     },
   })
 
@@ -309,10 +307,8 @@ export function SimulationRunProvider({
     client.invalidateQueries({ queryKey: ['participant-executions', participantId.trim()] })
     client.invalidateQueries({ queryKey: ['chat-simulations'] })
     client.invalidateQueries({ queryKey: ['chat-list'] })
-    client.invalidateQueries({ queryKey: ['chat-actors'] })
     client.invalidateQueries({ queryKey: ['chat-messages'] })
     client.invalidateQueries({ queryKey: ['email-inbox'] })
-    client.invalidateQueries({ queryKey: ['email-messages'] })
     client.invalidateQueries({ queryKey: ['email-thread-messages'] })
   }
 

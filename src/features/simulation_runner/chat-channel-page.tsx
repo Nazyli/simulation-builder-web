@@ -150,6 +150,8 @@ export function ChatChannelPage() {
     queryKey: ['chat-actors', participantId, effectiveSelected],
     queryFn: () => getChatActors(participantId, effectiveSelected!),
     enabled: Boolean(participantId.trim() && effectiveSelected),
+    // Graph roster is static per simulation: fetch once, never invalidated.
+    staleTime: Infinity,
   })
   // chat/actors is only the online roster now: unread lives on chat/list.
   const presenceByActor = useMemo(() => {
