@@ -19,8 +19,12 @@ import {
   applyConversationPresence,
   flattenChatMessageHistory,
   mergeChatMessages,
+  mergeHistoryPages,
+  resolveActorOnline,
 } from './chat/utils'
 import { useSimulationRun } from './simulation-run-context-core'
+
+const CHAT_HISTORY_PAGE_SIZE = 30
 
 function toChatActor(item: ChatActorItem): ChatActor {
   return {
@@ -190,10 +194,13 @@ export function ChatChannelPage() {
 
   const handleStartNewChat = (actor: ChatActor) => {
     flushQueuedBubbles()
+    // Online badge comes from the graph roster (chat/actors), never from the
+    // optimistic pick: an actor outside the workflow graph stays offline.
+    const online = resolveActorOnline(actor.actorId, presenceByActor)
     setOptimisticActors((prev) => {
       if (prev.some((a) => a.actorId === actor.actorId)) return prev
       if (fetchedActors.some((a) => a.actorId === actor.actorId)) return prev
-      return [actor, ...prev]
+      return [{ ...actor, isOnline: online }, ...prev]
     })
     setSelectedActor(actor.actorId)
   }
@@ -245,21 +252,73 @@ export function ChatChannelPage() {
     ),
   })
 
-  const serverMessages: ChatMessage[] = flattenChatMessageHistory(chatQuery.data).map(toChatMessage)
+  const [olderApiMessages, setOlderApiMessages] = useState<ApiChatMessage[]>([])
+  const [olderHasMore, setOlderHasMore] = useState<boolean | null>(null)
+  const [isLoadingOlder, setIsLoadingOlder] = useState(false)
+  const isFetchingOlderRef = useRef(false)
+
+  // Older pages belong to one conversation; drop them when it changes.
+  useEffect(() => {
+    setOlderApiMessages([])
+    setOlderHasMore(null)
+    setIsLoadingOlder(false)
+    isFetchingOlderRef.current = false
+  }, [participantId, effectiveSelected, selectedActor])
+
+  const initialApiMessages = useMemo(
+    () => flattenChatMessageHistory(chatQuery.data),
+    [chatQuery.data],
+  )
+  const allServerApiMessages = useMemo(
+    () => [...olderApiMessages, ...initialApiMessages],
+    [olderApiMessages, initialApiMessages],
+  )
+  const hasMoreOlder = olderHasMore ?? chatQuery.data?.hasMore ?? false
+
+  function loadOlderMessages() {
+    const pid = participantId.trim()
+    if (!pid || !effectiveSelected || !selectedActor) return
+    if (isFetchingOlderRef.current || isLoadingOlder || !hasMoreOlder) return
+    const oldest = allServerApiMessages[0]
+    if (!oldest) return
+    isFetchingOlderRef.current = true
+    setIsLoadingOlder(true)
+    void getChatMessages(
+      pid,
+      effectiveSelected,
+      selectedActor,
+      oldest.sentAt,
+      CHAT_HISTORY_PAGE_SIZE,
+    )
+      .then((history) => {
+        const incoming = flattenChatMessageHistory(history)
+        if (!incoming.length) {
+          setOlderHasMore(false)
+          return
+        }
+        setOlderApiMessages((prev) => mergeHistoryPages(prev, initialApiMessages, incoming))
+        setOlderHasMore(history.hasMore ?? false)
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        isFetchingOlderRef.current = false
+        if (isMountedRef.current) setIsLoadingOlder(false)
+      })
+  }
+
+  const serverMessages: ChatMessage[] = allServerApiMessages.map(toChatMessage)
   const visibleLocalMessages = localMessages.filter(
     (message) => message.simulationId === effectiveSelected && message.to === selectedActor,
   )
   const visibleMessages = mergeChatMessages(serverMessages, visibleLocalMessages)
 
   useEffect(() => {
-    const persistedIds = new Set(
-      flattenChatMessageHistory(chatQuery.data).map((message) => message.participantChatId),
-    )
+    const persistedIds = new Set(allServerApiMessages.map((message) => message.participantChatId))
     if (!persistedIds.size) return
     setLocalMessages((messages) =>
       messages.filter((message) => !persistedIds.has(message.messageId ?? '')),
     )
-  }, [chatQuery.data])
+  }, [allServerApiMessages])
 
   useEffect(() => {
     isMountedRef.current = true
@@ -353,6 +412,9 @@ export function ChatChannelPage() {
         disabled={disabled}
         onSubmit={submit}
         onTyping={() => batchBufferRef.current?.noteTyping()}
+        hasMoreOlder={hasMoreOlder}
+        isLoadingOlder={isLoadingOlder}
+        onLoadOlder={loadOlderMessages}
         onConversationOpen={(actorId) => {
           if (!effectiveSelected) return
           const actor = actors.find((item) => item.actorId === actorId)

@@ -8,6 +8,8 @@ import {
   formatConversationTime,
   isOwnMessage,
   mergeChatMessages,
+  mergeHistoryPages,
+  resolveActorOnline,
 } from '../src/features/simulation_runner/chat/utils.ts'
 
 test('groups both directions into the selected actor conversation', () => {
@@ -121,6 +123,19 @@ test('applies online presence from the actors roster and sorts newest first', ()
   assert.equal(merged[1].isOnline, true)
 })
 
+test('resolves online from the graph roster and treats unknown actors as offline', () => {
+  const roster = new Map([
+    ['actor-in-graph', true],
+    ['actor-explicit-offline', false],
+  ])
+
+  assert.equal(resolveActorOnline('actor-in-graph', roster), true)
+  assert.equal(resolveActorOnline('actor-explicit-offline', roster), false)
+  // A contact picked for a new chat but absent from the graph is offline.
+  assert.equal(resolveActorOnline('actor-outside-graph', roster), false)
+  assert.equal(resolveActorOnline('actor-outside-graph', new Map()), false)
+})
+
 test('formats conversation timestamps as time today and date otherwise', () => {
   assert.equal(formatConversationTime(null), '')
   assert.equal(formatConversationTime('not-a-date'), '')
@@ -146,6 +161,21 @@ test('flattens grouped message history oldest-first and tolerates empty shapes',
   assert.deepEqual(flattenChatMessageHistory({ content: [] }), [])
   assert.deepEqual(flattenChatMessageHistory(), [])
   assert.deepEqual(flattenChatMessageHistory(null), [])
+})
+
+test('prepends older history pages without duplicating known messages', () => {
+  const initial = [{ participantChatId: 'chat-3', content: 'Newest' }]
+  const older = [{ participantChatId: 'chat-1', content: 'Oldest' }]
+  const incoming = [
+    { participantChatId: 'chat-1', content: 'Oldest' },
+    { participantChatId: 'chat-0', content: 'Even older' },
+  ]
+
+  assert.deepEqual(mergeHistoryPages(older, initial, incoming), [
+    { participantChatId: 'chat-0', content: 'Even older' },
+    { participantChatId: 'chat-1', content: 'Oldest' },
+  ])
+  assert.deepEqual(mergeHistoryPages(older, initial, []), older)
 })
 
 test('preserves server order for rows with different microseconds in the same millisecond', () => {

@@ -5,6 +5,19 @@ export function flattenChatMessageHistory(data?: ChatMessageHistory | null): Api
   return data?.content?.flatMap((group) => group.messages ?? []) ?? []
 }
 
+export function mergeHistoryPages(
+  olderMessages: ApiChatMessage[],
+  initialMessages: ApiChatMessage[],
+  incoming: ApiChatMessage[],
+): ApiChatMessage[] {
+  if (!incoming.length) return olderMessages
+  const knownIds = new Set(
+    [...olderMessages, ...initialMessages].map((message) => message.participantChatId),
+  )
+  const fresh = incoming.filter((message) => !knownIds.has(message.participantChatId))
+  return [...fresh, ...olderMessages]
+}
+
 export function formatChatTime(timestamp?: string): string {
   if (!timestamp) return 'Just now'
   const date = new Date(timestamp)
@@ -119,6 +132,18 @@ export function formatConversationTime(timestamp?: string | null): string {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   }
   return date.toLocaleDateString([], { day: '2-digit', month: 'short' })
+}
+
+/**
+ * Online badge source of truth: the workflow graph roster (`chat/actors`).
+ * An actor that is not part of the graph is offline, so a new chat with a
+ * contact picked outside the graph is not shown as online.
+ */
+export function resolveActorOnline(
+  actorId: string,
+  onlineByActor: ReadonlyMap<string, boolean>,
+): boolean {
+  return onlineByActor.get(actorId) ?? false
 }
 
 export function applyConversationPresence<

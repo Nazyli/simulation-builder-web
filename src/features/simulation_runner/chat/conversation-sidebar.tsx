@@ -32,7 +32,9 @@ export function ConversationSidebar({
   }, [actors, search])
 
   function handlePick(actorId: string, actorName: string) {
-    const optimistic: ChatActor = { actorId, actorName, unreadCount: 0, isOnline: true }
+    // Online is resolved by the chat page from the graph roster; default to
+    // offline so a fresh pick never claims presence on its own.
+    const optimistic: ChatActor = { actorId, actorName, unreadCount: 0, isOnline: false }
     setOpen(false)
     if (onStartNewChat) onStartNewChat(optimistic)
     else onSelect(optimistic.actorId)

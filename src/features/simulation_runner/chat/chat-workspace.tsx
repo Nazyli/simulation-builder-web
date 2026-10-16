@@ -21,6 +21,9 @@ export interface ChatWorkspaceProps {
   onSubmit: (event: FormEvent<HTMLFormElement>) => void
   onTyping: () => void
   onConversationOpen?: (actorId: string) => void
+  hasMoreOlder?: boolean
+  isLoadingOlder?: boolean
+  onLoadOlder?: () => void
 }
 
 export function ChatWorkspace({
@@ -37,6 +40,9 @@ export function ChatWorkspace({
   onSubmit,
   onTyping,
   onConversationOpen,
+  hasMoreOlder = false,
+  isLoadingOlder = false,
+  onLoadOlder,
 }: ChatWorkspaceProps) {
   const actorNames = Object.fromEntries(actors.map((actor) => [actor.actorId, actor.actorName]))
   const conversations = buildConversations(messages, actorNames, participantId)
@@ -80,6 +86,9 @@ export function ChatWorkspace({
               <ConversationBody
                 messages={activeConversation.messages}
                 participantId={participantId}
+                hasMoreOlder={hasMoreOlder}
+                isLoadingOlder={isLoadingOlder}
+                onLoadOlder={onLoadOlder}
               />
               <MessageComposer
                 key={`${selectedSimulation ?? ''}:${activeConversation.actor}`}

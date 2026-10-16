@@ -22,6 +22,7 @@ export interface ChatMessageGroup {
 
 export interface ChatMessageHistory {
   content: ChatMessageGroup[]
+  hasMore: boolean
 }
 
 export interface ChatSimulationItem {
@@ -75,9 +76,15 @@ export const getChatActors = (participantId: string, simulationId: string) =>
   apiClient<ChatActorItem[]>(
     `/admin/runner/chat/actors?participantId=${encodeURIComponent(participantId)}&simulationId=${encodeURIComponent(simulationId)}`,
   )
-export const getChatMessages = (participantId: string, simulationId: string, actorId: string) =>
+export const getChatMessages = (
+  participantId: string,
+  simulationId: string,
+  actorId: string,
+  before?: string,
+  size?: number,
+) =>
   apiClient<ChatMessageHistory>(
-    `/admin/runner/chat/messages?participantId=${encodeURIComponent(participantId)}&simulationId=${encodeURIComponent(simulationId)}&actorId=${encodeURIComponent(actorId)}`,
+    `/admin/runner/chat/messages?participantId=${encodeURIComponent(participantId)}&simulationId=${encodeURIComponent(simulationId)}&actorId=${encodeURIComponent(actorId)}${before ? `&before=${encodeURIComponent(before)}` : ''}${size === undefined ? '' : `&size=${encodeURIComponent(String(size))}`}`,
   )
 export const sendParticipantChat = (
   participantId: string,
