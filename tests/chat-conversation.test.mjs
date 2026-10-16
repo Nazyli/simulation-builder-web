@@ -2,7 +2,10 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 
 import {
+  applyConversationPresence,
   buildConversations,
+  flattenChatMessageHistory,
+  formatConversationTime,
   isOwnMessage,
   mergeChatMessages,
 } from '../src/features/simulation_runner/chat/utils.ts'
@@ -97,6 +100,52 @@ test('preserves separate persisted rows even when their visible fields match', (
   const second = { ...first, messageId: 'server-2' }
 
   assert.deepEqual(mergeChatMessages([first, second], []), [first, second])
+})
+
+test('applies online presence from the actors roster and sorts newest first', () => {
+  const merged = applyConversationPresence(
+    [
+      { actorId: 'actor-old', actorName: 'Old', createdDate: '2026-10-10T10:00:00+07:00' },
+      {
+        actorId: 'actor-new',
+        actorName: 'New',
+        createdDate: '2026-10-11T10:00:00+07:00',
+        isOnline: false,
+      },
+    ],
+    new Map([['actor-old', true]]),
+  )
+
+  assert.equal(merged[0].actorId, 'actor-new')
+  assert.equal(merged[0].isOnline, false)
+  assert.equal(merged[1].isOnline, true)
+})
+
+test('formats conversation timestamps as time today and date otherwise', () => {
+  assert.equal(formatConversationTime(null), '')
+  assert.equal(formatConversationTime('not-a-date'), '')
+  assert.ok(formatConversationTime(new Date().toISOString()).length > 0)
+  assert.equal(
+    formatConversationTime('2020-01-02T10:00:00Z'),
+    new Date('2020-01-02T10:00:00Z').toLocaleDateString([], { day: '2-digit', month: 'short' }),
+  )
+})
+test('flattens grouped message history oldest-first and tolerates empty shapes', () => {
+  const first = { participantChatId: 'chat-1', content: 'Halo' }
+  const second = { participantChatId: 'chat-2', content: 'Siang' }
+
+  assert.deepEqual(
+    flattenChatMessageHistory({
+      content: [
+        { date: '2026-10-10', messages: [first] },
+        { date: '2026-10-11', messages: [second] },
+      ],
+    }),
+    [first, second],
+  )
+  assert.deepEqual(flattenChatMessageHistory({ content: [] }), [])
+  assert.deepEqual(flattenChatMessageHistory(), [])
+  assert.deepEqual(flattenChatMessageHistory(null), [])
 })
 
 test('preserves server order for rows with different microseconds in the same millisecond', () => {

@@ -2,9 +2,11 @@ import { useQuery } from '@tanstack/react-query'
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import {
   getChatActors,
+  getChatConversationList,
   getChatMessages,
   getChatSimulations,
   type ChatActorItem,
+  type ChatConversationItem,
   type ChatMessage as ApiChatMessage,
   type ChatSimulationItem,
 } from '../../shared/api/chat'
@@ -13,8 +15,32 @@ import { ChatWorkspace } from './chat/chat-workspace'
 import { ChatBatchBuffer, sendChatTimerMs } from './chat/chat-batch-buffer'
 import type { ChatBubbleInput } from './chat/chat-batch-buffer'
 import type { ChatActor, ChatMessage, ChatSimulation } from './chat/types'
-import { mergeChatMessages } from './chat/utils'
+import {
+  applyConversationPresence,
+  flattenChatMessageHistory,
+  mergeChatMessages,
+} from './chat/utils'
 import { useSimulationRun } from './simulation-run-context-core'
+
+function toChatActor(item: ChatActorItem): ChatActor {
+  return {
+    actorId: item.actorId,
+    actorName: item.actorName,
+    unreadCount: item.unreadCount ?? 0,
+    isOnline: item.isOnline ?? true,
+  }
+}
+
+function toConversationActor(item: ChatConversationItem): ChatActor {
+  return {
+    actorId: item.actorId,
+    actorName: item.actorName,
+    unreadCount: item.unreadCount,
+    content: item.content,
+    createdDate: item.createdDate,
+    isOnline: item.isOnline,
+  }
+}
 
 export function ChatChannelPage() {
   const { participantId, isChatPending, sendChat, markChatRead } = useSimulationRun()
@@ -99,12 +125,6 @@ export function ChatChannelPage() {
     lastModifiedDate: item.lastModifiedDate,
   })
 
-  const toChatActor = (item: ChatActorItem): ChatActor => ({
-    actorId: item.actorId,
-    actorName: item.actorName,
-    unreadCount: item.unreadCount,
-  })
-
   const simulationsQuery = useQuery({
     queryKey: ['chat-simulations', participantId],
     queryFn: () => getChatSimulations(participantId),
@@ -116,12 +136,34 @@ export function ChatChannelPage() {
   const [selectedSimulation, setSelectedSimulation] = useState<string | null>(null)
   const effectiveSelected = selectedSimulation ?? simulations[0]?.simulationId ?? null
 
+  const conversationListQuery = useQuery({
+    queryKey: ['chat-list', participantId, effectiveSelected],
+    queryFn: () => getChatConversationList(participantId, effectiveSelected!),
+    enabled: Boolean(participantId.trim() && effectiveSelected),
+  })
+
   const actorsQuery = useQuery({
     queryKey: ['chat-actors', participantId, effectiveSelected],
     queryFn: () => getChatActors(participantId, effectiveSelected!),
     enabled: Boolean(participantId.trim() && effectiveSelected),
   })
-  const fetchedActors = (actorsQuery.data ?? []).map(toChatActor)
+  // chat/actors is only the online roster now: unread lives on chat/list.
+  const presenceByActor = useMemo(() => {
+    const presence = new Map<string, boolean>()
+    for (const item of actorsQuery.data ?? []) {
+      presence.set(item.actorId, item.isOnline ?? true)
+    }
+    return presence
+  }, [actorsQuery.data])
+
+  const listedActors: ChatActor[] | null = useMemo(() => {
+    const rows = conversationListQuery.data
+    if (rows === undefined) return null
+    return applyConversationPresence(rows.map(toConversationActor), presenceByActor)
+  }, [conversationListQuery.data, presenceByActor])
+  // Legacy fallback while chat/list is unavailable: the old actors payload
+  // still carries unread counts.
+  const fetchedActors = listedActors ?? (actorsQuery.data ?? []).map(toChatActor)
 
   const [optimisticActors, setOptimisticActors] = useState<ChatActor[]>([])
 
@@ -203,14 +245,16 @@ export function ChatChannelPage() {
     ),
   })
 
-  const serverMessages: ChatMessage[] = (chatQuery.data ?? []).map(toChatMessage)
+  const serverMessages: ChatMessage[] = flattenChatMessageHistory(chatQuery.data).map(toChatMessage)
   const visibleLocalMessages = localMessages.filter(
     (message) => message.simulationId === effectiveSelected && message.to === selectedActor,
   )
   const visibleMessages = mergeChatMessages(serverMessages, visibleLocalMessages)
 
   useEffect(() => {
-    const persistedIds = new Set((chatQuery.data ?? []).map((message) => message.participantChatId))
+    const persistedIds = new Set(
+      flattenChatMessageHistory(chatQuery.data).map((message) => message.participantChatId),
+    )
     if (!persistedIds.size) return
     setLocalMessages((messages) =>
       messages.filter((message) => !persistedIds.has(message.messageId ?? '')),

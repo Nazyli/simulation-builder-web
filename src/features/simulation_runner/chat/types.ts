@@ -36,4 +36,7 @@ export interface ChatActor {
   actorId: string
   actorName: string
   unreadCount: number
+  content?: string | null
+  createdDate?: string | null
+  isOnline?: boolean
 }

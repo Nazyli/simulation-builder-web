@@ -15,6 +15,15 @@ export interface ChatMessage {
   sentAt: string
 }
 
+export interface ChatMessageGroup {
+  date: string
+  messages: ChatMessage[]
+}
+
+export interface ChatMessageHistory {
+  content: ChatMessageGroup[]
+}
+
 export interface ChatSimulationItem {
   simulationId: string
   simulationName: string
@@ -26,7 +35,17 @@ export interface ChatSimulationItem {
 export interface ChatActorItem {
   actorId: string
   actorName: string
+  unreadCount?: number
+  isOnline?: boolean
+}
+
+export interface ChatConversationItem {
+  actorId: string
+  actorName: string
+  content: string | null
   unreadCount: number
+  createdDate: string | null
+  isOnline?: boolean
 }
 
 export interface ChatMarkAsReadResult {
@@ -48,12 +67,16 @@ export const getChatSimulations = (participantId: string) =>
   apiClient<ChatSimulationItem[]>(
     `/admin/runner/chat/simulations?participantId=${encodeURIComponent(participantId)}`,
   )
+export const getChatConversationList = (participantId: string, simulationId: string) =>
+  apiClient<ChatConversationItem[]>(
+    `/admin/runner/chat/list?participantId=${encodeURIComponent(participantId)}&simulationId=${encodeURIComponent(simulationId)}`,
+  )
 export const getChatActors = (participantId: string, simulationId: string) =>
   apiClient<ChatActorItem[]>(
     `/admin/runner/chat/actors?participantId=${encodeURIComponent(participantId)}&simulationId=${encodeURIComponent(simulationId)}`,
   )
 export const getChatMessages = (participantId: string, simulationId: string, actorId: string) =>
-  apiClient<ChatMessage[]>(
+  apiClient<ChatMessageHistory>(
     `/admin/runner/chat/messages?participantId=${encodeURIComponent(participantId)}&simulationId=${encodeURIComponent(simulationId)}&actorId=${encodeURIComponent(actorId)}`,
   )
 export const sendParticipantChat = (

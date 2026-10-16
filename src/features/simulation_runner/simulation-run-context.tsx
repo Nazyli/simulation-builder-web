@@ -6,7 +6,8 @@ import {
   sendParticipantChat,
   type BatchChatContentRequest,
   type ChatActorItem,
-  type ChatMessage,
+  type ChatConversationItem,
+  type ChatMessageHistory,
   type ParticipantChatBatchResponse,
   type ChatSimulationItem,
 } from '../../shared/api/chat'
@@ -49,6 +50,7 @@ export function SimulationRunProvider({
       void client.invalidateQueries({ queryKey: ['notification-activity', streamParticipantId] })
       void client.invalidateQueries({ queryKey: ['participant-executions', streamParticipantId] })
       void client.invalidateQueries({ queryKey: ['chat-simulations'] })
+      void client.invalidateQueries({ queryKey: ['chat-list'] })
       void client.invalidateQueries({ queryKey: ['chat-actors'] })
       void client.invalidateQueries({ queryKey: ['chat-messages'] })
       void client.invalidateQueries({ queryKey: ['email-inbox'] })
@@ -98,6 +100,7 @@ export function SimulationRunProvider({
     onSuccess: () => {
       client.invalidateQueries({ queryKey: ['chat-messages'] })
       client.invalidateQueries({ queryKey: ['chat-simulations'] })
+      client.invalidateQueries({ queryKey: ['chat-list'] })
       client.invalidateQueries({ queryKey: ['chat-actors'] })
       client.invalidateQueries({ queryKey: ['participant-executions', participantId.trim()] })
       client.invalidateQueries({ queryKey: ['notification-activity', participantId.trim()] })
@@ -113,19 +116,38 @@ export function SimulationRunProvider({
     },
     onSuccess: ({ count }, { simulationId, actorId }) => {
       const pid = participantId.trim()
-      client.setQueryData<ChatMessage[]>(
+      client.setQueryData<ChatMessageHistory>(
         ['chat-messages', pid, simulationId, actorId],
-        (messages) =>
-          messages?.map((message) =>
-            message.senderType === 'actor' && !message.isRead
-              ? { ...message, isRead: true, readAt: message.readAt ?? new Date().toISOString() }
-              : message,
-          ),
+        (history) =>
+          history
+            ? {
+                ...history,
+                content: history.content.map((group) => ({
+                  ...group,
+                  messages: group.messages.map((message) =>
+                    message.senderType === 'actor' && !message.isRead
+                      ? {
+                          ...message,
+                          isRead: true,
+                          readAt: message.readAt ?? new Date().toISOString(),
+                        }
+                      : message,
+                  ),
+                })),
+              }
+            : history,
+      )
+      client.setQueryData<ChatConversationItem[]>(['chat-list', pid, simulationId], (rows) =>
+        rows?.map((row) =>
+          row.actorId === actorId
+            ? { ...row, unreadCount: Math.max(0, row.unreadCount - count) }
+            : row,
+        ),
       )
       client.setQueryData<ChatActorItem[]>(['chat-actors', pid, simulationId], (actors) =>
         actors?.map((actor) =>
           actor.actorId === actorId
-            ? { ...actor, unreadCount: Math.max(0, actor.unreadCount - count) }
+            ? { ...actor, unreadCount: Math.max(0, (actor.unreadCount ?? 0) - count) }
             : actor,
         ),
       )
@@ -153,7 +175,9 @@ export function SimulationRunProvider({
       client.invalidateQueries({ queryKey: ['notification-activity', pid] })
       client.invalidateQueries({ queryKey: ['participant-executions', pid] })
       client.invalidateQueries({ queryKey: ['chat-simulations', pid] })
+      client.invalidateQueries({ queryKey: ['chat-list', pid, simulationId] })
       client.invalidateQueries({ queryKey: ['chat-actors', pid, simulationId] })
+      client.invalidateQueries({ queryKey: ['chat-list'] })
       client.invalidateQueries({ queryKey: ['chat-actors'] })
       client.invalidateQueries({ queryKey: ['chat-simulations'] })
       client.invalidateQueries({ queryKey: ['chat-messages', pid, simulationId, actorId] })
@@ -284,6 +308,7 @@ export function SimulationRunProvider({
     client.invalidateQueries({ queryKey: ['notification-activity', participantId.trim()] })
     client.invalidateQueries({ queryKey: ['participant-executions', participantId.trim()] })
     client.invalidateQueries({ queryKey: ['chat-simulations'] })
+    client.invalidateQueries({ queryKey: ['chat-list'] })
     client.invalidateQueries({ queryKey: ['chat-actors'] })
     client.invalidateQueries({ queryKey: ['chat-messages'] })
     client.invalidateQueries({ queryKey: ['email-inbox'] })

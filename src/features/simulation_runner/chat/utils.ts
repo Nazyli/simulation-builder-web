@@ -1,4 +1,9 @@
+import type { ChatMessageHistory, ChatMessage as ApiChatMessage } from '../../../shared/api/chat'
 import type { ChatConversation, ChatMessage } from './types'
+
+export function flattenChatMessageHistory(data?: ChatMessageHistory | null): ApiChatMessage[] {
+  return data?.content?.flatMap((group) => group.messages ?? []) ?? []
+}
 
 export function formatChatTime(timestamp?: string): string {
   if (!timestamp) return 'Just now'
@@ -99,6 +104,48 @@ export function buildConversations(
       if (aTime !== bTime) return bTime - aTime
       return a.actorName.localeCompare(b.actorName)
     })
+}
+
+export function formatConversationTime(timestamp?: string | null): string {
+  if (!timestamp) return ''
+  const date = new Date(timestamp)
+  if (Number.isNaN(date.getTime())) return ''
+  const now = new Date()
+  const isToday =
+    date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth() &&
+    date.getDate() === now.getDate()
+  if (isToday) {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  }
+  return date.toLocaleDateString([], { day: '2-digit', month: 'short' })
+}
+
+export function applyConversationPresence<
+  T extends {
+    actorId: string
+    actorName: string
+    createdDate?: string | null
+    isOnline?: boolean
+  },
+>(conversations: T[], onlineByActor: ReadonlyMap<string, boolean>): T[] {
+  return [...conversations]
+    .map((conversation) => ({
+      ...conversation,
+      isOnline: conversation.isOnline ?? onlineByActor.get(conversation.actorId) ?? false,
+    }))
+    .sort((a, b) => {
+      const aTime = conversationTime(a.createdDate)
+      const bTime = conversationTime(b.createdDate)
+      if (aTime !== bTime) return bTime - aTime
+      return a.actorName.localeCompare(b.actorName)
+    })
+}
+
+function conversationTime(timestamp?: string | null): number {
+  if (!timestamp) return 0
+  const time = new Date(timestamp).getTime()
+  return Number.isNaN(time) ? 0 : time
 }
 
 function messageTime(message: ChatMessage): number {

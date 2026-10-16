@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { inputClass } from '../../../shared/form-classes'
 import { ActorPickerSheet } from '../components/actor-picker-sheet'
 import type { ChatActor } from './types'
+import { formatConversationTime } from './utils'
 
 interface ConversationSidebarProps {
   actors: ChatActor[]
@@ -31,7 +32,7 @@ export function ConversationSidebar({
   }, [actors, search])
 
   function handlePick(actorId: string, actorName: string) {
-    const optimistic: ChatActor = { actorId, actorName, unreadCount: 0 }
+    const optimistic: ChatActor = { actorId, actorName, unreadCount: 0, isOnline: true }
     setOpen(false)
     if (onStartNewChat) onStartNewChat(optimistic)
     else onSelect(optimistic.actorId)
@@ -86,11 +87,15 @@ export function ConversationSidebar({
         </div>
         {filteredActors.map((actor) => {
           const active = actor.actorId === selectedActor
+          const preview = actor.content?.trim() ? actor.content : actor.actorId
+          const sentAt = formatConversationTime(actor.createdDate)
+          const online = actor.isOnline !== false
           return (
             <button
               key={actor.actorId}
               type="button"
               onClick={() => onSelect(actor.actorId)}
+              title={actor.actorName}
               className={`focus-visible:ring-ring flex max-w-[320px] min-w-[220px] items-center gap-3 rounded-md px-2.5 py-2 text-left focus-visible:ring-2 focus-visible:outline-none lg:min-w-0 ${
                 active
                   ? '!text-brand !bg-accent !border-0'
@@ -98,19 +103,25 @@ export function ConversationSidebar({
               }`}
             >
               <span
-                className={`grid size-8 shrink-0 place-items-center rounded-md text-xs font-bold ${active ? 'bg-primary text-primary-foreground' : 'bg-slate-100 text-slate-500'}`}
+                className={`relative grid size-8 shrink-0 place-items-center rounded-md text-xs font-bold ${active ? 'bg-primary text-primary-foreground' : 'bg-slate-100 text-slate-500'}`}
               >
                 {actor.actorName.slice(0, 1).toUpperCase()}
+                <span
+                  aria-hidden="true"
+                  className={`absolute -right-0.5 -bottom-0.5 size-3 rounded-full border-2 border-white ${
+                    online ? 'bg-emerald-500' : 'bg-slate-300'
+                  }`}
+                />
               </span>
               <span className="min-w-0 flex-1">
                 <span className="flex items-baseline justify-between gap-2">
                   <span className="truncate text-sm font-semibold">{actor.actorName}</span>
-                  <span className="text-brand bg-secondary/30 shrink-0 rounded-sm px-1.5 text-xs font-semibold">
-                    {actor.actorId}
-                  </span>
+                  {sentAt ? (
+                    <span className="shrink-0 text-[11px] text-slate-400">{sentAt}</span>
+                  ) : null}
                 </span>
                 <span className="flex items-center justify-between gap-2">
-                  <span className="truncate text-xs text-slate-500">{actor.actorId}</span>
+                  <span className="truncate text-xs text-slate-500">{preview}</span>
                   {actor.unreadCount > 0 ? (
                     <span
                       aria-label={`${actor.unreadCount} unread message${actor.unreadCount === 1 ? '' : 's'}`}
@@ -120,6 +131,7 @@ export function ConversationSidebar({
                     </span>
                   ) : null}
                 </span>
+                <span className="sr-only">{online ? 'Online' : 'Offline'}</span>
               </span>
             </button>
           )
