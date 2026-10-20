@@ -101,6 +101,9 @@ export const sendParticipantChat = (
   )
 export const markChatMessageRead = (participantId: string, simulationId: string, actorId: string) =>
   apiClient<ChatMarkAsReadResult>(
-    `/admin/runner/chat/mark-as-read?participantId=${encodeURIComponent(participantId)}&simulationId=${encodeURIComponent(simulationId)}&actorId=${encodeURIComponent(actorId)}`,
-    { method: 'POST' },
+    `/admin/runner/chat/mark-as-read?participantId=${encodeURIComponent(participantId)}`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ actorId, simulationId }),
+    },
   )
