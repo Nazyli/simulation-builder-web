@@ -21,7 +21,7 @@ import { useSimulationRun } from './simulation-run-context-core'
 
 const toEmailMessage = (message: ApiEmailMessage): EmailMessage => ({
   messageId: message.participantEmailId,
-  from: message.senderId,
+  from: message.from,
   to: message.to,
   cc: message.cc,
   actor: message.senderId,

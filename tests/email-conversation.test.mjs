@@ -5,15 +5,15 @@ import { formatReplySubject, isOwnEmail } from '../src/features/simulation_runne
 
 test('uses sender type to identify participant emails as own messages', () => {
   const participantEmail = {
-    from: 'participant-001-ambj-01-platform',
-    to: ['alexa-pmwm-ambj-01'],
+    from: { id: 'participant-001-ambj-01-platform', name: 'Rini', email: null },
+    to: [{ id: 'alexa-pmwm-ambj-01', name: 'Alexa', email: 'alexa@example.com' }],
     cc: [],
     actor: 'participant-001-ambj-01-platform',
     senderType: 'participant',
   }
   const actorEmail = {
-    from: 'alexa-pmwm-ambj-01',
-    to: ['participant-001-ambj-01-platform'],
+    from: { id: 'alexa-pmwm-ambj-01', name: 'Alexa', email: 'alexa@example.com' },
+    to: [{ id: 'participant-001-ambj-01-platform', name: 'Rini', email: null }],
     cc: [],
     actor: 'alexa-pmwm-ambj-01',
     senderType: 'actor',

@@ -24,7 +24,7 @@ export function MessageBubble({
   const isOwn = isOwnEmail(message, participantId)
   const bgColor = avatarColor(message, participantId)
 
-  const senderName = message.from || message.actor || 'Unknown'
+  const senderName = message.from?.name || message.actor || 'Unknown'
 
   const renderedBody = useMemo(() => {
     if (!isHtmlContent(message.content)) return null
@@ -69,12 +69,14 @@ export function MessageBubble({
             </div>
             {message.to.length > 0 && (
               <div className="text-xs text-slate-500">
-                <span className="font-medium text-slate-600">To:</span> {message.to.join(', ')}
+                <span className="font-medium text-slate-600">To:</span>{' '}
+                {message.to.map((recipient) => recipient.name).join(', ')}
               </div>
             )}
             {message.cc.length > 0 && (
               <div className="text-xs text-slate-500">
-                <span className="font-medium text-slate-600">Cc:</span> {message.cc.join(', ')}
+                <span className="font-medium text-slate-600">Cc:</span>{' '}
+                {message.cc.map((recipient) => recipient.name).join(', ')}
               </div>
             )}
           </div>

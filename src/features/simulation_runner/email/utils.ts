@@ -26,7 +26,7 @@ export function formatEmailDate(timestamp?: string): string {
 export function isOwnEmail(message: EmailMessage, participantId: string): boolean {
   if (message.senderType === 'participant') return true
   if (message.senderType === 'actor') return false
-  return message.from ? message.from === participantId : message.actor === participantId
+  return message.from ? message.from.id === participantId : message.actor === participantId
 }
 
 export function formatReplySubject(subject: string): string {

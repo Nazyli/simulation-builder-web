@@ -77,9 +77,10 @@ test('passes thread messages through with canReply unchanged', async () => {
       emailPartnerId: 'actor-1',
       senderId: 'actor-1',
       senderType: 'actor',
+      from: { id: 'actor-1', name: 'Dewanti', email: 'dewanti@example.com' },
       subject: 'Re: Contract',
       content: 'Please review the revision.',
-      to: [],
+      to: [{ id: 'participant-001', name: 'Participant', email: null }],
       cc: [],
       simulationId: 'simulation-1',
       parentEmailId: null,
@@ -98,9 +99,10 @@ test('passes thread messages through with canReply unchanged', async () => {
       emailPartnerId: 'actor-1',
       senderId: 'actor-1',
       senderType: 'actor',
+      from: { id: 'actor-1', name: 'Dewanti', email: 'dewanti@example.com' },
       subject: 'Re: Contract',
       content: 'Latest update on the contract.',
-      to: [],
+      to: [{ id: 'participant-001', name: 'Participant', email: null }],
       cc: [],
       simulationId: 'simulation-1',
       parentEmailId: 'participant-email-2',
@@ -134,6 +136,14 @@ test('passes thread messages through with canReply unchanged', async () => {
     messages.map((message) => message.canReply),
     [false, true],
   )
+  assert.deepEqual(messages[0].from, {
+    id: 'actor-1',
+    name: 'Dewanti',
+    email: 'dewanti@example.com',
+  })
+  assert.deepEqual(messages[0].to, [{ id: 'participant-001', name: 'Participant', email: null }])
+  assert.deepEqual(messages[0].cc, [])
+  assert.equal(messages[0].senderId, 'actor-1')
 })
 
 test('serializes draft status and attachment replacements', async () => {

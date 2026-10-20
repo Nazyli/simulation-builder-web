@@ -24,16 +24,23 @@ export interface RuntimeEmailAttachment {
   contents: RuntimeEmailAttachmentContent[]
 }
 
+export interface EmailAddress {
+  id: string
+  name: string
+  email: string | null
+}
+
 export interface EmailMessage {
   participantEmailId: string
   sessionId: string
   emailPartnerId: string
   senderId: string
   senderType: 'participant' | 'actor'
+  from: EmailAddress
   subject: string
   content: string
-  to: string[]
-  cc: string[]
+  to: EmailAddress[]
+  cc: EmailAddress[]
   simulationId: string | null
   parentEmailId: string | null
   replyToEmailId: string | null

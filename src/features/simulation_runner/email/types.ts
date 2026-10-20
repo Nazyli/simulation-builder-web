@@ -1,7 +1,9 @@
+import type { EmailAddress } from '../../../shared/api/email'
+
 export interface EmailMessage {
-  to: string[]
-  cc: string[]
-  from: string
+  to: EmailAddress[]
+  cc: EmailAddress[]
+  from: EmailAddress
   actor: string
   senderType: 'participant' | 'actor' | 'system'
   channel: 'email'
