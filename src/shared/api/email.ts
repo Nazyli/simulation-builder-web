@@ -43,6 +43,7 @@ export interface EmailMessage {
   readAt: string | null
   createdDate: string
   attachments: RuntimeEmailAttachment[]
+  canReply: boolean
 }
 
 export type EmailStatus = 'sent' | 'draft'
@@ -99,7 +100,7 @@ export const getEmailDrafts = (participantId: string, simulationId?: string) => 
 
 export const getEmailThreadMessages = (participantId: string, rootId: string) =>
   apiClient<EmailMessage[]>(
-    `/admin/runner/email/thread-messages?participantId=${encodeURIComponent(participantId)}&rootId=${encodeURIComponent(rootId)}`,
+    `/admin/runner/email/thread/${encodeURIComponent(rootId)}?participantId=${encodeURIComponent(participantId)}`,
   )
 
 export const sendParticipantEmail = (

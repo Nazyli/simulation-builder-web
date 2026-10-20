@@ -59,13 +59,81 @@ test('derives thread scope on the backend for thread reads and mark-read', async
 
   assert.equal(
     requests[0].path,
-    '/admin/runner/email/thread-messages?participantId=participant%201&rootId=root%2Femail%2F1',
+    '/admin/runner/email/thread/root%2Femail%2F1?participantId=participant%201',
   )
   assert.equal(
     requests[1].path,
     '/admin/runner/email/mark-thread-read?participantId=participant%201&rootId=root%2Femail%2F1',
   )
   assert.equal(requests[1].init.method, 'POST')
+})
+
+test('passes thread messages through with canReply unchanged', async () => {
+  let request
+  const threadMessages = [
+    {
+      participantEmailId: 'participant-email-1',
+      sessionId: 'session-1',
+      emailPartnerId: 'actor-1',
+      senderId: 'actor-1',
+      senderType: 'actor',
+      subject: 'Re: Contract',
+      content: 'Please review the revision.',
+      to: [],
+      cc: [],
+      simulationId: 'simulation-1',
+      parentEmailId: null,
+      replyToEmailId: null,
+      masterEmailId: 'master-email-1',
+      status: 'sent',
+      isRead: true,
+      readAt: null,
+      createdDate: '2026-10-20T09:00:00Z',
+      attachments: [],
+      canReply: false,
+    },
+    {
+      participantEmailId: 'participant-email-2',
+      sessionId: 'session-1',
+      emailPartnerId: 'actor-1',
+      senderId: 'actor-1',
+      senderType: 'actor',
+      subject: 'Re: Contract',
+      content: 'Latest update on the contract.',
+      to: [],
+      cc: [],
+      simulationId: 'simulation-1',
+      parentEmailId: 'participant-email-2',
+      replyToEmailId: null,
+      masterEmailId: 'master-email-2',
+      status: 'sent',
+      isRead: false,
+      readAt: null,
+      createdDate: '2026-10-20T10:00:00Z',
+      attachments: [],
+      canReply: true,
+    },
+  ]
+  globalThis.fetch = async (path, init) => {
+    request = { path, init }
+    return {
+      ok: true,
+      json: async () => ({
+        status: 'success',
+        info: { code: 200, message: 'ok' },
+        data: threadMessages,
+      }),
+    }
+  }
+
+  const messages = await getEmailThreadMessages('participant 1', 'root-email-1')
+
+  assert.equal(request.path, '/admin/runner/email/thread/root-email-1?participantId=participant%201')
+  assert.deepEqual(messages, threadMessages)
+  assert.deepEqual(
+    messages.map((message) => message.canReply),
+    [false, true],
+  )
 })
 
 test('serializes draft status and attachment replacements', async () => {

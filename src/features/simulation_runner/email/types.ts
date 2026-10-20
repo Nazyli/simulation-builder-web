@@ -17,6 +17,7 @@ export interface EmailMessage {
   simulationId?: string
   isUnread?: boolean
   attachments: EmailAttachment[]
+  canReply: boolean
 }
 
 export interface EmailAttachment {

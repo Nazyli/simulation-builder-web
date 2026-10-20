@@ -37,6 +37,7 @@ const toEmailMessage = (message: ApiEmailMessage): EmailMessage => ({
   simulationId: message.simulationId ?? undefined,
   isUnread: message.isRead === false,
   attachments: message.attachments ?? [],
+  canReply: message.canReply,
 })
 
 const toEmailThread = (item: EmailInboxThreadItem): EmailInboxThread => ({
