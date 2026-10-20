@@ -23,15 +23,15 @@ export interface SimulationRunContextValue {
   markChatRead: (simulationId: string, actorId: string) => Promise<ChatMarkAsReadResult>
   isEmailPending: boolean
   sendEmail: (input: {
-    simulationId: string
     target: string
     subject: string
     content: string
     parentEmailId?: string
     replyToEmailId?: string
     attachments?: ParticipantEmailAttachmentInput[]
-  }) => void
-  markEmailThreadRead: (simulationId: string, rootId: string) => Promise<EmailMarkAsReadResult>
+    status: 'sent' | 'draft'
+  }) => Promise<void>
+  markEmailThreadRead: (rootId: string) => Promise<EmailMarkAsReadResult>
   refresh: () => void
 }
 

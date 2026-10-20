@@ -1,16 +1,26 @@
-import type { FormEvent } from 'react'
 import { Inbox } from 'lucide-react'
 import { ConversationBody } from './conversation-body'
 import { ConversationHeader } from './conversation-header'
 import { ConversationSidebar } from './conversation-sidebar'
 import type { AttachmentSelection } from './attachment-picker-dialog'
 import { MessageComposer } from './message-composer'
-import type { EmailAttachment, EmailInboxThread, EmailMessage } from './types'
+import type {
+  EmailAttachment,
+  EmailComposerDraft,
+  EmailDraft,
+  EmailInboxThread,
+  EmailMessage,
+} from './types'
 
 export interface EmailWorkspaceProps {
   participantId: string
   messages: EmailMessage[]
   threads: EmailInboxThread[]
+  drafts: EmailDraft[]
+  folder: 'inbox' | 'draft'
+  onFolderChange: (folder: 'inbox' | 'draft') => void
+  composerDraft: EmailComposerDraft | null
+  composerResetKey: number
   selectedRootId: string | null
   onSelectThread: (rootId: string) => void
   selectedThread: EmailInboxThread | null
@@ -18,7 +28,7 @@ export interface EmailWorkspaceProps {
   attachments: AttachmentSelection[]
   onOpenAttachmentPicker: () => void
   onRemoveAttachment: (participantDocId: string) => void
-  onSubmit: (event: FormEvent<HTMLFormElement>) => void
+  onSubmit: (form: HTMLFormElement, status: 'sent' | 'draft') => void
   onConversationOpen?: (rootId: string) => void
   openingAttachmentIds: ReadonlySet<string>
   onOpenAttachment: (message: EmailMessage, attachment: EmailAttachment) => void
@@ -28,6 +38,11 @@ export function EmailWorkspace({
   participantId,
   messages,
   threads,
+  drafts,
+  folder,
+  onFolderChange,
+  composerDraft,
+  composerResetKey,
   selectedRootId,
   onSelectThread,
   selectedThread,
@@ -45,6 +60,9 @@ export function EmailWorkspace({
       <div className="flex h-full min-h-0 flex-col lg:flex-row">
         <ConversationSidebar
           threads={threads}
+          drafts={drafts}
+          folder={folder}
+          onFolderChange={onFolderChange}
           selectedRootId={selectedRootId}
           onSelect={(rootId) => {
             onSelectThread(rootId)
@@ -62,9 +80,10 @@ export function EmailWorkspace({
                 onOpenAttachment={onOpenAttachment}
               />
               <MessageComposer
-                key={selectedThread.rootId}
-                target={selectedThread.latestSenderId}
-                subject={selectedThread.latestSubject}
+                key={`${selectedThread.participantEmailId}-${composerResetKey}`}
+                target={selectedThread.from}
+                subject={selectedThread.subject}
+                draft={composerDraft}
                 disabled={disabled}
                 attachments={attachments}
                 onOpenAttachmentPicker={onOpenAttachmentPicker}
@@ -80,12 +99,22 @@ export function EmailWorkspace({
                 </span>
                 <div>
                   <p className="text-sm font-medium text-slate-900">
-                    {threads.length ? 'Select a conversation' : 'No emails yet'}
+                    {folder === 'draft'
+                      ? drafts.length
+                        ? 'Select a draft'
+                        : 'No drafts yet'
+                      : threads.length
+                        ? 'Select a conversation'
+                        : 'No emails yet'}
                   </p>
                   <p className="mt-1 text-xs text-slate-500">
-                    {threads.length
-                      ? 'Choose an email thread from the list to read and reply.'
-                      : 'Email messages from simulation actors will appear here.'}
+                    {folder === 'draft'
+                      ? drafts.length
+                        ? 'Choose a draft to continue writing.'
+                        : 'Saved drafts will appear here.'
+                      : threads.length
+                        ? 'Choose an email thread from the list to read and reply.'
+                        : 'Email messages from simulation actors will appear here.'}
                   </p>
                 </div>
               </div>

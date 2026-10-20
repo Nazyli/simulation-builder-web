@@ -187,46 +187,52 @@ export function SimulationRunProvider({
 
   const emailAction = useMutation({
     mutationFn: ({
-      simulationId,
       target,
       subject,
       content,
       parentEmailId,
       replyToEmailId,
       attachments,
+      status,
     }: {
-      simulationId: string
       target: string
       subject: string
       content: string
       parentEmailId?: string
       replyToEmailId?: string
       attachments?: ParticipantEmailAttachmentInput[]
+      status: 'sent' | 'draft'
     }) =>
       sendParticipantEmail(
         participantId.trim(),
         target,
         subject,
         content,
-        simulationId,
         undefined,
         undefined,
         parentEmailId,
         replyToEmailId,
         attachments,
+        status,
       ),
-    onSuccess: () => {
+    onSuccess: (_message, variables) => {
       client.invalidateQueries({ queryKey: ['notification-activity', participantId.trim()] })
       client.invalidateQueries({ queryKey: ['participant-executions', participantId.trim()] })
       client.invalidateQueries({ queryKey: ['email-inbox'] })
+      client.invalidateQueries({ queryKey: ['email-drafts'] })
       client.invalidateQueries({ queryKey: ['email-thread-messages'] })
+      if (variables.status === 'draft') toast.success('Draft saved.')
     },
-    onError: () => toast.error('Email was rejected. Check the requested contact and simulation.'),
+    onError: () => {
+      client.invalidateQueries({ queryKey: ['email-inbox'] })
+      client.invalidateQueries({ queryKey: ['email-drafts'] })
+      client.invalidateQueries({ queryKey: ['email-thread-messages'] })
+      toast.error('Email was rejected. Check the requested contact and simulation.')
+    },
   })
 
   const emailRead = useMutation({
-    mutationFn: ({ simulationId, rootId }: { simulationId: string; rootId: string }) =>
-      markEmailThreadAsRead(participantId.trim(), simulationId, rootId),
+    mutationFn: ({ rootId }: { rootId: string }) => markEmailThreadAsRead(participantId.trim(), rootId),
     onSuccess: ({ count }) => {
       const pid = participantId.trim()
       client.setQueryData<NotificationActivity>(['notification-activity', pid], (activity) => {
@@ -279,27 +285,29 @@ export function SimulationRunProvider({
   }
 
   const sendEmail = (input: {
-    simulationId: string
     target: string
     subject: string
     content: string
     parentEmailId?: string
     replyToEmailId?: string
     attachments?: ParticipantEmailAttachmentInput[]
-  }) => {
+    status: 'sent' | 'draft'
+  }): Promise<void> => {
     if (!participantId.trim()) {
       toast.error('Choose an active simulation session.')
-      return
+      return Promise.reject(new Error('No active participant session'))
     }
-    emailAction.mutate({
-      simulationId: input.simulationId,
-      target: input.target,
-      subject: input.subject,
-      content: input.content,
-      parentEmailId: input.parentEmailId,
-      replyToEmailId: input.replyToEmailId,
-      attachments: input.attachments,
-    })
+    return emailAction
+      .mutateAsync({
+        target: input.target,
+        subject: input.subject,
+        content: input.content,
+        parentEmailId: input.parentEmailId,
+        replyToEmailId: input.replyToEmailId,
+        attachments: input.attachments,
+        status: input.status,
+      })
+      .then(() => undefined)
   }
 
   const refresh = () => {
@@ -326,8 +334,7 @@ export function SimulationRunProvider({
             .catch(() => ({ status: 'success', count: 0 })),
         isEmailPending: emailAction.isPending,
         sendEmail,
-        markEmailThreadRead: (simulationId, rootId) =>
-          emailRead.mutateAsync({ simulationId, rootId }),
+        markEmailThreadRead: (rootId) => emailRead.mutateAsync({ rootId }),
         refresh,
       }}
     >

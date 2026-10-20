@@ -12,6 +12,7 @@ export interface EmailMessage {
   content: string
   timestamp: string
   actionType: string
+  status?: 'sent' | 'draft'
   simulationLabel?: string
   simulationId?: string
   isUnread?: boolean
@@ -101,14 +102,31 @@ export interface EmailSimulation {
 }
 
 export interface EmailInboxThread {
-  rootId: string
-  latestSenderId: string
-  latestSenderType: string
+  participantEmailId: string
+  from: string
+  fromName: string
+  subject: string
   latestSubject: string
-  latestContent: string
-  latestIsRead: boolean
-  latestCreatedDate: string
+  lastMessageContent: string
+  lastMessageDate: string
   unreadCount: number
-  messageCount: number
-  simulationId: string | null
+  draftId: string | null
+}
+
+export interface EmailDraft {
+  participantEmailId: string
+  draftId: string
+  from: string
+  fromName: string
+  subject: string
+  lastMessageContent: string
+  lastMessageDate: string
+  totalAttachment: number
+}
+
+export interface EmailComposerDraft {
+  draftId: string
+  subject: string
+  content: string
+  updatedAt: string
 }

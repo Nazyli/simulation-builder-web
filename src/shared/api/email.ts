@@ -38,24 +38,37 @@ export interface EmailMessage {
   parentEmailId: string | null
   replyToEmailId: string | null
   masterEmailId: string | null
+  status: EmailStatus
   isRead: boolean
   readAt: string | null
   createdDate: string
   attachments: RuntimeEmailAttachment[]
 }
 
+export type EmailStatus = 'sent' | 'draft'
+
+export interface EmailDraftItem {
+  participantEmailId: string
+  draftId: string
+  from: string
+  fromName: string
+  subject: string
+  lastMessageContent: string
+  lastMessageDate: string
+  replyToEmailId: string | null
+  totalAttachment: number
+}
+
 export interface EmailInboxThreadItem {
-  rootId: string
-  latestMessageId: string
-  latestSenderId: string
-  latestSenderType: string
+  participantEmailId: string
+  from: string
+  fromName: string
+  subject: string
   latestSubject: string
-  latestContent: string
-  latestIsRead: boolean
-  latestCreatedDate: string
+  lastMessageContent: string
+  lastMessageDate: string
   unreadCount: number
-  messageCount: number
-  simulationId: string | null
+  draftId: string | null
 }
 
 export interface EmailMarkAsReadResult {
@@ -78,13 +91,15 @@ export const getEmailInbox = (participantId: string, simulationId?: string) => {
   return apiClient<EmailInboxThreadItem[]>(`/admin/runner/email/inbox?${params.toString()}`)
 }
 
-export const getEmailThreadMessages = (
-  participantId: string,
-  simulationId: string,
-  rootId: string,
-) =>
+export const getEmailDrafts = (participantId: string, simulationId?: string) => {
+  const params = new URLSearchParams({ participantId })
+  if (simulationId) params.set('simulationId', simulationId)
+  return apiClient<EmailDraftItem[]>(`/admin/runner/email/draft?${params.toString()}`)
+}
+
+export const getEmailThreadMessages = (participantId: string, rootId: string) =>
   apiClient<EmailMessage[]>(
-    `/admin/runner/email/thread-messages?participantId=${encodeURIComponent(participantId)}&simulationId=${encodeURIComponent(simulationId)}&rootId=${encodeURIComponent(rootId)}`,
+    `/admin/runner/email/thread-messages?participantId=${encodeURIComponent(participantId)}&rootId=${encodeURIComponent(rootId)}`,
   )
 
 export const sendParticipantEmail = (
@@ -92,12 +107,12 @@ export const sendParticipantEmail = (
   partnerId: string,
   subject: string,
   content: string,
-  simulationId: string,
   to?: string[],
   cc?: string[],
   parentEmailId?: string,
   replyToEmailId?: string,
   attachments?: ParticipantEmailAttachmentInput[],
+  status: EmailStatus = 'sent',
 ) =>
   apiClient<EmailMessage>(
     `/admin/runner/email?participantId=${encodeURIComponent(participantId)}`,
@@ -107,23 +122,19 @@ export const sendParticipantEmail = (
         partnerId,
         subject,
         content,
-        simulationId,
+        status,
         to: to ?? [],
         cc: cc ?? [],
         ...(parentEmailId ? { parentEmailId } : {}),
         ...(replyToEmailId ? { replyToEmailId } : {}),
-        ...(attachments?.length ? { attachments } : {}),
+        ...(attachments !== undefined ? { attachments } : {}),
       }),
     },
   )
 
-export const markEmailThreadAsRead = (
-  participantId: string,
-  simulationId: string,
-  rootId: string,
-) =>
+export const markEmailThreadAsRead = (participantId: string, rootId: string) =>
   apiClient<EmailMarkAsReadResult>(
-    `/admin/runner/email/mark-thread-read?participantId=${encodeURIComponent(participantId)}&simulationId=${encodeURIComponent(simulationId)}&rootId=${encodeURIComponent(rootId)}`,
+    `/admin/runner/email/mark-thread-read?participantId=${encodeURIComponent(participantId)}&rootId=${encodeURIComponent(rootId)}`,
     { method: 'POST' },
   )
 

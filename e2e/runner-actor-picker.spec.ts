@@ -86,17 +86,16 @@ async function mockRunner(page: Page) {
     } else if (path === '/api/v1/web/email/inbox') {
       data = [
         {
-          rootId: 'email',
-          latestMessageId: 'email',
-          latestSenderId: 'bob',
-          latestSenderType: 'actor',
-          latestSubject: 'Existing email',
-          latestContent: 'Hello',
-          latestIsRead: true,
-          latestCreatedDate: '2026-10-09T02:00:00Z',
+          participantEmailId: 'email',
+          from: 'bob',
+          fromName: 'Bob',
+          subject: 'Existing email',
+          latestSubject: 'Re: Existing email',
+          lastMessageContent: 'Hello',
+          lastMessageDate: '2026-10-09T02:00:00Z',
           unreadCount: 0,
-          messageCount: 1,
           simulationId: 'sim',
+          draftId: null,
         },
       ]
     } else if (path === '/api/v1/admin/master-data/actors') {
