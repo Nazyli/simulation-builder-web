@@ -33,11 +33,10 @@ test('serializes the selected root and direct reply email IDs for a participant 
 
   assert.equal(request.path, '/admin/runner/email?participantId=participant%201')
   assert.deepEqual(JSON.parse(request.init.body), {
-    partnerId: 'actor-1',
     subject: 'Re: Contract',
     content: 'Please review the revision.',
     status: 'sent',
-    to: [],
+    to: ['actor-1'],
     cc: [],
     parentEmailId: 'root-email-1',
     replyToEmailId: 'direct-reply-email-2',
@@ -175,11 +174,10 @@ test('serializes draft status and attachment replacements', async () => {
   )
 
   assert.deepEqual(JSON.parse(request.init.body), {
-    partnerId: 'actor-1',
     subject: 'Contract draft',
     content: '',
     status: 'draft',
-    to: [],
+    to: ['actor-1'],
     cc: [],
     parentEmailId: 'root-email-1',
     attachments: [

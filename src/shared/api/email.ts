@@ -12,14 +12,10 @@ interface RuntimeEmailAttachmentContent {
 
 export interface RuntimeEmailAttachment {
   emailAttachmentId: string
-  participantEmailId: string
   participantDocId: string | null
-  masterAttachmentId: string | null
-  documentId: string | null
   fileName: string | null
   isHighlight: boolean
   ownerName: string | null
-  openedAt: string | null
   modifiedDate: string | null
   contents: RuntimeEmailAttachmentContent[]
 }
@@ -32,8 +28,6 @@ export interface EmailAddress {
 
 export interface EmailMessage {
   participantEmailId: string
-  sessionId: string
-  emailPartnerId: string
   senderId: string
   senderType: 'participant' | 'actor'
   from: EmailAddress
@@ -41,13 +35,11 @@ export interface EmailMessage {
   content: string
   to: EmailAddress[]
   cc: EmailAddress[]
-  simulationId: string | null
   parentEmailId: string | null
   replyToEmailId: string | null
   masterEmailId: string | null
   status: EmailStatus
   isRead: boolean
-  readAt: string | null
   createdDate: string
   attachments: RuntimeEmailAttachment[]
   canReply: boolean
@@ -127,11 +119,10 @@ export const sendParticipantEmail = (
     {
       method: 'POST',
       body: JSON.stringify({
-        partnerId,
         subject,
         content,
         status,
-        to: to ?? [],
+        to: to && to.length > 0 ? to : [partnerId],
         cc: cc ?? [],
         ...(parentEmailId ? { parentEmailId } : {}),
         ...(replyToEmailId ? { replyToEmailId } : {}),
@@ -149,12 +140,10 @@ export const markEmailThreadAsRead = (participantId: string, rootId: string) =>
 export const markEmailAttachmentOpened = (
   attachmentId: string,
   participantId: string,
-  simulationId: string,
   participantEmailId: string,
 ) => {
   const params = new URLSearchParams({
     participantId,
-    simulationId,
     participantEmailId,
   })
   return apiClient<RuntimeEmailAttachment>(
