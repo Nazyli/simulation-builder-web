@@ -1,4 +1,4 @@
-import type { RuntimeSimulationDocument } from '../../../shared/api/documents'
+import type { RuntimeFileItem } from '../../../shared/api/documents'
 import {
   createEmptyDocumentDraft,
   draftFromRuntimeDocument,
@@ -40,8 +40,11 @@ export function beginCreateDocument(
 
 export function beginEditDocument(
   _state: DocumentEditorSessionState,
-  record: RuntimeSimulationDocument,
+  record: RuntimeFileItem,
 ): DocumentEditorSessionState {
+  if (!record.participantDocId) {
+    throw new Error('The selected document has no runtime id and cannot be edited.')
+  }
   const draft = draftFromRuntimeDocument(record)
   return {
     mode: 'edit',
@@ -54,11 +57,11 @@ export function beginEditDocument(
 
 export function finishDocumentSave(
   _state: DocumentEditorSessionState,
-  record: RuntimeSimulationDocument,
+  record: RuntimeFileItem,
 ): DocumentEditorSessionState {
   return {
     mode: 'read',
-    selectedId: record.participantDocId,
+    selectedId: record.participantDocId ?? null,
     draft: null,
     savedDraft: null,
     error: null,

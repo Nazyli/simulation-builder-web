@@ -4,11 +4,14 @@ import { toast } from 'sonner'
 import { useEffect, useMemo, useState } from 'react'
 import {
   createDocument,
+  findRuntimeDocument,
   getDocuments,
+  insertRuntimeDocument,
   openDocument,
+  replaceRuntimeDocument,
   updateDocument,
   type DocumentWriteInput,
-  type RuntimeSimulationDocument,
+  type RuntimeDocumentStructure,
 } from '../../shared/api/documents'
 import {
   isDocumentDraftDirty,
@@ -49,22 +52,28 @@ export function DocumentChannelPage() {
       documentId: string
     }) => openDocument(participant, documentId),
     onSuccess: (updated, variables) => {
-      queryClient.setQueryData<RuntimeSimulationDocument[]>(
+      const structure = queryClient.getQueryData<RuntimeDocumentStructure>([
+        'documents',
+        variables.participantId,
+      ])
+      const folderName =
+        structure?.filesInFolders.find((folder) =>
+          folder.files.some((file) => file.participantDocId === updated.participantDocId),
+        )?.folderName ?? null
+      queryClient.setQueryData<RuntimeDocumentStructure>(
         ['documents', variables.participantId],
         (current) =>
-          current?.map((record) =>
-            record.participantDocId === updated.participantDocId ? updated : record,
-          ),
+          current
+            ? replaceRuntimeDocument(current, updated)
+            : { filesInFolders: [], filesInRoot: [updated] },
       )
-      setEditorState((current) => ({
-        ...current,
-        mode: 'read',
-        selectedId: updated.participantDocId,
-        draft: null,
-        savedDraft: null,
-        error: null,
-      }))
-      setPreviewDoc(mapRuntimeDocument(updated))
+      // The preview dialog owns the open result. Do not reset editor state here:
+      // the user may have started editing another document while open was in flight.
+      setPreviewDoc((current) =>
+        current && current.id === updated.participantDocId
+          ? mapRuntimeDocument(updated, folderName)
+          : current,
+      )
     },
   })
 
@@ -82,19 +91,14 @@ export function DocumentChannelPage() {
       if (!documentId) throw new Error('The document could not be identified.')
       return updateDocument(participantId, documentId, input)
     },
-    onSuccess: (saved) => {
-      queryClient.setQueryData<RuntimeSimulationDocument[]>(
+    onSuccess: (saved, { mode }) => {
+      queryClient.setQueryData<RuntimeDocumentStructure>(
         ['documents', participantId],
         (current) => {
-          if (!current) return [saved]
-          const exists = current.some(
-            (record) => record.participantDocId === saved.participantDocId,
-          )
-          return exists
-            ? current.map((record) =>
-                record.participantDocId === saved.participantDocId ? saved : record,
-              )
-            : [saved, ...current]
+          if (!current) return { filesInFolders: [], filesInRoot: [saved] }
+          return mode === 'create'
+            ? insertRuntimeDocument(current, saved)
+            : replaceRuntimeDocument(current, saved)
         },
       )
       setEditorState((current) => finishDocumentSave(current, saved))
@@ -106,10 +110,15 @@ export function DocumentChannelPage() {
     },
   })
 
-  const documents = useMemo(
-    () => (documentsQuery.data ?? []).map(mapRuntimeDocument),
-    [documentsQuery.data],
-  )
+  const documents = useMemo(() => {
+    const structure = documentsQuery.data
+    if (!structure) return []
+    const root = structure.filesInRoot.map((record) => mapRuntimeDocument(record, null))
+    const inFolders = structure.filesInFolders.flatMap((folder) =>
+      folder.files.map((record) => mapRuntimeDocument(record, folder.folderName)),
+    )
+    return [...root, ...inFolders]
+  }, [documentsQuery.data])
   const selectedId = editorState.selectedId
   const editorDraft = editorState.draft
   const isEditorDirty = Boolean(
@@ -139,12 +148,6 @@ export function DocumentChannelPage() {
     })
   }
 
-  function handleSelectDocument(id: string) {
-    if (id === selectedId && editorState.mode === 'read') return
-    if (!canLeaveEditor()) return
-    showReadDocument(id)
-  }
-
   function handleCreateDocument() {
     if (!canLeaveEditor()) return
     if (!participantId.trim()) {
@@ -156,12 +159,17 @@ export function DocumentChannelPage() {
 
   function handleEditDocument(doc: SimulationDocument) {
     if (!canLeaveEditor()) return
-    const record = (documentsQuery.data ?? []).find((item) => item.participantDocId === doc.id)
+    const structure = documentsQuery.data
+    const record = structure ? findRuntimeDocument(structure, doc.id) : null
     if (!record) {
       toast.error('The selected document is no longer available.')
       return
     }
-    setEditorState((current) => beginEditDocument(current, record))
+    try {
+      setEditorState((current) => beginEditDocument(current, record))
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'The document cannot be edited.')
+    }
   }
 
   function handleCancelEditor() {
@@ -189,23 +197,26 @@ export function DocumentChannelPage() {
   }
 
   function handleOpenPreview(doc: SimulationDocument) {
+    if (!canLeaveEditor()) return
     showReadDocument(doc.id)
-    if (!openMutation.isPending) {
-      openMutation.mutate({ participantId, documentId: doc.id })
-    }
+    // Show the dialog immediately with the folder name from the list payload;
+    // the open endpoint only returns file metadata without folder context.
+    setPreviewDoc(doc)
+    if (openMutation.isPending && openMutation.variables?.documentId === doc.id) return
+    openMutation.mutate({ participantId, documentId: doc.id })
   }
 
   if (documentsQuery.isPending || documentsQuery.isError) {
     const failed = documentsQuery.isError
     return (
-      <div className="bg-card flex h-full min-h-[420px] flex-col items-center justify-center gap-3 rounded-lg border border-slate-200 px-6 text-center">
-        <span className="grid h-12 w-12 place-items-center rounded-full bg-slate-100">
-          <FileText size={20} className="text-slate-400" />
+      <div className="bg-card flex h-full min-h-[420px] flex-col items-center justify-center gap-3 rounded-lg border border-[var(--color-border)] px-6 text-center">
+        <span className="grid size-12 place-items-center rounded-md bg-[var(--color-surface-muted)]">
+          <FileText size={20} className="text-muted-foreground" />
         </span>
-        <p className="text-sm font-medium text-slate-900">
+        <p className="text-sm font-medium text-[var(--color-canvas-heading)]">
           {failed ? 'Failed to load documents' : 'Loading documents…'}
         </p>
-        <p className="mt-1 max-w-sm text-xs text-slate-500">
+        <p className="mt-1 max-w-sm text-xs text-[var(--color-canvas-text-muted)]">
           {failed
             ? 'Documents could not be retrieved for this participant. Check the connection and try again.'
             : 'Fetching shared documents for this simulation session.'}
@@ -214,7 +225,7 @@ export function DocumentChannelPage() {
           <button
             type="button"
             onClick={() => documentsQuery.refetch()}
-            className="bg-card rounded-md border border-slate-200 px-2.5 py-1 text-xs font-medium text-indigo-700 transition-colors hover:border-indigo-200 hover:bg-indigo-50"
+            className="bg-card text-primary hover:bg-accent focus-visible:ring-ring/50 rounded-md border border-[var(--color-border)] px-2.5 py-1 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none motion-reduce:transition-none"
           >
             Retry
           </button>
@@ -228,7 +239,6 @@ export function DocumentChannelPage() {
       <DocumentWorkspace
         documents={documents}
         selectedId={selectedId}
-        onSelectDocument={handleSelectDocument}
         onOpenPreview={handleOpenPreview}
         onCreateDocument={handleCreateDocument}
         onEditDocument={handleEditDocument}

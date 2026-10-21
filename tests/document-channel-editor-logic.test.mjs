@@ -10,28 +10,19 @@ import {
 } from '../src/features/simulation_runner/document/document-channel-editor-logic.ts'
 
 const runtimeDocument = {
+  emailAttachmentId: null,
   participantDocId: 'participant-doc-1',
-  participantId: 'participant-1',
-  sessionId: 'session-1',
-  executionId: null,
-  participantFolderId: null,
-  documentName: 'Policy',
-  documentId: null,
+  fileName: 'Policy',
+  ownerName: 'participant-1',
   isHighlight: false,
-  isRead: false,
-  owner: 'participant-1',
-  openedAt: null,
-  counter: 0,
-  createdBy: 'participant-1',
-  createdDate: '2026-09-27T10:00:00Z',
   modifiedDate: null,
+  documentId: null,
   contents: [
     {
+      participantAttachmentEmailId: null,
       participantDocContentId: 'content-1',
-      participantDocId: 'participant-doc-1',
       page: 1,
       content: '<p>Page one</p>',
-      contentMd: null,
       isHighlight: false,
     },
   ],
@@ -55,6 +46,12 @@ test('starts edit mode from the selected runtime document', () => {
   assert.equal(state.savedDraft?.contents[0].content, '<p>Page one</p>')
 })
 
+test('editing a runtime document without an id throws a clear error', () => {
+  const idless = { ...runtimeDocument, participantDocId: null }
+
+  assert.throws(() => beginEditDocument(createInitialDocumentEditorState(), idless), /runtime id/)
+})
+
 test('save failure keeps the draft and exposes the error', () => {
   const editing = beginEditDocument(createInitialDocumentEditorState(), runtimeDocument)
   const failed = recordDocumentSaveFailure(editing, 'Save failed')
@@ -72,6 +69,19 @@ test('successful save returns to read mode and selects the saved document', () =
   assert.deepEqual(saved, {
     mode: 'read',
     selectedId: 'participant-doc-1',
+    draft: null,
+    savedDraft: null,
+    error: null,
+  })
+})
+
+test('successful save tolerates a saved document without an id', () => {
+  const creating = beginCreateDocument(createInitialDocumentEditorState())
+  const saved = finishDocumentSave(creating, { ...runtimeDocument, participantDocId: null })
+
+  assert.deepEqual(saved, {
+    mode: 'read',
+    selectedId: null,
     draft: null,
     savedDraft: null,
     error: null,

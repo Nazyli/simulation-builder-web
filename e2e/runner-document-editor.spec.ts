@@ -32,29 +32,20 @@ async function mockDocuments(
     })
   }
   let record = {
+    emailAttachmentId: null as string | null,
     participantDocId: 'doc-one',
-    participantId: 'test',
-    sessionId: 'session',
-    executionId: null,
-    participantFolderId: null,
-    documentName: 'Project notes',
-    documentId: null,
+    fileName: 'Project notes',
+    ownerName: 'Participant',
     isHighlight: false,
-    isRead: false,
-    owner: 'participant',
-    openedAt: null,
-    counter: 0,
-    createdBy: 'test',
-    createdDate: '2026-10-09T02:00:00Z',
-    modifiedDate: null as string | null,
+    modifiedDate: '2026-10-09T02:00:00Z' as string | null,
+    documentId: null as string | null,
     contents: [
       {
+        participantAttachmentEmailId: null,
         participantDocContentId: 'page-one',
-        participantDocId: 'doc-one',
         page: 1,
-        content: initialContent,
-        contentMd: null,
         isHighlight: false,
+        content: initialContent,
       },
     ],
   }
@@ -67,14 +58,34 @@ async function mockDocuments(
       participantDocContentId: 'page-two',
     })
   const writes: { documentName: string; contents: { page: number; content: string }[] }[] = []
+
+  const applyWrite = (input: {
+    documentName: string
+    contents: { page: number; content: string }[]
+  }) => {
+    writes.push(input)
+    if (failSave) return false
+    record = {
+      ...record,
+      fileName: input.documentName,
+      modifiedDate: new Date().toISOString(),
+      contents: input.contents.map((content) => ({
+        ...record.contents[0],
+        ...content,
+        participantDocContentId: `page-${content.page}`,
+      })),
+    }
+    return true
+  }
+
   await page.route('**/api/v1/**', async (route) => {
     const path = new URL(route.request().url()).pathname
+    const method = route.request().method()
     let data: unknown = []
-    if (path.startsWith('/api/v1/web/documents')) {
-      if (['POST', 'PUT'].includes(route.request().method())) {
+    if (path === '/api/v1/admin/runner/documents') {
+      if (method === 'POST') {
         const input = route.request().postDataJSON()
-        writes.push(input)
-        if (failSave) {
+        if (!applyWrite(input)) {
           await route.fulfill({
             status: 500,
             json: {
@@ -85,18 +96,29 @@ async function mockDocuments(
           })
           return
         }
-        record = {
-          ...record,
-          documentName: input.documentName,
-          contents: input.contents.map((content: { page: number; content: string }) => ({
-            ...record.contents[0],
-            ...content,
-            participantDocContentId: `page-${content.page}`,
-          })),
+        data = record
+      } else {
+        data = { filesInFolders: [], filesInRoot: [record] }
+      }
+    } else if (path.startsWith('/api/v1/admin/runner/documents/')) {
+      if (path.endsWith('/open')) {
+        data = record
+      } else if (method === 'PUT') {
+        const input = route.request().postDataJSON()
+        if (!applyWrite(input)) {
+          await route.fulfill({
+            status: 500,
+            json: {
+              status: 'error',
+              info: { code: 500, message: 'Save failed. Try again.' },
+              data: null,
+            },
+          })
+          return
         }
         data = record
-      } else data = [record]
-    } else if (path.endsWith('/notifications/activity'))
+      }
+    } else if (path.endsWith('/notification/list') || path.endsWith('/notifications/activity'))
       data = { activityChat: [], activityEmail: [] }
     await route.fulfill({ json: { status: 'success', info: { code: 200, message: 'ok' }, data } })
   })
@@ -109,23 +131,29 @@ async function mockDocuments(
   }
 }
 
+async function startNewDocument(page: Page, name: string) {
+  await page.getByRole('button', { name: 'New document', exact: true }).click()
+  await page.getByRole('textbox', { name: 'Document name' }).fill(name)
+}
+
 test('saving uses the mounted editor through create and edit in StrictMode', async ({ page }) => {
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
   const { writes } = await mockDocuments(page)
-  await page.getByRole('button', { name: 'New', exact: true }).click()
-  await page.getByRole('textbox', { name: 'Document name' }).fill('Save regression')
+  await startNewDocument(page, 'Save regression')
   const content = page.getByRole('textbox', { name: 'Document content', exact: true })
   await replaceDocumentText(content, 'First saved content')
   await page.getByRole('button', { name: 'Create document' }).click()
   await expect.poll(() => writes.length).toBe(1)
   expect(writes[0].contents).toEqual([{ page: 1, content: '<p>First saved content</p>' }])
-  await page.getByRole('button', { name: 'Edit document', exact: true }).click()
+  await page.getByRole('button', { name: 'Edit Save regression', exact: true }).click()
   await replaceDocumentText(content, 'Updated saved content')
   await page.getByRole('button', { name: 'Save changes' }).click()
   await expect.poll(() => writes.length).toBe(2)
   expect(writes[1].contents).toEqual([{ page: 1, content: '<p>Updated saved content</p>' }])
-  await expect(page.getByRole('button', { name: 'Edit document', exact: true })).toBeVisible()
+  await expect(
+    page.getByRole('button', { name: 'Edit Save regression', exact: true }),
+  ).toBeVisible()
   expect(errors).toEqual([])
 })
 
@@ -133,8 +161,7 @@ test('keyboard formatting persists through save and reopening without dirtying o
   page,
 }) => {
   const { writes } = await mockDocuments(page)
-  await page.getByRole('button', { name: /Project notes/ }).click()
-  await page.getByRole('button', { name: 'Edit document', exact: true }).click()
+  await page.getByRole('button', { name: 'Edit Project notes', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Save changes' })).toBeDisabled()
   const sheet = page.getByRole('textbox', { name: 'Document content', exact: true })
   await replaceDocumentText(sheet, 'Formatted notes')
@@ -146,7 +173,7 @@ test('keyboard formatting persists through save and reopening without dirtying o
   await page.getByRole('combobox', { name: 'Font family' }).selectOption('Georgia')
   await page.getByRole('combobox', { name: 'Font size' }).selectOption('18px')
   await page.getByRole('button', { name: 'Save changes' }).click()
-  await page.getByRole('button', { name: 'Edit document', exact: true }).click()
+  await page.getByRole('button', { name: 'Edit Project notes', exact: true }).click()
   await expect(sheet.locator('strong')).toHaveText('Formatted notes')
   await expect(sheet.locator('p')).toHaveAttribute('data-text-align', 'center')
   await expect(sheet.locator('[data-font-family="Georgia"]')).toBeVisible()
@@ -158,8 +185,7 @@ test('long paragraphs create pages automatically, deletion reflows, and undo res
   page,
 }) => {
   const { writes } = await mockDocuments(page)
-  await page.getByRole('button', { name: 'New', exact: true }).click()
-  await page.getByRole('textbox', { name: 'Document name' }).fill('Continuous writing')
+  await startNewDocument(page, 'Continuous writing')
   const content = page.getByRole('textbox', { name: 'Document content', exact: true })
   const words =
     'A continuous paragraph keeps its text and formatting while flowing to the next page. '.repeat(
@@ -177,7 +203,7 @@ test('long paragraphs create pages automatically, deletion reflows, and undo res
   expect(writes[0].contents.map((item) => item.content.replace(/<[^>]+>/g, '')).join('')).toBe(
     words,
   )
-  await page.getByRole('button', { name: 'Edit document', exact: true }).click()
+  await page.getByRole('button', { name: 'Edit Continuous writing', exact: true }).click()
   await expect(content.locator('p')).toHaveCount(1)
   await expect(content).toContainText(words.trim())
   await expect(page.getByRole('button', { name: 'Save changes' })).toBeDisabled()
@@ -202,8 +228,7 @@ test('loading legacy HTML and changing the title retains all untouched page cont
   page,
 }) => {
   const { writes } = await mockDocuments(page, '<div>Legacy notes<br>Second line</div>')
-  await page.getByRole('button', { name: /Project notes/ }).click()
-  await page.getByRole('button', { name: 'Edit document', exact: true }).click()
+  await page.getByRole('button', { name: 'Edit Project notes', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Save changes' })).toBeDisabled()
   await page.getByRole('textbox', { name: 'Document name' }).fill('Renamed notes')
   await page.getByRole('button', { name: 'Save changes' }).click()
@@ -218,8 +243,7 @@ test('undoing a legacy content edit restores clean state and original page HTML'
 }) => {
   const original = '<div>Legacy notes<br>Second line</div>'
   const { writes } = await mockDocuments(page, original)
-  await page.getByRole('button', { name: /Project notes/ }).click()
-  await page.getByRole('button', { name: 'Edit document', exact: true }).click()
+  await page.getByRole('button', { name: 'Edit Project notes', exact: true }).click()
   const content = page.getByRole('textbox', { name: 'Document content', exact: true })
   await content.click()
   await content.press('ControlOrMeta+End')
@@ -238,15 +262,14 @@ test('saving immediately after a long paste includes the latest text and settled
   page,
 }) => {
   const { writes } = await mockDocuments(page)
-  await page.getByRole('button', { name: /Project notes/ }).click()
-  await page.getByRole('button', { name: 'Edit document', exact: true }).click()
+  await page.getByRole('button', { name: 'Edit Project notes', exact: true }).click()
   const content = page.getByRole('textbox', { name: 'Document content', exact: true })
   await content.click()
   await content.press('ControlOrMeta+a')
   const words = 'A newly pasted paragraph must be saved with all of its latest text. '.repeat(160)
   await page.keyboard.insertText(words)
   await page.keyboard.press('ControlOrMeta+s')
-  await expect(page.getByRole('button', { name: 'Edit document', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Edit Project notes', exact: true })).toBeVisible()
   expect(writes[0].contents.length).toBeGreaterThanOrEqual(3)
   expect(writes[0].contents.map((item) => item.content.replace(/<[^>]+>/g, '')).join('')).toBe(
     words,
@@ -255,8 +278,7 @@ test('saving immediately after a long paste includes the latest text and settled
 
 test('formatting undo and failed saves keep the continuous draft', async ({ page }) => {
   const { failNextSave } = await mockDocuments(page)
-  await page.getByRole('button', { name: 'New', exact: true }).click()
-  await page.getByRole('textbox', { name: 'Document name' }).fill('New notes')
+  await startNewDocument(page, 'New notes')
   const first = page.getByRole('textbox', { name: 'Document content', exact: true })
   await replaceDocumentText(first, 'First page')
   await first.press('ControlOrMeta+a')
@@ -274,7 +296,7 @@ test('link form rejects unsafe URLs and applies a safe link to the selected text
   page,
 }) => {
   await mockDocuments(page)
-  await page.getByRole('button', { name: 'New', exact: true }).click()
+  await page.getByRole('button', { name: 'New document', exact: true }).click()
   const sheet = page.getByRole('textbox', { name: 'Document content', exact: true })
   await replaceDocumentText(sheet, 'Read more')
   await sheet.press('ControlOrMeta+a')
@@ -289,13 +311,12 @@ test('link form rejects unsafe URLs and applies a safe link to the selected text
 
 test('an empty table survives save and reopening', async ({ page }) => {
   const { writes } = await mockDocuments(page)
-  await page.getByRole('button', { name: 'New', exact: true }).click()
-  await page.getByRole('textbox', { name: 'Document name' }).fill('Blank planning table')
+  await startNewDocument(page, 'Blank planning table')
   await page.getByRole('button', { name: 'Insert table', exact: true }).click()
   await page.getByRole('button', { name: 'Create document' }).click()
   await expect.poll(() => writes.length).toBe(1)
   expect(writes[0].contents[0].content).toContain('<table')
-  await page.getByRole('button', { name: 'Edit document', exact: true }).click()
+  await page.getByRole('button', { name: 'Edit Blank planning table', exact: true }).click()
   await expect(
     page.getByRole('textbox', { name: 'Document content', exact: true }).locator('table'),
   ).toBeVisible()
@@ -304,8 +325,7 @@ test('an empty table survives save and reopening', async ({ page }) => {
 test('page navigation focuses an existing unvisited page before formatting', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 })
   await mockDocuments(page, '<p>' + 'First notes. '.repeat(800) + '</p>')
-  await page.getByRole('button', { name: /Project notes/ }).click()
-  await page.getByRole('button', { name: 'Edit document', exact: true }).click()
+  await page.getByRole('button', { name: 'Edit Project notes', exact: true }).click()
   await page
     .getByRole('navigation', { name: 'Document pages' })
     .getByRole('button', { name: 'Page 2', exact: true })
@@ -339,8 +359,7 @@ test('lists and tables spanning pages preserve their structure after save and re
     ).join('') +
     '</tbody></table>'
   const { writes } = await mockDocuments(page, list + table)
-  await page.getByRole('button', { name: /Project notes/ }).click()
-  await page.getByRole('button', { name: 'Edit document', exact: true }).click()
+  await page.getByRole('button', { name: 'Edit Project notes', exact: true }).click()
   const content = page.getByRole('textbox', { name: 'Document content', exact: true })
   await content.press('ControlOrMeta+a')
   await page.getByRole('button', { name: 'Bold', exact: true }).click()
@@ -348,7 +367,7 @@ test('lists and tables spanning pages preserve their structure after save and re
   await page.getByRole('button', { name: 'Save changes' }).click()
   await expect.poll(() => writes.length).toBe(1)
   expect(writes[0].contents.length).toBeGreaterThan(2)
-  await page.getByRole('button', { name: 'Edit document', exact: true }).click()
+  await page.getByRole('button', { name: 'Edit Project notes', exact: true }).click()
   await expect(content.locator('ul')).toHaveCount(1)
   await expect(content.locator('li')).toHaveCount(45)
   await expect(content.locator('table')).toHaveCount(1)
@@ -366,8 +385,7 @@ test('saved ordered list fragments continue numbering across preview pages', asy
     ).join('') +
     '</ol>'
   const { writes } = await mockDocuments(page, list)
-  await page.getByRole('button', { name: /Project notes/ }).click()
-  await page.getByRole('button', { name: 'Edit document', exact: true }).click()
+  await page.getByRole('button', { name: 'Edit Project notes', exact: true }).click()
   const content = page.getByRole('textbox', { name: 'Document content', exact: true })
   await content.press('ControlOrMeta+a')
   await page.getByRole('button', { name: 'Bold', exact: true }).click()
@@ -384,6 +402,18 @@ test('saved ordered list fragments continue numbering across preview pages', asy
   }
 })
 
+test('document preview shows metadata and page content', async ({ page }) => {
+  await mockDocuments(page)
+  await page.getByRole('button', { name: 'Open Project notes', exact: true }).click()
+  const dialog = page.getByRole('dialog', { name: 'Project notes' })
+  await expect(dialog).toBeVisible()
+  await expect(dialog.getByText('Original notes')).toBeVisible()
+  await expect(dialog.getByText('Participant', { exact: true })).toBeVisible()
+  await expect(dialog.getByText('Root', { exact: true }).first()).toBeVisible()
+  await dialog.getByRole('button', { name: 'Close', exact: true }).last().click()
+  await expect(dialog).toHaveCount(0)
+})
+
 for (const viewport of [
   { name: 'desktop', width: 1440, height: 1000 },
   { name: 'mobile', width: 390, height: 844 },
@@ -391,8 +421,7 @@ for (const viewport of [
   test(`document workspace fits ${viewport.name}`, async ({ page }) => {
     await page.setViewportSize(viewport)
     await mockDocuments(page)
-    await page.getByRole('button', { name: 'New', exact: true }).click()
-    await page.getByRole('textbox', { name: 'Document name' }).fill('Quarterly project review')
+    await startNewDocument(page, 'Quarterly project review')
     const sheet = page.getByRole('textbox', { name: 'Document content', exact: true })
     await replaceDocumentText(sheet, 'Project overview')
     await page.getByRole('combobox', { name: 'Paragraph style' }).selectOption('1')

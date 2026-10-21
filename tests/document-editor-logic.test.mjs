@@ -39,11 +39,28 @@ test('normalizes the empty Tiptap paragraph while retaining empty table structur
 
 test('maps runtime content rows into separate ordered editor pages', () => {
   const draft = draftFromRuntimeDocument({
+    emailAttachmentId: null,
     participantDocId: 'document-1',
-    documentName: 'Guide',
+    fileName: 'Guide',
+    ownerName: 'participant-1',
+    isHighlight: false,
+    modifiedDate: null,
+    documentId: null,
     contents: [
-      { participantDocContentId: 'page-2', page: 2, content: '<p>Two</p>' },
-      { participantDocContentId: 'page-1', page: 1, content: '<p>One</p>' },
+      {
+        participantAttachmentEmailId: null,
+        participantDocContentId: 'page-2',
+        page: 2,
+        content: '<p>Two</p>',
+        isHighlight: false,
+      },
+      {
+        participantAttachmentEmailId: null,
+        participantDocContentId: 'page-1',
+        page: 1,
+        content: '<p>One</p>',
+        isHighlight: false,
+      },
     ],
   })
 

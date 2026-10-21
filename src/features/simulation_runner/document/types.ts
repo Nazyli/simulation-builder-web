@@ -1,4 +1,4 @@
-import type { RuntimeSimulationDocument } from '../../../shared/api/documents'
+import type { RuntimeFileItem } from '../../../shared/api/documents'
 import { isHtmlContent, stripHtmlToText } from '../../../shared/html'
 
 /**
@@ -13,13 +13,11 @@ export interface SimulationDocument {
   id: string
   title: string
   type: DocumentType
-  status: 'unread' | 'read'
-  simulationName: string | null
-  sharedBy: string
-  sharedAt: string
+  folderName: string | null
+  ownerName: string
+  modifiedAt: string | null
+  isHighlight: boolean
   pageCount: number
-  openCount: number
-  openedAt: string | null
   summary: string
   content: string
   pages: string[]
@@ -36,34 +34,29 @@ export const DOCUMENT_TYPE_META: Record<DocumentType, DocumentTypeMeta> = {
   document: { label: 'Document', color: '#9929EA', bg: '#f5e7ff' },
 }
 
-export const DOCUMENT_STATUS_META: Record<
-  SimulationDocument['status'],
-  { label: string; className: string }
-> = {
-  unread: { label: 'Unread', className: 'bg-amber-50 text-amber-700 border-amber-200' },
-  read: { label: 'Read', className: 'bg-sky-50 text-sky-700 border-sky-200' },
-}
-
 const SUMMARY_MAX_LENGTH = 160
 
 /** Convert a runtime document record from `/admin/runner/documents` into the view model. */
-export function mapRuntimeDocument(record: RuntimeSimulationDocument): SimulationDocument {
-  const pageTexts = record.contents
+export function mapRuntimeDocument(
+  record: RuntimeFileItem,
+  folderName?: string | null,
+): SimulationDocument {
+  const pageCount = [...record.contents].filter((page) => page.page !== null).length
+  const pageTexts = [...record.contents]
+    .filter((page) => page.page !== null)
+    .sort((left, right) => (left.page ?? 0) - (right.page ?? 0))
     .map((page) => page.content ?? '')
-    .filter((text) => text.length > 0)
   const content = pageTexts.join('\n\n')
   const summarySource = isHtmlContent(content) ? stripHtmlToText(content) : content
   return {
-    id: record.participantDocId,
-    title: record.documentName ?? 'Untitled document',
+    id: record.participantDocId ?? '',
+    title: record.fileName ?? 'Untitled document',
     type: 'document',
-    status: record.isRead ? 'read' : 'unread',
-    simulationName: null,
-    sharedBy: record.owner ?? '',
-    sharedAt: record.createdDate,
-    pageCount: record.contents.length,
-    openCount: record.counter,
-    openedAt: record.openedAt,
+    folderName: folderName ?? null,
+    ownerName: record.ownerName ?? '',
+    modifiedAt: record.modifiedDate,
+    isHighlight: record.isHighlight ?? false,
+    pageCount,
     summary:
       summarySource.length > SUMMARY_MAX_LENGTH
         ? `${summarySource.slice(0, SUMMARY_MAX_LENGTH)}…`
@@ -73,17 +66,36 @@ export function mapRuntimeDocument(record: RuntimeSimulationDocument): Simulatio
   }
 }
 
-/** Format a relative-ish date for the sidebar. */
-export function formatDocumentDate(iso: string): string {
+const WIB_TIME_ZONE = 'Asia/Jakarta'
+
+function wibDateKey(value: Date): string {
+  return value.toLocaleDateString('en-CA', { timeZone: WIB_TIME_ZONE })
+}
+
+function wibYear(value: Date): string {
+  return value.toLocaleDateString('en-CA', { timeZone: WIB_TIME_ZONE, year: 'numeric' })
+}
+
+/** Format a runtime timestamp in WIB; tolerates missing or invalid dates. */
+export function formatDocumentDate(iso: string | null): string {
+  if (!iso) return ''
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return ''
   const now = new Date()
-  const isToday =
-    d.getFullYear() === now.getFullYear() &&
-    d.getMonth() === now.getMonth() &&
-    d.getDate() === now.getDate()
-  if (isToday) return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-  const isThisYear = d.getFullYear() === now.getFullYear()
-  if (isThisYear) return d.toLocaleDateString([], { month: 'short', day: 'numeric' })
-  return d.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })
+  if (wibDateKey(d) === wibDateKey(now)) {
+    return d.toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: WIB_TIME_ZONE,
+    })
+  }
+  if (wibYear(d) === wibYear(now)) {
+    return d.toLocaleDateString([], { month: 'short', day: 'numeric', timeZone: WIB_TIME_ZONE })
+  }
+  return d.toLocaleDateString([], {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: WIB_TIME_ZONE,
+  })
 }

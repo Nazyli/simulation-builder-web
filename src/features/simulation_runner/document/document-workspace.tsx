@@ -1,292 +1,358 @@
-import { BookOpen, Edit3, ExternalLink, Eye, FileText, Plus, Search } from 'lucide-react'
+import { Edit3, Eye, FileText, Folder, Plus, Search, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { isHtmlContent, stripHtmlToText } from '../../../shared/html'
-import { inputClass } from '../../../shared/form-classes'
-import { DOCUMENT_STATUS_META, DOCUMENT_TYPE_META, type SimulationDocument } from './types'
-import { formatDocumentDate } from './types'
+
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { SurfaceSection } from '../../../components/layout/surface-section'
+import { DOCUMENT_TYPE_META, formatDocumentDate, type SimulationDocument } from './types'
 
 interface DocumentWorkspaceProps {
   documents: SimulationDocument[]
   selectedId: string | null
-  onSelectDocument: (id: string) => void
   onOpenPreview: (doc: SimulationDocument) => void
   editor?: React.ReactNode
   onCreateDocument?: () => void
   onEditDocument?: (doc: SimulationDocument) => void
 }
 
+interface FolderGroup {
+  name: string
+  documents: SimulationDocument[]
+  latestModified: string | null
+}
+
+function newestModified(documents: SimulationDocument[]): string | null {
+  let latest: string | null = null
+  let latestTime = Number.NEGATIVE_INFINITY
+  for (const doc of documents) {
+    if (!doc.modifiedAt) continue
+    const time = new Date(doc.modifiedAt).getTime()
+    if (!Number.isNaN(time) && time > latestTime) {
+      latestTime = time
+      latest = doc.modifiedAt
+    }
+  }
+  return latest
+}
+
+function groupByFolder(documents: SimulationDocument[]): FolderGroup[] {
+  const folders = new Map<string, SimulationDocument[]>()
+  for (const doc of documents) {
+    if (!doc.folderName) continue
+    const current = folders.get(doc.folderName) ?? []
+    current.push(doc)
+    folders.set(doc.folderName, current)
+  }
+  return Array.from(folders, ([name, files]) => ({
+    name,
+    documents: files,
+    latestModified: newestModified(files),
+  }))
+}
+
 export function DocumentWorkspace({
   documents,
   selectedId,
-  onSelectDocument,
   onOpenPreview,
   editor = null,
   onCreateDocument,
   onEditDocument,
 }: DocumentWorkspaceProps) {
-  const selected = documents.find((d) => d.id === selectedId) ?? null
-
   const [search, setSearch] = useState('')
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    return q
-      ? documents.filter(
-          (doc) =>
-            doc.title.toLowerCase().includes(q) ||
-            doc.summary.toLowerCase().includes(q) ||
-            doc.sharedBy.toLowerCase().includes(q) ||
-            (doc.simulationName ?? '').toLowerCase().includes(q),
+  const [folderFilter, setFolderFilter] = useState<string | null>(null)
+  const folderGroups = useMemo(() => groupByFolder(documents), [documents])
+  const activeFolder = folderGroups.some((group) => group.name === folderFilter)
+    ? folderFilter
+    : null
+  const query = search.trim().toLowerCase()
+
+  const filtered = useMemo(
+    () =>
+      documents.filter((doc) => {
+        if (activeFolder && doc.folderName !== activeFolder) return false
+        if (!query) return true
+        return (
+          doc.title.toLowerCase().includes(query) ||
+          doc.ownerName.toLowerCase().includes(query) ||
+          (doc.folderName ?? '').toLowerCase().includes(query)
         )
-      : documents
-  }, [documents, search])
+      }),
+    [documents, activeFolder, query],
+  )
+
+  if (editor) {
+    return <div className="flex h-full min-h-0 flex-col">{editor}</div>
+  }
+
+  const hasDocuments = documents.length > 0
+  const hasFilters = Boolean(query) || activeFolder !== null
+
+  function openDocument(doc: SimulationDocument) {
+    onOpenPreview(doc)
+  }
+
+  function clearFilters() {
+    setSearch('')
+    setFolderFilter(null)
+  }
 
   return (
-    <div className="bg-card flex min-h-[480px] min-w-0 flex-1 flex-col overflow-hidden rounded-lg border border-slate-200">
-      <div className="flex h-full min-h-0 flex-1 flex-col lg:flex-row">
-        {/* Sidebar list */}
-        <aside
-          className={`${editor ? 'hidden' : 'flex'} bg-card min-w-0 shrink-0 flex-col border-b border-slate-200 lg:w-[340px] lg:border-r lg:border-b-0`}
-        >
-          <div className="flex items-center justify-between px-3 pt-3 pb-2">
-            <p className="text-[10px] font-bold tracking-[0.12em] text-slate-400 uppercase">
+    <div className="flex h-full min-h-0 flex-col overflow-y-auto">
+      <div className="flex min-w-0 flex-col gap-[var(--page-gap)] pb-1">
+        <header className="flex min-w-0 flex-wrap items-end justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-[20px] leading-tight font-semibold tracking-[-0.02em] break-words text-[var(--color-canvas-heading)] max-[620px]:text-[18px]">
               Documents
+            </h1>
+            <p className="mt-1 max-w-[64ch] text-sm leading-relaxed break-words text-[var(--color-canvas-text-muted)]">
+              Files shared with this simulation session.
             </p>
+          </div>
+          <div className="flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-auto">
+            <label className="relative min-w-0 flex-1 sm:w-[260px] sm:flex-none">
+              <Search
+                className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-[var(--color-canvas-text-muted)]"
+                aria-hidden="true"
+              />
+              <Input
+                aria-label="Search documents"
+                placeholder="Search documents"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                className="bg-card h-9 pl-8"
+              />
+            </label>
             {onCreateDocument ? (
-              <button
-                type="button"
-                onClick={onCreateDocument}
-                className="focus-visible:ring-ring inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold text-indigo-700 transition-colors hover:bg-indigo-50 focus-visible:ring-2 focus-visible:outline-none"
-              >
-                <Plus size={13} />
-                New
-              </button>
+              <Button type="button" onClick={onCreateDocument} className="h-9 gap-1.5 px-3">
+                <Plus size={15} aria-hidden="true" />
+                New document
+              </Button>
             ) : null}
           </div>
-          <label className="relative px-3 pb-2">
-            <Search className="pointer-events-none absolute top-2.5 left-6 h-3.5 w-3.5 text-[#9aa0a6]" />
-            <input
-              className={`${inputClass} !h-8 !rounded-md !py-1.5 !pl-8 text-xs`}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search documents"
-            />
-          </label>
-          <div className="min-h-0 flex-1 overflow-y-auto">
-            {filtered.length === 0 ? (
-              <div className="flex flex-col items-center gap-2 px-4 py-10 text-center">
-                <FileText size={20} className="text-[#9aa0a6]" />
-                <p className="text-xs text-slate-500">
-                  {documents.length ? 'No matching documents.' : 'No documents yet.'}
-                </p>
-              </div>
-            ) : (
-              filtered.map((doc) => {
-                const active = doc.id === selectedId
-                const typeMeta = DOCUMENT_TYPE_META[doc.type]
-                const statusMeta = DOCUMENT_STATUS_META[doc.status]
+        </header>
+
+        {folderGroups.length > 0 ? (
+          <SurfaceSection
+            title="Folders"
+            description="Select a folder to show only its files."
+            actions={
+              <Button
+                type="button"
+                size="sm"
+                variant={activeFolder === null ? 'secondary' : 'outline'}
+                aria-pressed={activeFolder === null}
+                onClick={() => setFolderFilter(null)}
+              >
+                All files
+                <span className="text-[11px] font-medium opacity-70">{documents.length}</span>
+              </Button>
+            }
+          >
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {folderGroups.map((group) => {
+                const active = group.name === activeFolder
                 return (
                   <button
-                    key={doc.id}
+                    key={group.name}
                     type="button"
-                    onClick={() => onSelectDocument(doc.id)}
-                    className={`group focus-visible:ring-ring flex w-full min-w-0 items-stretch gap-0 border-b border-slate-200 text-left transition-colors last:border-b-0 hover:bg-slate-50 focus-visible:ring-2 focus-visible:outline-none ${active ? 'bg-accent' : 'bg-card'}`}
+                    aria-pressed={active}
+                    onClick={() => setFolderFilter(active ? null : group.name)}
+                    className={`group bg-card focus-visible:ring-ring/50 flex min-w-0 flex-col gap-3 rounded-lg border p-3 text-left transition-[border-color,box-shadow,background-color] duration-150 focus-visible:ring-2 focus-visible:outline-none motion-reduce:transition-none ${
+                      active
+                        ? 'bg-accent/40 border-[var(--color-border-strong)]'
+                        : 'border-[var(--color-border)] hover:border-[var(--color-border-strong)] hover:shadow-sm'
+                    }`}
                   >
-                    {/* Type ribbon */}
-                    <span
-                      className="w-1 shrink-0 self-stretch rounded-l-sm"
-                      style={{ backgroundColor: typeMeta.color }}
-                      aria-hidden="true"
-                    />
-                    <span className="flex min-w-0 flex-1 items-start gap-3 px-3 py-3">
-                      <span
-                        className="grid size-8 shrink-0 place-items-center rounded-md text-[10px] font-bold"
-                        style={{ backgroundColor: typeMeta.bg, color: typeMeta.color }}
-                      >
-                        {typeMeta.label.charAt(0)}
+                    <span className="flex items-start justify-between gap-2">
+                      <span className="text-primary group-hover:bg-accent grid size-9 shrink-0 place-items-center rounded-md bg-[var(--color-surface-muted)] transition-colors motion-reduce:transition-none">
+                        <Folder size={17} aria-hidden="true" />
                       </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="flex items-baseline justify-between gap-2">
-                          <span
-                            className={`truncate text-sm ${active ? 'font-semibold text-slate-900' : 'font-normal text-slate-500'}`}
-                          >
-                            {doc.title}
-                          </span>
-                          <span className="shrink-0 text-xs text-slate-500">
-                            {formatDocumentDate(doc.sharedAt)}
-                          </span>
-                        </span>
-                        <span className="mt-0.5 flex items-center gap-1.5">
-                          <span
-                            className={`inline-flex items-center rounded-sm border px-1.5 py-px text-[10px] leading-4 font-medium ${statusMeta.className}`}
-                          >
-                            {statusMeta.label}
-                          </span>
-                          <span className="truncate text-xs text-slate-500">{doc.sharedBy}</span>
-                        </span>
+                      <span className="text-[11px] font-semibold text-[var(--color-canvas-text-muted)]">
+                        {group.documents.length} file{group.documents.length === 1 ? '' : 's'}
+                      </span>
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-semibold text-[var(--color-canvas-heading)]">
+                        {group.name}
+                      </span>
+                      <span className="mt-0.5 block truncate text-xs text-[var(--color-canvas-text-muted)]">
+                        {group.latestModified
+                          ? `Modified ${formatDocumentDate(group.latestModified)}`
+                          : 'Not modified yet'}
                       </span>
                     </span>
                   </button>
                 )
-              })
-            )}
-          </div>
-        </aside>
-
-        {/* Detail panel */}
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-          {editor ? (
-            editor
-          ) : selected ? (
-            <DocumentDetail
-              document={selected}
-              onOpenPreview={onOpenPreview}
-              onEditDocument={onEditDocument}
-            />
-          ) : (
-            <div className="flex flex-1 items-center justify-center bg-[var(--color-canvas)] px-6 text-center">
-              <div className="flex flex-col items-center gap-3">
-                <span className="grid h-12 w-12 place-items-center rounded-full bg-slate-100">
-                  <FileText size={20} className="text-slate-400" />
-                </span>
-                <div>
-                  <p className="text-sm font-medium text-slate-900">
-                    {documents.length ? 'Select a document' : 'No documents yet'}
-                  </p>
-                  <p className="mt-1 text-xs text-slate-500">
-                    {documents.length
-                      ? 'Choose a document from the list to preview its contents.'
-                      : 'Documents from simulations will appear here.'}
-                  </p>
-                </div>
-              </div>
+              })}
             </div>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-/* -------------------------------------------------------------------------- */
-/* Document detail panel                                                      */
-/* -------------------------------------------------------------------------- */
-
-function DocumentDetail({
-  document: doc,
-  onOpenPreview,
-  onEditDocument,
-}: {
-  document: SimulationDocument
-  onOpenPreview: (doc: SimulationDocument) => void
-  onEditDocument?: (doc: SimulationDocument) => void
-}) {
-  const typeMeta = DOCUMENT_TYPE_META[doc.type]
-  const statusMeta = DOCUMENT_STATUS_META[doc.status]
-
-  return (
-    <div className="flex min-w-0 flex-1 flex-col bg-[var(--color-canvas)]">
-      {/* Header bar */}
-      <div className="bg-card flex items-center justify-between border-b border-slate-200 px-4 py-2.5">
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-base font-semibold text-slate-600">{doc.title}</p>
-          <div className="mt-1 flex items-center gap-2 text-xs text-slate-500">
-            <span
-              className={`inline-flex items-center rounded-sm border px-1.5 py-px leading-4 font-medium ${statusMeta.className}`}
-            >
-              {statusMeta.label}
-            </span>
-            <span className="text-slate-300">·</span>
-            <span
-              className="inline-flex items-center gap-1 rounded-sm px-1.5 py-px font-medium"
-              style={{ backgroundColor: typeMeta.bg, color: typeMeta.color }}
-            >
-              {typeMeta.label}
-            </span>
-          </div>
-        </div>
-        {onEditDocument ? (
-          <button
-            type="button"
-            onClick={() => onEditDocument(doc)}
-            className="bg-card focus-visible:ring-ring ml-3 inline-flex shrink-0 items-center gap-1.5 rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-indigo-700 transition-colors hover:border-indigo-200 hover:bg-indigo-50 focus-visible:ring-2 focus-visible:outline-none"
-          >
-            <Edit3 size={13} />
-            Edit document
-          </button>
+          </SurfaceSection>
         ) : null}
-      </div>
 
-      {/* Content body */}
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-        <div className="mx-auto max-w-3xl space-y-4">
-          {/* Summary card */}
-          <div className="bg-card rounded-lg border border-slate-200 p-4">
-            <h3 className="mb-2 text-xs font-bold tracking-wide text-slate-500 uppercase">
-              Summary
-            </h3>
-            <p className="text-sm leading-relaxed text-slate-600">{doc.summary}</p>
-          </div>
-
-          {/* Metadata grid */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {doc.simulationName ? (
-              <MetaCard
-                icon={<BookOpen size={14} />}
-                label="GroupSimulation"
-                value={doc.simulationName}
-              />
-            ) : null}
-            <MetaCard icon={<FileText size={14} />} label="Pages" value={`${doc.pageCount}`} />
-            <MetaCard icon={<Eye size={14} />} label="Opened" value={`${doc.openCount}×`} />
-            <MetaCard
-              icon={<ExternalLink size={14} />}
-              label="Shared by"
-              value={doc.sharedBy || '—'}
-            />
-          </div>
-
-          {/* Preview excerpt */}
-          <div className="bg-card rounded-lg border border-slate-200 shadow-sm">
-            <div className="flex items-center justify-between border-b border-slate-100 px-4 py-2.5">
-              <h3 className="text-xs font-bold tracking-wide text-slate-500 uppercase">Preview</h3>
-              <button
-                type="button"
-                onClick={() => onOpenPreview(doc)}
-                className="bg-card inline-flex items-center gap-1.5 rounded-md border border-slate-200 px-2.5 py-1 text-xs font-medium text-indigo-700 transition-colors hover:border-indigo-200 hover:bg-indigo-50"
-              >
-                <ExternalLink size={12} />
-                Open full view
-              </button>
+        <SurfaceSection
+          variant="panel"
+          title="All files"
+          description={
+            activeFolder
+              ? `Showing files in ${activeFolder}.`
+              : `${documents.length} file${documents.length === 1 ? '' : 's'} available.`
+          }
+          actions={
+            activeFolder ? (
+              <span className="border-border inline-flex max-w-full min-w-0 items-center gap-1 rounded-sm border bg-[var(--color-surface-muted)] px-1.5 py-0.5 text-xs font-medium text-[var(--color-canvas-heading)]">
+                <Folder size={12} className="shrink-0" aria-hidden="true" />
+                <span className="truncate">{activeFolder}</span>
+                <button
+                  type="button"
+                  aria-label={`Show all files instead of ${activeFolder}`}
+                  onClick={() => setFolderFilter(null)}
+                  className="text-muted-foreground hover:text-foreground focus-visible:ring-ring/50 -mr-0.5 grid size-4 shrink-0 place-items-center rounded-sm transition-colors focus-visible:ring-2 focus-visible:outline-none motion-reduce:transition-none"
+                >
+                  <X size={11} aria-hidden="true" />
+                </button>
+              </span>
+            ) : undefined
+          }
+        >
+          {filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-2 px-4 py-12 text-center">
+              <span className="text-muted-foreground grid size-11 place-items-center rounded-md bg-[var(--color-surface-muted)]">
+                <FileText size={19} aria-hidden="true" />
+              </span>
+              <div>
+                <p className="text-sm font-medium text-[var(--color-canvas-heading)]">
+                  {hasDocuments ? 'No matching documents' : 'No documents yet'}
+                </p>
+                <p className="mt-1 max-w-sm text-xs leading-relaxed text-[var(--color-canvas-text-muted)]">
+                  {hasDocuments
+                    ? 'Try a different search or show all files.'
+                    : 'Documents shared with this simulation will appear here.'}
+                </p>
+              </div>
+              {hasFilters ? (
+                <Button type="button" size="sm" variant="outline" onClick={clearFilters}>
+                  Clear filters
+                </Button>
+              ) : onCreateDocument ? (
+                <Button type="button" size="sm" onClick={onCreateDocument}>
+                  <Plus size={14} aria-hidden="true" />
+                  New document
+                </Button>
+              ) : null}
             </div>
-            <div className="max-h-[420px] overflow-y-auto p-4">
-              {(() => {
-                const excerpt = isHtmlContent(doc.content)
-                  ? stripHtmlToText(doc.content)
-                  : doc.content
-                return (
-                  <pre className="font-sans text-[13px] leading-7 whitespace-pre-wrap text-slate-600">
-                    {excerpt.length > 1200 ? `${excerpt.slice(0, 1200)}\n\n…` : excerpt}
-                  </pre>
-                )
-              })()}
-            </div>
-          </div>
-        </div>
+          ) : (
+            <Table className="min-w-[760px]">
+              <TableHeader className="[&_th]:h-9 [&_th]:bg-[var(--color-surface-muted)] [&_th]:px-2.5 [&_th]:text-[11px] [&_th]:font-semibold [&_th]:tracking-normal [&_th]:text-[var(--color-canvas-text-muted)]">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead>File name</TableHead>
+                  <TableHead>Owner</TableHead>
+                  <TableHead>Modified</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((doc) => {
+                  const typeMeta = DOCUMENT_TYPE_META[doc.type]
+                  const active = doc.id === selectedId
+                  return (
+                    <TableRow
+                      key={doc.id || doc.title}
+                      data-state={active ? 'selected' : undefined}
+                      className={
+                        active ? 'bg-accent/40 data-[state=selected]:bg-accent/40' : undefined
+                      }
+                    >
+                      <TableCell className="px-2.5">
+                        <button
+                          type="button"
+                          onClick={() => openDocument(doc)}
+                          aria-label={`Open ${doc.title}`}
+                          className="group/name focus-visible:ring-ring/50 flex max-w-full min-w-0 items-center gap-2.5 rounded-md text-left focus-visible:ring-2 focus-visible:outline-none"
+                        >
+                          <span
+                            className="grid size-8 shrink-0 place-items-center rounded-md"
+                            style={{ backgroundColor: typeMeta.bg, color: typeMeta.color }}
+                            aria-hidden="true"
+                          >
+                            <FileText size={15} />
+                          </span>
+                          <span className="min-w-0">
+                            <span className="text-foreground group-hover/name:text-primary block max-w-[260px] truncate text-sm font-medium transition-colors motion-reduce:transition-none">
+                              {doc.title}
+                            </span>
+                            <span className="text-muted-foreground block text-[11px]">
+                              {doc.pageCount} page{doc.pageCount === 1 ? '' : 's'}
+                            </span>
+                          </span>
+                        </button>
+                      </TableCell>
+                      <TableCell className="px-2.5">
+                        <span
+                          className="text-muted-foreground block max-w-[180px] truncate text-sm"
+                          title={doc.ownerName || undefined}
+                        >
+                          {doc.ownerName || '—'}
+                        </span>
+                      </TableCell>
+                      <TableCell className="px-2.5">
+                        <span className="text-muted-foreground text-xs whitespace-nowrap">
+                          {formatDocumentDate(doc.modifiedAt) || '—'}
+                        </span>
+                      </TableCell>
+                      <TableCell className="px-2.5">
+                        {doc.folderName ? (
+                          <span className="text-muted-foreground inline-flex max-w-[180px] items-center gap-1.5 text-xs">
+                            <Folder size={12} className="shrink-0" aria-hidden="true" />
+                            <span className="truncate">{doc.folderName}</span>
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">Root</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="px-2.5 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openDocument(doc)}
+                            aria-label={`Preview ${doc.title}`}
+                            title="Preview"
+                          >
+                            <Eye size={13} aria-hidden="true" />
+                            Preview
+                          </Button>
+                          {onEditDocument ? (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => onEditDocument(doc)}
+                              aria-label={`Edit ${doc.title}`}
+                              title="Edit"
+                            >
+                              <Edit3 size={13} aria-hidden="true" />
+                              Edit
+                            </Button>
+                          ) : null}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </SurfaceSection>
       </div>
-    </div>
-  )
-}
-
-function MetaCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
-  return (
-    <div className="bg-card flex min-w-0 items-start gap-2 rounded-md border border-slate-200 px-3 py-2.5">
-      <span className="mt-0.5 text-slate-400">{icon}</span>
-      <span className="min-w-0">
-        <span className="block text-[10px] font-bold tracking-wide text-slate-400 uppercase">
-          {label}
-        </span>
-        <span className="block truncate text-sm font-medium text-slate-600">{value}</span>
-      </span>
     </div>
   )
 }

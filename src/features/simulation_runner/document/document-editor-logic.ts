@@ -1,4 +1,4 @@
-import type { DocumentWriteInput, RuntimeSimulationDocument } from '../../../shared/api/documents'
+import type { DocumentWriteInput, RuntimeFileItem } from '../../../shared/api/documents'
 import { isHtmlContent, sanitizeHtml } from '../../../shared/html'
 
 export function toTiptapDocumentContent(value: string): string {
@@ -26,7 +26,7 @@ export function createEmptyDocumentDraft(): DocumentEditorDraft {
   }
 }
 
-export function draftFromRuntimeDocument(record: RuntimeSimulationDocument): DocumentEditorDraft {
+export function draftFromRuntimeDocument(record: RuntimeFileItem): DocumentEditorDraft {
   const contents = [...record.contents]
     .filter((content) => content.page !== null)
     .sort((left, right) => (left.page ?? 0) - (right.page ?? 0))
@@ -36,8 +36,8 @@ export function draftFromRuntimeDocument(record: RuntimeSimulationDocument): Doc
     }))
 
   return {
-    participantDocId: record.participantDocId,
-    documentName: record.documentName ?? '',
+    participantDocId: record.participantDocId ?? '',
+    documentName: record.fileName ?? '',
     contents: contents.length > 0 ? contents : [{ page: 1, content: '' }],
   }
 }

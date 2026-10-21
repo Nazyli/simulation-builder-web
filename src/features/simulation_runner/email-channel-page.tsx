@@ -12,7 +12,11 @@ import {
   type ParticipantEmailAttachmentInput,
   type RuntimeEmailAttachment,
 } from '../../shared/api/email'
-import { getDocuments } from '../../shared/api/documents'
+import {
+  flattenRuntimeDocuments,
+  getDocuments,
+  type RuntimeDocumentStructure,
+} from '../../shared/api/documents'
 import { AttachmentPreviewDialog } from './email/attachment-preview-dialog'
 import { AttachmentPickerDialog, type AttachmentSelection } from './email/attachment-picker-dialog'
 import { EmailWorkspace } from './email/email-workspace'
@@ -61,6 +65,11 @@ const toEmailDraft = (item: EmailDraftItem): EmailDraft => ({
   totalAttachment: item.totalAttachment,
 })
 
+const emptyDocumentStructure: RuntimeDocumentStructure = {
+  filesInFolders: [],
+  filesInRoot: [],
+}
+
 export function EmailChannelPage() {
   const queryClient = useQueryClient()
   const { participantId, runnerParticipantId, isEmailPending, sendEmail, markEmailThreadRead } =
@@ -102,6 +111,10 @@ export function EmailChannelPage() {
     setIsPickerOpen(true)
   }
 
+  const allDocuments = useMemo(
+    () => flattenRuntimeDocuments(documentsQuery.data ?? emptyDocumentStructure),
+    [documentsQuery.data],
+  )
   const selectedDraft = drafts.find((draft) => draft.participantEmailId === selectedRootId) ?? null
   const selectedThread =
     threads.find((t) => t.participantEmailId === selectedRootId) ??
@@ -145,14 +158,14 @@ export function EmailChannelPage() {
       setSelectedAttachments([])
       return
     }
-    if (!documentsQuery.data) {
+    if (allDocuments.length === 0) {
       setSelectedAttachments([])
       return
     }
     const restored: AttachmentSelection[] = []
     for (const attachment of draftMessage.attachments) {
       if (!attachment.participantDocId) continue
-      const document = documentsQuery.data.find(
+      const document = allDocuments.find(
         (item) => item.participantDocId === attachment.participantDocId,
       )
       if (!document) continue
@@ -161,7 +174,7 @@ export function EmailChannelPage() {
         const documentContent = document.contents.find(
           (item) => item.page === attachmentContent.page,
         )
-        if (!documentContent) return []
+        if (!documentContent?.participantDocContentId) return []
         return [
           {
             participantDocContentId: documentContent.participantDocContentId,
@@ -171,13 +184,13 @@ export function EmailChannelPage() {
       })
       if (contents.length === 0) continue
       restored.push({
-        participantDocId: document.participantDocId,
-        documentName: document.documentName ?? attachment.fileName ?? 'Untitled document',
+        participantDocId: document.participantDocId ?? attachment.participantDocId,
+        documentName: document.fileName ?? attachment.fileName ?? 'Untitled document',
         contents,
       })
     }
     setSelectedAttachments(restored)
-  }, [draftMessage, documentsQuery.data])
+  }, [draftMessage, allDocuments])
 
   const composerDraft = draftMessage
     ? {
@@ -339,7 +352,7 @@ export function EmailChannelPage() {
       <AttachmentPickerDialog
         open={isPickerOpen}
         onOpenChange={setIsPickerOpen}
-        documents={documentsQuery.data ?? []}
+        documentStructure={documentsQuery.data ?? emptyDocumentStructure}
         isLoading={documentsQuery.isLoading}
         initialSelection={selectedAttachments}
         onConfirm={setSelectedAttachments}
