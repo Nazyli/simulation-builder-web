@@ -9,14 +9,12 @@ export interface EmailMessage {
   channel: 'email'
   emailId: string | null
   messageId?: string
-  sessionId?: string
   subject: string
   content: string
   timestamp: string
   actionType: string
   status?: 'sent' | 'draft'
   simulationLabel?: string
-  simulationId?: string
   isUnread?: boolean
   attachments: EmailAttachment[]
   canReply: boolean
@@ -24,14 +22,10 @@ export interface EmailMessage {
 
 export interface EmailAttachment {
   emailAttachmentId: string
-  participantEmailId: string
   participantDocId: string | null
-  masterAttachmentId: string | null
-  documentId: string | null
   fileName: string | null
   isHighlight: boolean
   ownerName: string | null
-  openedAt: string | null
   modifiedDate: string | null
   contents: EmailAttachmentContent[]
 }

@@ -246,13 +246,12 @@ test('records a runtime attachment open against its participant email scope', as
   await markEmailAttachmentOpened(
     'runtime attachment/1',
     'participant 1',
-    'simulation 1',
     'participant email/1',
   )
 
   assert.equal(
     request.path,
-    '/admin/runner/email/attachments/runtime%20attachment%2F1/opened?participantId=participant+1&simulationId=simulation+1&participantEmailId=participant+email%2F1',
+    '/admin/runner/email/attachments/runtime%20attachment%2F1/opened?participantId=participant+1&participantEmailId=participant+email%2F1',
   )
   assert.equal(request.init.method, 'POST')
 })

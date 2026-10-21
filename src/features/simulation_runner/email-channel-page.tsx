@@ -33,8 +33,6 @@ const toEmailMessage = (message: ApiEmailMessage): EmailMessage => ({
   content: message.content,
   timestamp: message.createdDate,
   status: message.status,
-  sessionId: message.sessionId,
-  simulationId: message.simulationId ?? undefined,
   isUnread: message.isRead === false,
   attachments: message.attachments ?? [],
   canReply: message.canReply,
@@ -194,15 +192,13 @@ export function EmailChannelPage() {
     mutationFn: ({
       attachmentId,
       participantEmailId,
-      simulationId,
     }: {
       attachmentId: string
       participantEmailId: string
-      simulationId: string
-    }) => markEmailAttachmentOpened(attachmentId, participantId, simulationId, participantEmailId),
+    }) => markEmailAttachmentOpened(attachmentId, participantId, participantEmailId),
     onSuccess: (
       openedAttachment: RuntimeEmailAttachment,
-      { participantEmailId }: { attachmentId: string; participantEmailId: string; simulationId: string },
+      { participantEmailId }: { attachmentId: string; participantEmailId: string },
     ) => {
       queryClient.setQueryData<ApiEmailMessage[]>(
         ['email-thread-messages', participantId, selectedRootId],
@@ -281,20 +277,14 @@ export function EmailChannelPage() {
   }
 
   function openAttachment(message: EmailMessage, attachment: EmailAttachment) {
-    if (
-      !message.simulationId ||
-      !message.messageId ||
-      openingAttachmentIds.has(attachment.emailAttachmentId)
-    )
-      return
-    if (attachment.openedAt) {
+    if (!message.messageId || openingAttachmentIds.has(attachment.emailAttachmentId)) return
+    if (attachment.modifiedDate) {
       setPreviewAttachment(attachment)
       return
     }
     attachmentOpenMutation.mutate({
       attachmentId: attachment.emailAttachmentId,
       participantEmailId: message.messageId,
-      simulationId: message.simulationId,
     })
   }
 

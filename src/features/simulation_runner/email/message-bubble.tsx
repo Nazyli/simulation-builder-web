@@ -103,7 +103,7 @@ export function MessageBubble({
           </p>
           <div className="flex flex-wrap gap-2">
             {message.attachments.map((attachment) => {
-              const isOpened = Boolean(attachment.openedAt)
+              const isOpened = Boolean(attachment.modifiedDate)
               const isOpening = openingAttachmentIds.has(attachment.emailAttachmentId)
               const pageLabel = formatAttachmentPageLabel(attachment.contents)
               return (
