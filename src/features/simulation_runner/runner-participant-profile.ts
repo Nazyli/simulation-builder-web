@@ -6,6 +6,7 @@ export type ParticipantLanguage = (typeof PARTICIPANT_LANGUAGES)[number]
 
 export interface RunnerParticipantProfile {
   participantFullName: string
+  participantEmail: string
   participantGender: ParticipantGender
   participantLanguage: ParticipantLanguage
   participantActorId: string
@@ -13,6 +14,7 @@ export interface RunnerParticipantProfile {
 
 export const DEFAULT_RUNNER_PARTICIPANT_PROFILE: RunnerParticipantProfile = {
   participantFullName: '',
+  participantEmail: '',
   participantGender: 'Male',
   participantLanguage: 'Bahasa Indonesia',
   participantActorId: '',

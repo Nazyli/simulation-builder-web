@@ -37,6 +37,7 @@ export const startExecutionBatch = (payload: {
   participantId: string
   simulationIds: string[]
   participantFullName: string
+  participantEmail: string
   participantGender: RunnerParticipantProfile['participantGender']
   participantLanguage: RunnerParticipantProfile['participantLanguage']
   participantActorId: string

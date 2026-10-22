@@ -32,6 +32,9 @@ export function SimulationEntryPage() {
   const [participantFullName, setParticipantFullName] = useState(
     DEFAULT_RUNNER_PARTICIPANT_PROFILE.participantFullName,
   )
+  const [participantEmail, setParticipantEmail] = useState(
+    DEFAULT_RUNNER_PARTICIPANT_PROFILE.participantEmail,
+  )
   const [participantGender, setParticipantGender] = useState<ParticipantGender>(
     DEFAULT_RUNNER_PARTICIPANT_PROFILE.participantGender,
   )
@@ -63,6 +66,7 @@ export function SimulationEntryPage() {
       participantId: participantId.trim(),
       simulationIds,
       participantFullName: participantFullName.trim(),
+      participantEmail: participantEmail.trim(),
       participantGender,
       participantLanguage,
       participantActorId: actorId.trim(),
@@ -94,6 +98,19 @@ export function SimulationEntryPage() {
                   required
                   value={participantFullName}
                   onChange={(event) => setParticipantFullName(event.target.value)}
+                />
+              </div>
+              <div className={runnerFormGroupClass}>
+                <label className={runnerFormLabelClass} htmlFor="runner-email">
+                  Email
+                </label>
+                <input
+                  id="runner-email"
+                  type="email"
+                  className={runnerInputClass}
+                  required
+                  value={participantEmail}
+                  onChange={(event) => setParticipantEmail(event.target.value)}
                 />
               </div>
               <div className={runnerFormGroupClass}>
@@ -188,6 +205,7 @@ export function SimulationEntryPage() {
                   !actorId.trim() ||
                   !participantId.trim() ||
                   !participantFullName.trim() ||
+                  !participantEmail.trim() ||
                   !simulationIds.length ||
                   start.isPending
                 }
