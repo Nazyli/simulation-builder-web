@@ -5,7 +5,7 @@ import test from 'node:test'
 import {
   getEmailThreadMessages,
   markEmailAttachmentOpened,
-  markEmailThreadAsRead,
+  markEmailAsRead,
   sendParticipantEmail,
 } from '../src/shared/api/email.ts'
 import { sortAttachmentPreviewPages } from '../src/features/simulation_runner/email/types.ts'
@@ -54,7 +54,7 @@ test('derives thread scope on the backend for thread reads and mark-read', async
   }
 
   await getEmailThreadMessages('participant 1', 'root/email/1')
-  await markEmailThreadAsRead('participant 1', 'root/email/1')
+  await markEmailAsRead('participant 1', 'root/email/1')
 
   assert.equal(
     requests[0].path,
@@ -62,9 +62,12 @@ test('derives thread scope on the backend for thread reads and mark-read', async
   )
   assert.equal(
     requests[1].path,
-    '/admin/runner/email/mark-thread-read?participantId=participant%201&rootId=root%2Femail%2F1',
+    '/admin/runner/email/mark-as-read?participantId=participant%201',
   )
   assert.equal(requests[1].init.method, 'POST')
+  assert.deepEqual(JSON.parse(requests[1].init.body), {
+    participantEmailId: 'root/email/1',
+  })
 })
 
 test('passes thread messages through with canReply unchanged', async () => {

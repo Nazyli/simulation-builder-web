@@ -13,7 +13,7 @@ import {
 } from '../../shared/api/chat'
 import { subscribeRunnerEvents, type RunnerEvent } from '../../shared/api/runner-events'
 import {
-  markEmailThreadAsRead,
+  markEmailAsRead,
   sendParticipantEmail,
   type ParticipantEmailAttachmentInput,
 } from '../../shared/api/email'
@@ -232,7 +232,7 @@ export function SimulationRunProvider({
   })
 
   const emailRead = useMutation({
-    mutationFn: ({ rootId }: { rootId: string }) => markEmailThreadAsRead(participantId.trim(), rootId),
+    mutationFn: ({ rootId }: { rootId: string }) => markEmailAsRead(participantId.trim(), rootId),
     onSuccess: ({ count }) => {
       const pid = participantId.trim()
       client.setQueryData<NotificationActivity>(['notification-activity', pid], (activity) => {

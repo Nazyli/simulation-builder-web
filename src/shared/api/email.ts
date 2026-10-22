@@ -131,10 +131,13 @@ export const sendParticipantEmail = (
     },
   )
 
-export const markEmailThreadAsRead = (participantId: string, rootId: string) =>
+export const markEmailAsRead = (participantId: string, participantEmailId: string) =>
   apiClient<EmailMarkAsReadResult>(
-    `/admin/runner/email/mark-thread-read?participantId=${encodeURIComponent(participantId)}&rootId=${encodeURIComponent(rootId)}`,
-    { method: 'POST' },
+    `/admin/runner/email/mark-as-read?participantId=${encodeURIComponent(participantId)}`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ participantEmailId }),
+    },
   )
 
 export const markEmailAttachmentOpened = (
