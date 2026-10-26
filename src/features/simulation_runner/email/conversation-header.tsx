@@ -14,6 +14,7 @@ export function ConversationHeader({ thread, messages }: ConversationHeaderProps
     )
   }
   const count = messages.length
+  const canReply = messages.at(-1)?.canReply === true
   return (
     <div className="bg-card flex items-center justify-between border-b border-slate-200 px-4 py-2.5">
       <div className="min-w-0 flex-1">
@@ -26,7 +27,21 @@ export function ConversationHeader({ thread, messages }: ConversationHeaderProps
               [DRAFT]
             </span>
           ) : null}
-          <span className="truncate">{thread.subject || '(no subject)'}</span>
+          {count > 0 ? (
+            <span
+              aria-label={
+                canReply ? 'This thread can resolve a reply' : 'This thread cannot resolve a reply'
+              }
+              className={`shrink-0 rounded-sm border px-1 text-[10px] leading-4 font-semibold whitespace-nowrap ${
+                canReply
+                  ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
+                  : 'border-slate-300 bg-slate-50 text-slate-500'
+              }`}
+            >
+              {canReply ? 'REPLYABLE' : 'NO REPLY'}
+            </span>
+          ) : null}
+          <span className="min-w-0 flex-1 truncate">{thread.subject || '(no subject)'}</span>
         </p>
       </div>
       <span className="ml-4 shrink-0 text-xs text-slate-500">
