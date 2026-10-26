@@ -2,16 +2,9 @@ import { apiClient } from './client'
 
 export interface ChatMessage {
   participantChatId: string
-  groupingChatId: string
-  sessionId: string
-  chatPartnerId: string
   senderId: string
   senderType: 'participant' | 'actor'
   content: string
-  simulationId: string | null
-  isRead: boolean
-  readAt: string | null
-  createdDate: string
   sentAt: string
 }
 

@@ -6,7 +6,6 @@ export interface ChatMessage {
   channel: 'chat'
   chatId: string | null
   messageId?: string
-  sessionId?: string
   content: string
   timestamp: string
   actionType: string

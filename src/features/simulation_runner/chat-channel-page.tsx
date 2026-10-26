@@ -67,7 +67,7 @@ export function ChatChannelPage() {
   const toChatMessage = (message: ApiChatMessage): ChatMessage => ({
     messageId: message.participantChatId,
     from: message.senderId,
-    to: message.senderType === 'participant' ? message.chatPartnerId : participantId,
+    to: message.senderType === 'participant' ? selectedActor ?? '' : participantId,
     actor: message.senderId,
     senderType: message.senderType,
     channel: 'chat' as const,
@@ -75,9 +75,8 @@ export function ChatChannelPage() {
     actionType: 'message',
     content: message.content,
     timestamp: message.sentAt,
-    sessionId: message.sessionId,
-    simulationId: message.simulationId ?? undefined,
-    isUnread: message.isRead === false,
+    simulationId: effectiveSelected ?? undefined,
+    isUnread: false,
   })
 
   flushBatchRef.current = (contents) => {

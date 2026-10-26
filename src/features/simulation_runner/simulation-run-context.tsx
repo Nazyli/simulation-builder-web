@@ -124,24 +124,7 @@ export function SimulationRunProvider({
       const pid = participantId.trim()
       client.setQueryData<ChatMessageHistory>(
         ['chat-messages', pid, simulationId, actorId],
-        (history) =>
-          history
-            ? {
-                ...history,
-                content: history.content.map((group) => ({
-                  ...group,
-                  messages: group.messages.map((message) =>
-                    message.senderType === 'actor' && !message.isRead
-                      ? {
-                          ...message,
-                          isRead: true,
-                          readAt: message.readAt ?? new Date().toISOString(),
-                        }
-                      : message,
-                  ),
-                })),
-              }
-            : history,
+        (history) => history,
       )
       client.setQueryData<ChatConversationItem[]>(['chat-list', pid, simulationId], (rows) =>
         rows?.map((row) =>
